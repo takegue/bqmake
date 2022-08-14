@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "bigquery-porter": "^0.0.6"
+  }
+}

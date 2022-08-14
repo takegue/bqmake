@@ -1,0 +1,133 @@
+{
+    "routineType": "PROCEDURE",
+    "language": "SQL",
+    "arguments": [
+        {
+            "name": "destination",
+            "dataType": {
+                "typeKind": "STRUCT",
+                "structType": {
+                    "fields": [
+                        {
+                            "name": "project_id",
+                            "type": {
+                                "typeKind": "STRING"
+                            }
+                        },
+                        {
+                            "name": "dataset_id",
+                            "type": {
+                                "typeKind": "STRING"
+                            }
+                        },
+                        {
+                            "name": "table_id",
+                            "type": {
+                                "typeKind": "STRING"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "sources",
+            "dataType": {
+                "typeKind": "ARRAY",
+                "arrayElementType": {
+                    "typeKind": "STRUCT",
+                    "structType": {
+                        "fields": [
+                            {
+                                "name": "project_id",
+                                "type": {
+                                    "typeKind": "STRING"
+                                }
+                            },
+                            {
+                                "name": "dataset_id",
+                                "type": {
+                                    "typeKind": "STRING"
+                                }
+                            },
+                            {
+                                "name": "table_id",
+                                "type": {
+                                    "typeKind": "STRING"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "name": "partition_alignments",
+            "dataType": {
+                "typeKind": "ARRAY",
+                "arrayElementType": {
+                    "typeKind": "STRUCT",
+                    "structType": {
+                        "fields": [
+                            {
+                                "name": "destination",
+                                "type": {
+                                    "typeKind": "STRING"
+                                }
+                            },
+                            {
+                                "name": "sources",
+                                "type": {
+                                    "typeKind": "ARRAY",
+                                    "arrayElementType": {
+                                        "typeKind": "STRING"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "name": "update_job",
+            "dataType": {
+                "typeKind": "STRUCT",
+                "structType": {
+                    "fields": [
+                        {
+                            "name": "query",
+                            "type": {
+                                "typeKind": "STRING"
+                            }
+                        },
+                        {
+                            "name": "dry_run",
+                            "type": {
+                                "typeKind": "BOOL"
+                            }
+                        },
+                        {
+                            "name": "tolerate_delay",
+                            "type": {
+                                "typeKind": "INTERVAL"
+                            }
+                        },
+                        {
+                            "name": "max_update_interval",
+                            "type": {
+                                "typeKind": "INT64"
+                            }
+                        },
+                        {
+                            "name": "via_temp_table",
+                            "type": {
+                                "typeKind": "BOOL"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
