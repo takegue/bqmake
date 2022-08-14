@@ -1,2 +1,3 @@
 # bqmake
-Make-like BigQuery Toolkit
+
+BigQuery Data Build Tool like `make`
