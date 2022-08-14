@@ -1,48 +1,6 @@
-create or replace procedure `v0.partition_table__check_staleness`(
-  out ret array<string>
-  , destination struct<
-    project_id string
-    , dataset_id string
-    , table_id string
-  >
-  , sources array<struct<
-    project_id string
-    , dataset_id string
-    , table_id string
-    >>
-  , partition_alignments array<struct<
-    destination string
-    , sources array<string>
-  >>
-  , options_json JSON
-)
-options(description="""Extracts partitions that are stale.
-
-Argument
-===
-
-- ret                  : Output variable
-- destination          : destination table
-- sources              : source tables
-- partition_alignments : partition alignments
-- options              : option values in json format
-  * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)
-  *         null_value : Alignment options. __NULL__ meaning no partition (Default: '__NULL__')
-
-
-Stalenss and Stablity Margin Checks
-===
-
-                     past                                      now
-Source Table        : |       |         |                       |
-                              ^ Refresh ^ Refresh
-
-Staleness Timeline  : | Fresh | Ignore  |  Ignore    |   Stale  |
-                                        <------------^ tolerate staleness
-
-
-"""
-)
+CREATE OR REPLACE PROCEDURE bqmake.v0.partition_table__check_staleness(OUT ret ARRAY<STRING>, destination STRUCT<project_id STRING, dataset_id STRING, table_id STRING>, sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>, partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>, options_json JSON)
+OPTIONS(
+  description="Extracts partitions that are stale.\n\nArgument\n===\n\n- ret                  : Output variable\n- destination          : destination table\n- sources              : source tables\n- partition_alignments : partition alignments\n- options              : option values in json format\n  * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)\n  *         null_value : Alignment options. __NULL__ meaning no partition (Default: '__NULL__')\n\n\nStalenss and Stablity Margin Checks\n===\n\n                     past                                      now\nSource Table        : |       |         |                       |\n                              ^ Refresh ^ Refresh\n\nStaleness Timeline  : | Fresh | Ignore  |  Ignore    |   Stale  |\n                                        <------------^ tolerate staleness\n\n\n")
 begin
   declare options struct<
     tolerate_staleness interval

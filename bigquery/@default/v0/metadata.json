@@ -15,11 +15,11 @@
         },
         {
             "role": "READER",
-            "specialGroup": "projectReaders"
+            "specialGroup": "allAuthenticatedUsers"
         },
         {
             "role": "READER",
-            "specialGroup": "allAuthenticatedUsers"
+            "specialGroup": "projectReaders"
         }
     ],
     "location": "US"
