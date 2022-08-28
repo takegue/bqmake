@@ -1,4 +1,4 @@
-create or replace procedure `fn.generate_sql_for_table_stats`(
+create or replace procedure `v0.generate_sql_for_table_stats`(
   ret string
   , destination struct<project string, dataset string, table string>
   , group_keys array<string>
