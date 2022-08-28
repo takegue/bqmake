@@ -1,4 +1,10 @@
-CREATE OR REPLACE PROCEDURE bqmake.v0.partition_table__check_staleness(OUT ret ARRAY<STRING>, destination STRUCT<project_id STRING, dataset_id STRING, table_id STRING>, sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>, partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>, options_json JSON)
+CREATE OR REPLACE PROCEDURE `v0.detect_staleness`(
+  OUT ret ARRAY<STRING>
+  , destination STRUCT<project_id STRING, dataset_id STRING, table_id STRING>
+  , sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>
+  , partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>
+  , options_json JSON
+)
 OPTIONS(
   description="Extracts partitions that are stale.\n\nArgument\n===\n\n- ret                  : Output variable\n- destination          : destination table\n- sources              : source tables\n- partition_alignments : partition alignments\n- options              : option values in json format\n  * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)\n  *         null_value : Alignment options. __NULL__ meaning no partition (Default: '__NULL__')\n\n\nStalenss and Stablity Margin Checks\n===\n\n                     past                                      now\nSource Table        : |       |         |                       |\n                              ^ Refresh ^ Refresh\n\nStaleness Timeline  : | Fresh | Ignore  |  Ignore    |   Stale  |\n                                        <------------^ tolerate staleness\n\n\n")
 begin
