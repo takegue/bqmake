@@ -26,6 +26,42 @@ select
     , destination_ref
     , snapshot_query
   ) as create_ddl
+  , format("""
+      # %s
+      with source as (
+        select
+          *
+          , ifnull(valid_to < (lead(valid_from) over (partition by unique_key order by valid_to nulls last)), false) as is_insane_valid_column
+          , version_hash is null as is_insale_version_column
+          , unique_key is null as is_insane_unique_key
+        FROM %s
+      )
+
+      SELECT
+        unique_key
+        , if(countif(is_insane_valid_column) > 0, max(format('Contradict valid_from with previous valid_to at %%t, %%s', unique_key, version_hash)), null) as validate_record_lifetime
+      from source
+      group by unique_key
+    """
+    , header
+    , destination_ref
+  ) as validate_query
+  , format("""
+      with grain as (
+        SELECT
+          date(valid_to) as changed_date, unique_key
+          , approx_count_distinct(version_hash) as n_changed
+        from source
+        group by changed_date, unique_key
+      )
+      , stats as (
+        select change_date, approx_quantiles(n_changed, 4) from grain
+      )
+      select * from stats
+    """
+    , header
+    , destination_ref
+  ) as profile_query
   -- DML Query
   , format("""
       # %s
