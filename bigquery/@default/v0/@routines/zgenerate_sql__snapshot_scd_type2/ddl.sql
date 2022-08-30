@@ -59,10 +59,10 @@ select
       as
         select * from `%s`
       where
-        ifnull(
-          valid_from <= `_at` and `_at` < valid_to
-          , valid_to is null
-        )
+        -- when _at is null, use latest version
+        (valid_from <= `_at` and ifnull(`_at` < valid_to, true))
+        or
+        (`_at` is null and valid_to is null)
     """
     , header
     , destination_ref
