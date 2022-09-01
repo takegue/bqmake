@@ -1,15 +1,15 @@
-declare labels array<struct<key string, value string>>;
+
 create or replace procedure `v0.profile_table__update_labels`(
   in destination struct<project string, dataset string>
 )
 begin
+  declare dst_ref string default format('%s.%s', coalesce(destination.project, @@project_id), destination.dataset);
   execute immediate format("""
     create or replace temp table `tmp_partitions`
     as
-      select * from `%s.%s.INFORMATION_SCHEMA.PARTITIONS`
+      select * from `%s.INFORMATION_SCHEMA.PARTITIONS`
   """
-    , coalesce(destination.project, @@project_id)
-    , destination.dataset
+    , dst_ref
   );
 
   execute immediate format("""
@@ -17,12 +17,14 @@ begin
     as
       select
         table_catalog, table_schema, table_name
-        , ifnull(`v0.get_bqlabel_from_option_value`(option_value), []) as labels
-      from `%s.%s.INFORMATION_SCHEMA.TABLE_OPTIONS`
+        , table_type
+        , ifnull(`bqmake.v0.get_bqlabel_from_option_value`(option_value), []) as labels
+      from `%s.INFORMATION_SCHEMA.TABLES`
+      join `%s.INFORMATION_SCHEMA.TABLE_OPTIONS` using(table_catalog, table_schema, table_name)
       where option_name = 'labels'
     """
-    , coalesce(destination.project, @@project_id)
-    , destination.dataset
+    , dst_ref
+    , dst_ref
   );
 
   for record in (
@@ -75,9 +77,15 @@ begin
     )
   do
     execute immediate format("""
-      alter table `%s.%s.%s`
+      alter %s `%s.%s.%s`
       set options (labels=@labels);
     """
+      , case table_type
+          when 'BASE TABLE' then 'table'
+          when 'VIEW' then 'view'
+          when 'MATERIALIZED VIEW' then 'materialized view'
+          else error(format("Invalid table_type: %t", table_type))
+        end
       , record.table_catalog
       , record.table_schema
       , record.table_name
@@ -87,5 +95,5 @@ begin
   end for;
 end;
 
-
+declare labels array<struct<key string, value string>>;
 call `v0.profile_table__update_labels`((null, 'zpreview_test'))

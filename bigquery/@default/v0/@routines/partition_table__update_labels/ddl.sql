@@ -1,27 +1,31 @@
-create or replace procedure `fn.update_tables_labels_for_partition`(
+create or replace procedure `bqmake.v0.profile_table__update_labels`(
   in destination struct<project string, dataset string>
 )
 begin
+  declare dst_ref string default format('%s.%s', coalesce(destination.project, @@project_id), destination.dataset);
   execute immediate format("""
     create or replace temp table `tmp_partitions`
     as
-      select * from `%s.%s.INFORMATION_SCHEMA.PARTITIONS`
+      select * from `%s.INFORMATION_SCHEMA.PARTITIONS`
   """
-    , coalesce(destination.project, @@project_id)
-    , destination.dataset
+    , dst_ref
   );
 
   execute immediate format("""
     create or replace temp table `tmp_table_options`
     as
+      with labels as (
+        select * from `%s.INFORMATION_SCHEMA.TABLE_OPTIONS` where option_name = 'labels'
+      )
       select
         table_catalog, table_schema, table_name
-        , ifnull(`v0.get_bqlabel_from_option`(option_value), []) as labels
-      from `%s.%s.INFORMATION_SCHEMA.TABLE_OPTIONS`
-      where option_name = 'labels'
+        , table_type
+        , ifnull(`bqmake.v0.get_bqlabel_from_option`(option_value), []) as labels
+      from `%s.INFORMATION_SCHEMA.TABLES`
+      left join labels using(table_catalog, table_schema, table_name)
     """
-    , coalesce(destination.project, @@project_id)
-    , destination.dataset
+    , dst_ref
+    , dst_ref
   );
 
   for record in (
@@ -58,7 +62,7 @@ begin
       )
       , update_labels as (
         select
-          table_catalog, table_schema, table_name
+          table_catalog, table_schema, table_name, table_type
           , array(
             select as struct
               key, any_value(coalesce(`new`.value, old.value)) as value
@@ -74,9 +78,15 @@ begin
     )
   do
     execute immediate format("""
-      alter table `%s.%s.%s`
+      alter %s `%s.%s.%s`
       set options (labels=@labels);
     """
+      , case record.table_type
+          when 'BASE TABLE' then 'table'
+          when 'VIEW' then 'view'
+          when 'MATERIALIZED VIEW' then 'materialized view'
+          else error(format("Invalid table_type: %t %t", record.table_name, record.table_type))
+        end
       , record.table_catalog
       , record.table_schema
       , record.table_name
