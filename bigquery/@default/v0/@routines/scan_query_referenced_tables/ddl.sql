@@ -59,5 +59,5 @@ end
 ;
 
 -- Test
-call `fn.get_query_referenced_tables`(ret, "select * from sandbox.sample_view", JSON '{"enable_query_rewrite": true}');
+call `v0.scan_query_referenced_tables`(ret, "select * from sandbox.sample_view", JSON '{"enable_query_rewrite": true}');
 select ret;

@@ -1,4 +1,4 @@
-create or replace table function `v0.generate_sql__scd_type2`(
+create or replace table function `v0.zgenerate_sql__snapshot_scd_type2`(
   destination struct<
     project_id string
     , dataset_id string
@@ -47,11 +47,12 @@ select
     , destination_ref
   ) as validate_query
   , format("""
+      # %s
       with grain as (
         SELECT
           date(valid_to) as changed_date, unique_key
           , approx_count_distinct(version_hash) as n_changed
-        from source
+        from %s
         group by changed_date, unique_key
       )
       , stats as (
