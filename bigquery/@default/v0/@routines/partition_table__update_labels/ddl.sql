@@ -1,4 +1,4 @@
-create or replace procedure `v0.partition_table__update_labels`(
+create or replace procedure `bqmake.v0.profile_table__update_labels`(
   in destination struct<project string, dataset string>
 )
 begin
@@ -89,19 +89,27 @@ begin
         , to_json(struct(true as enable_query_rewrite))
       );
       set _labels = array(
+        with newlabels as (
+          select
+            key,
+            case key
+              when 'partition-min' then max(value)
+              when 'partition-max' then min(value)
+              when 'partition-skip' then max(value)
+              else null
+            end as value
+          from unnest(_deps) dep
+          left join table_labels using(table_catalog, table_schema, table_name)
+          left join unnest(table_labels.labels)
+          group by key
+          having value is not null
+        )
+
         select as struct
-          key,
-          case key
-            when 'partition-min' then max(value)
-            when 'partition-max' then min(value)
-            when 'partition-skip' then max(value)
-            else any_value(value)
-          end as value
-        from unnest(_deps) dep
-        left join table_labels using(table_catalog, table_schema, table_name)
-        left join unnest(ifnull(table_labels.labels, []) || ifnull(record.table_labels, []))
-        group by key
-        having value is not null
+          key
+          , coalesce(`new`.value, old.value) as value
+        from unnest(record.labels) as old
+        full join newlabels as `new` using(key)
       );
     else
       set _labels = record.labels;
