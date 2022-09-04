@@ -1,4 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS `bqmake.v0`
+CREATE SCHEMA IF NOT EXISTS `v0`
 OPTIONS(
   location="us"
 );

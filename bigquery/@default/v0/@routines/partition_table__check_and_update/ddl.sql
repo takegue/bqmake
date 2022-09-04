@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE bqmake.v0.partition_table__check_and_update(destination STRUCT<project_id STRING, dataset_id STRING, table_id STRING>, sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>, partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>, update_job STRUCT<query STRING, dry_run BOOL, tolerate_delay INTERVAL, max_update_interval INT64, via_temp_table BOOL>)
+CREATE OR REPLACE PROCEDURE `v0.partition_table__check_and_update`(destination STRUCT<project_id STRING, dataset_id STRING, table_id STRING>, sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>, partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>, update_job STRUCT<query STRING, dry_run BOOL, tolerate_delay INTERVAL, max_update_interval INT64, via_temp_table BOOL>)
 begin
   declare stale_partitions array<string>;
   declare partition_range struct<begins_at string, ends_at string>;

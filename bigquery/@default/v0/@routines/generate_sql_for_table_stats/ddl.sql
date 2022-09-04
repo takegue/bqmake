@@ -1,12 +1,6 @@
-create or replace procedure `v0.zgenerate_sql__table_profile`(
-  ret string
-  , destination struct<project string, dataset string, table string>
-  , group_keys array<string>
-  , options array<struct<key string, value string>>
-)
-options(description="""Generate SQL for profiling table data
-"""
-)
+CREATE OR REPLACE PROCEDURE `v0.generate_sql_for_table_stats`(ret STRING, destination STRUCT<project STRING, dataset STRING, table STRING>, group_keys ARRAY<STRING>, options ARRAY<STRUCT<key STRING, value STRING>>)
+OPTIONS(
+  description="Generate SQL for profiling table data\n")
 begin
   declare dataset_ref string default format(
     '%s.%s'

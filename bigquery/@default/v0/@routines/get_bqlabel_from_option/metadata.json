@@ -1,0 +1,35 @@
+{
+    "routineType": "SCALAR_FUNCTION",
+    "description": "Get BigQuery Labels from INFORMATION_SCHEMA.TABLE_OPTIONS's option_value\n\nArguments\n====\n  label_option_value: label's option_value in BigQuery INFORMATION_SCHEMA Format like `'[STRUCT(\"hoge\", \"fuga\"), STRUCT(\"hoge\", \"fugb\")]'`\n",
+    "language": "SQL",
+    "arguments": [
+        {
+            "name": "label_option_value",
+            "dataType": {
+                "typeKind": "STRING"
+            }
+        }
+    ],
+    "returnType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+            "typeKind": "STRUCT",
+            "structType": {
+                "fields": [
+                    {
+                        "name": "key",
+                        "type": {
+                            "typeKind": "STRING"
+                        }
+                    },
+                    {
+                        "name": "value",
+                        "type": {
+                            "typeKind": "STRING"
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}
