@@ -57,7 +57,7 @@ begin
     from first_successive_partitions
   );
   -- Get partition column
-  call `fn.get_table_partition_column`(destination, partition_column);
+  call `v0.partition_table__get_partition_column`(destination, partition_column);
 
   -- Run Update Job
   if update_job.dry_run then
