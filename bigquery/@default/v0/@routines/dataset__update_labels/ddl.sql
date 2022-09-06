@@ -82,7 +82,7 @@ begin
 
   for record in (select * from table_labels)
   do
-    if record.table_type = "VIEW" then
+    if record.table_type in ("VIEW", "MATERIALIZED VIEW") then
       call `v0.scan_query_referenced_tables`(
         _deps
         , format("select * from `%s.%s.%s`", record.table_catalog, record.table_schema, record.table_name)
@@ -111,8 +111,10 @@ begin
         from unnest(record.labels) as old
         full join newlabels as `new` using(key)
       );
-    else
+    elseif record.table_type in ("BASE TABLE") then
       set _labels = record.labels;
+    else
+      continue;
     end if;
 
     execute immediate format("""
