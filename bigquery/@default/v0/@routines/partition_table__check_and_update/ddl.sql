@@ -1,16 +1,61 @@
-CREATE OR REPLACE PROCEDURE `v0.partition_table__check_and_update`(destination STRUCT<project_id STRING, dataset_id STRING, table_id STRING>, sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>, partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>, update_job STRUCT<query STRING, dry_run BOOL, tolerate_delay INTERVAL, max_update_interval INT64, via_temp_table BOOL>)
+CREATE OR REPLACE PROCEDURE `v0.partition_table__check_and_update`(
+  destination STRUCT<project_id STRING, dataset_id STRING, table_id STRING>,
+  sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>,
+  partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>,
+  update_job_query STRING,
+  options JSON,
+)
+options(description="""Procedure to check partition stalesns and update partitions if needed.
+
+Arguments
+====
+
+- destination: The destination table to check and update partitions.
+- sources: The source tables of destination table. The procedure will check if the source tables have new partitions.
+- partition_alignments: Partition alignment rules. The procedure will check destination staleness correspoinding to each alignment rule.
+- query: The query to update destination table partitions. Its table schema must be same as destination table.
+- options: JSON value
+    * dry_run: Whether to run the update job as a dry run. [Default: false].
+    * tolerate_delay: The delay to tolerate before updating partitions. If newer source partitions are found but its timestamp is within this delay, the procedure will not update partitions. [Default: 30 minutes].
+    * max_update_partition_range: The interval to limit the range of partitions to update. This option is useful to avoid updating too many partitions at once. [Default: 1 month].
+    * via_temp_table: Whether to update partitions via a temporary table. [Default: false].
+    * force_expire_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
+
+Examples
+===
+
+- Check and update partitions of `my_project.my_dataset.my_table` table.
+
+"""
+)
 begin
   declare stale_partitions array<string>;
   declare partition_range struct<begins_at string, ends_at string>;
   declare partition_column struct<name string, type string>;
   declare partition_unit string;
 
+  -- Options
+  declare _options <dry_run BOOL, tolerate_delay INTERVAL, max_update_partition_range INTERVAL, via_temp_table BOOL> default (
+    ifnull(bool(options.dry_run), false),
+    ifnull(interval(options.tolerate_delay), interval(30, 'minute')),
+    ifnull(interval(options.max_update_partition_range), interval(1, 'month')),
+    ifnull(bool(options.via_temp_table), false)
+  );
+
+  -- Assert invalid options
+  select logical_and(if(
+    key in ('dry_run', 'tolerate_delay', 'max_update_partition_range', 'via_temp_table')
+    , true
+    , error(format("Invalid Option: name=%t in %t'", key, json_value))
+  ))
+  from unnest(`bqutil.fn.json_extract_keys`(to_json_string(json_value))) key
+
   call `v0.partition_table__check_staleness`(
     stale_partitions
     , destination
     , sources
     , partition_alignments
-    , to_json(struct(update_job.tolerate_delay))
+    , to_json(struct(_options.tolerate_delay))
   );
 
   if ifnull(array_length(stale_partitions), 0) = 0 then
@@ -40,9 +85,9 @@ begin
       )])
       left join unnest([struct(
         coalesce(
-          format_date('%Y%m%d', date(partition_date - interval update_job.max_update_interval day))
-          , format_datetime('%Y%m%d%h', partition_hour - interval update_job.max_update_interval hour)
-          , cast(partition_int - update_job.max_update_interval as string)
+          format_date('%Y%m%d', date(partition_date - interval _options.max_update_interval day))
+          , format_datetime('%Y%m%d%h', partition_hour - interval _options.max_update_interval hour)
+          , cast(partition_int - _options.max_update_interval as string)
         ) as update_partition
       )])
     )
@@ -51,21 +96,22 @@ begin
       qualify sum(if(has_gap, 1, 0)) over (order by p desc) = 1
     )
     select as struct
-      -- if update_job.max_update_interval is null, then use non-limited partition
+      -- if _options.max_update_interval is null, then use non-limited partition
       ifnull(greatest(min(p), max(max_update_partition)) , min(p))
       , max(p)
     from first_successive_partitions
   );
+
   -- Get partition column
   call `v0.partition_table__get_partition_column`(destination, partition_column);
 
   -- Run Update Job
-  if update_job.dry_run then
+  if _options.dry_run then
     select
       format('%P', to_json(struct(
         destination
         , sources
-        , update_job
+        , _options
         , partition_range
     )))
     ;
@@ -97,12 +143,12 @@ begin
     )
   );
 
-  if ifnull(update_job.via_temp_table, false) then
+  if ifnull(_options.via_temp_table, false) then
     execute immediate format("""
       create or replace temp table temp_table as
         %s
       """
-      , update_job.query
+      , update_job_query
     ) using
       partition_range.begins_at as begins_at
       , partition_range.ends_at as ends_at
@@ -130,7 +176,7 @@ begin
           , destination.table_id
         ), 'invalid destination'
       )
-      , if(ifnull(update_job.via_temp_table, false), 'temp_table', update_job.query)
+      , if(ifnull(_options.via_temp_table, false), 'temp_table', update_job_query)
       , case
           when partition_unit = 'DAY' then
             format(
@@ -155,6 +201,6 @@ begin
   ;
 
   if @@row_count = 0 then
-    raise using message = format('No data to update: %%', (update_job.query, partition_range));
+    raise using message = format('No data to update: %%', (update_job_query, partition_range));
   end if;
 end;
