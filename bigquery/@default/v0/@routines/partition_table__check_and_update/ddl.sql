@@ -3,7 +3,7 @@ CREATE OR REPLACE PROCEDURE `v0.partition_table__check_and_update`(
   sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>,
   partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>,
   update_job_query STRING,
-  options JSON,
+  options JSON
 )
 options(description="""Procedure to check partition stalesns and update partitions if needed.
 
@@ -35,20 +35,21 @@ begin
   declare partition_unit string;
 
   -- Options
-  declare _options <dry_run BOOL, tolerate_delay INTERVAL, max_update_partition_range INTERVAL, via_temp_table BOOL> default (
-    ifnull(bool(options.dry_run), false),
-    ifnull(interval(options.tolerate_delay), interval(30, 'minute')),
-    ifnull(interval(options.max_update_partition_range), interval(1, 'month')),
-    ifnull(bool(options.via_temp_table), false)
+  declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, max_update_partition_range INTERVAL, via_temp_table BOOL> default (
+    ifnull(bool(options.dry_run), false)
+    , ifnull(safe_cast(string(options.tolerate_delay) as interval), interval 30 minute)
+    , ifnull(safe_cast(string(options.max_update_partition_range) as interval), interval 1 month)
+    , ifnull(bool(options.via_temp_table), false)
   );
 
   -- Assert invalid options
   select logical_and(if(
     key in ('dry_run', 'tolerate_delay', 'max_update_partition_range', 'via_temp_table')
     , true
-    , error(format("Invalid Option: name=%t in %t'", key, json_value))
+    , error(format("Invalid Option: name=%t in %t'", key, `options`))
   ))
-  from unnest(`bqutil.fn.json_extract_keys`(to_json_string(json_value))) key
+  from unnest(`bqutil.fn.json_extract_keys`(to_json_string(`options`))) key
+  ;
 
   call `v0.partition_table__check_staleness`(
     stale_partitions

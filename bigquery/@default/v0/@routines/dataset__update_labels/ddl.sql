@@ -191,4 +191,3 @@ begin
 
   drop schema if exists `zvalidaiton__dataset__update_labels` CASCADE;
 end
-`v0.dataset__update_labels`
