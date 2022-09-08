@@ -26,11 +26,26 @@ Examples
 
 - Check and update partitions of `my_project.my_dataset.my_table` table.
 
+```
+call `v0.partition_table__check_and_update`(
+  (null, 'sandbox', 'ga4_count'),
+  [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')],
+  [],
+  \"\"\"
+   select event_date, event_name, count(1)
+   from `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`
+   where _TABLE_SUFFIX between @begin and @end
+   group by event_date, event_name
+  null
+  \"\"\"
+);
+```
+
 """
 )
 begin
   declare stale_partitions array<string>;
-  declare partition_range struct<begins_at string, ends_at string>;
+  declare partition_range struct<begin string, `end` string>;
   declare partition_column struct<name string, type string>;
   declare partition_unit string;
 
@@ -122,24 +137,24 @@ begin
   -- Format parition_id into datetime or date parsable string like '2022-01-01'
   set (partition_unit, partition_range) = (
     case
-      when safe.parse_datetime('%Y%m%d%H', partition_range.begins_at) is not null then 'HOUR'
-      when safe.parse_datetime('%Y%m%d', partition_range.begins_at) is not null then 'DAY'
-      when safe.parse_datetime('%Y%m', partition_range.begins_at) is not null then 'MONTH'
-      when safe.parse_datetime('%Y', partition_range.begins_at) is not null then 'YEAR'
-      else error(format('Invalid partition_id: %s', partition_range.begins_at))
+      when safe.parse_datetime('%Y%m%d%H', partition_range.begin) is not null then 'HOUR'
+      when safe.parse_datetime('%Y%m%d', partition_range.begin) is not null then 'DAY'
+      when safe.parse_datetime('%Y%m', partition_range.begin) is not null then 'MONTH'
+      when safe.parse_datetime('%Y', partition_range.begin) is not null then 'YEAR'
+      else error(format('Invalid partition_id: %s', partition_range.begin))
     end
     , (
       coalesce(
-        format_datetime('%Y-%m-%d %T', safe.parse_datetime('%Y%m%d%H', partition_range.begins_at))
-        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m%d', partition_range.begins_at))
-        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m', partition_range.begins_at))
-        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y', partition_range.begins_at))
+        format_datetime('%Y-%m-%d %T', safe.parse_datetime('%Y%m%d%H', partition_range.begin))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m%d', partition_range.begin))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m', partition_range.begin))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y', partition_range.begin))
       )
       , coalesce(
-        format_datetime('%Y-%m-%d %T', safe.parse_datetime('%Y%m%d%H', partition_range.ends_at))
-        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m%d', partition_range.ends_at))
-        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m', partition_range.ends_at))
-        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y', partition_range.ends_at))
+        format_datetime('%Y-%m-%d %T', safe.parse_datetime('%Y%m%d%H', partition_range.`end`))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m%d', partition_range.`end`))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m', partition_range.`end`))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y', partition_range.`end`))
       )
     )
   );
@@ -151,8 +166,8 @@ begin
       """
       , update_job_query
     ) using
-      partition_range.begins_at as begins_at
-      , partition_range.ends_at as ends_at
+      partition_range.begin as begin
+      , partition_range.`end` as `end`
     ;
   end if;
 
@@ -181,12 +196,12 @@ begin
       , case
           when partition_unit = 'DAY' then
             format(
-              "DATE(%s) between @begins_at and @ends_at"
+              "DATE(%s) between @begin and @end"
               , partition_column.name
             )
           when partition_unit in ('HOUR', 'MONTH', 'YEAR') then
             format(
-              "%s_TRUNC(%s, %s) between @begins_at and @ends_at"
+              "%s_TRUNC(%s, %s) between @begin and @end"
               , partition_column.type, partition_column.name, partition_unit
             )
           else 'true'
@@ -197,11 +212,11 @@ begin
     ))
   )
     using
-      partition_range.begins_at as begins_at
-      , partition_range.ends_at as ends_at
+      partition_range.begin as begin
+      , partition_range.`end` as `end`
   ;
 
   if @@row_count = 0 then
-    raise using message = format('No data to update: %%', (update_job_query, partition_range));
+    raise using message = format('No data `end` update: %%', (update_job_query, partition_range));
   end if;
 end;
