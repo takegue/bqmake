@@ -27,7 +27,7 @@ Examples
 - Check and update partitions of `my_project.my_dataset.my_table` table.
 
 ```
-call `v0.partition_table__check_and_update`(
+call `bqmake.v0.partition_table__check_and_update`(
   (null, 'sandbox', 'ga4_count'),
   [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')],
   [],
@@ -63,10 +63,10 @@ begin
     , true
     , error(format("Invalid Option: name=%t in %t'", key, `options`))
   ))
-  from unnest(`bqutil.fn.json_extract_keys`(to_json_string(`options`))) key
+  from unnest(if(`options` is not null, `bqutil.fn.json_extract_keys`(to_json_string(`options`)), [])) as key
   ;
 
-  call `v0.partition_table__check_staleness`(
+  call `v0.detect_staleness`(
     stale_partitions
     , destination
     , sources
@@ -101,9 +101,10 @@ begin
       )])
       left join unnest([struct(
         coalesce(
-          format_date('%Y%m%d', date(partition_date - interval _options.max_update_interval day))
-          , format_datetime('%Y%m%d%h', partition_hour - interval _options.max_update_interval hour)
-          , cast(partition_int - _options.max_update_interval as string)
+          format_date('%Y%m%d', date(partition_date - _options.max_update_partition_range))
+          , format_datetime('%Y%m%d%h', partition_hour - _options.max_update_partition_range)
+          -- FIXME
+          , cast(partition_int as string)
         ) as update_partition
       )])
     )
@@ -112,14 +113,14 @@ begin
       qualify sum(if(has_gap, 1, 0)) over (order by p desc) = 1
     )
     select as struct
-      -- if _options.max_update_interval is null, then use non-limited partition
+      -- if _options.max_update_partition_range is null, then use non-limited partition
       ifnull(greatest(min(p), max(max_update_partition)) , min(p))
       , max(p)
     from first_successive_partitions
   );
 
   -- Get partition column
-  call `v0.partition_table__get_partition_column`(destination, partition_column);
+  call `v0.partition_table__get_partition_column`(partition_column, destination);
 
   -- Run Update Job
   if _options.dry_run then
@@ -217,6 +218,6 @@ begin
   ;
 
   if @@row_count = 0 then
-    raise using message = format('No data `end` update: %%', (update_job_query, partition_range));
+    raise using message = format('No data `end` update: %t', (update_job_query, partition_range));
   end if;
 end;
