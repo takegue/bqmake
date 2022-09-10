@@ -6,14 +6,39 @@ CREATE OR REPLACE PROCEDURE `v0.detect_staleness`(
   , options_json JSON
 )
 OPTIONS(
-  description="Extracts partitions that are stale.\n\nArgument\n===\n\n- ret                  : Output variable\n- destination          : destination table\n- sources              : source tables\n- partition_alignments : partition alignments\n- options              : option values in json format\n  * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)\n  *         null_value : Alignment options. __NULL__ meaning no partition (Default: '__NULL__')\n\n\nStalenss and Stablity Margin Checks\n===\n\n                     past                                      now\nSource Table        : |       |         |                       |\n                              ^ Refresh ^ Refresh\n\nStaleness Timeline  : | Fresh | Ignore  |  Ignore    |   Stale  |\n                                        <------------^ tolerate staleness\n\n\n")
+  description="""Extracts partitions that are stale.
+
+Argument
+===
+
+- ret                  : Output variable
+- destination          : destination table
+- sources              : source tables
+- partition_alignments : partition alignments
+- options              : option values in json format
+  * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)
+  *         null_value : Alignment options. __NULL__ meaning no partition (Default: '__NULL__')
+
+
+Stalenss and Stablity Margin Checks
+===
+
+                     past                                      now
+Source Table        : |       |         |                       |
+                              ^ Refresh ^ Refresh
+
+Staleness Timeline  : | Fresh | Ignore  |  Ignore    |   Stale  |
+                                        <------------^ tolerate staleness
+
+
+""")
 begin
   declare options struct<
     tolerate_staleness interval
     , null_value string
   > default (
-    ifnull(cast(string(options_json.tolerate_staleness) as interval), interval 0 minute)
-    , ifnull(string(options_json.null_value), '__NULL__')
+    ifnull(cast(safe.string(options_json.tolerate_staleness) as interval), interval 30 minute)
+    , ifnull(safe.string(options_json.null_value), '__NULL__')
   );
 
   -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
@@ -48,13 +73,12 @@ begin
   )
   ;
 
-  -- alignment and extract staled partition
+  -- Alignment and extract staled partition
   set ret = (
     -- partition_id -> (null, null) -> ('__NULL__', '__NULL__')
     -- partition_id -> (null, date) -> (_pseudo_date, date)
     -- partition_id -> (date, null) -> (date, _pseudo_date)
     -- partition_id -> (date, date) -> (date, date)
-
     with
     pseudo_partition as (
       SELECT
