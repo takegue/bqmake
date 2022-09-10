@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE `v0.partition_table__check_and_update`(
+create or replace procedure `v0.partition_table__check_and_update`(
   destination STRUCT<project_id STRING, dataset_id STRING, table_id STRING>,
   sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>,
   partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>,
