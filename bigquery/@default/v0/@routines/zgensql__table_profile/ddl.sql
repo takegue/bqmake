@@ -1,4 +1,4 @@
-create or replace procedure `v0.zgenerate_sql__table_profile`(
+create or replace procedure `v0.zgensql__table_profile`(
   ret string
   , destination struct<project string, dataset string, table string>
   , group_keys array<string>

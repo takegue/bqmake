@@ -1,4 +1,4 @@
-create or replace table function `v0.zgenerate_sql__snapshot_scd_type2`(
+create or replace table function `v0.zgensql__snapshot_scd_type2`(
   destination struct<
     project_id string
     , dataset_id string
