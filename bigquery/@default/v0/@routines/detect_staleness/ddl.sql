@@ -18,17 +18,18 @@ Argument
 - options              : option values in json format
   * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)
   *         null_value : Alignment options. __NULL__ meaning no partition (Default: '__NULL__')
+  *    force_expire_at : The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: NULL].
 
 
 Stalenss and Stablity Margin Checks
 ===
 
                      past                                      now
-Source Table        : |       |         |                       |
+Source Table        : |       |               |                |
                               ^ Refresh ^ Refresh
 
-Staleness Timeline  : | Fresh | Ignore  |  Ignore    |   Stale  |
-                                        <------------^ tolerate staleness
+Staleness Timeline  : | Fresh | Ignore(Fresh) |  Stale  |
+                              <------------^ tolerate staleness
 
 
 """)
@@ -36,9 +37,11 @@ begin
   declare options struct<
     tolerate_staleness interval
     , null_value string
+    , force_expire_at timestamp
   > default (
     ifnull(cast(safe.string(options_json.tolerate_staleness) as interval), interval 30 minute)
     , ifnull(safe.string(options_json.null_value), '__NULL__')
+    , safe.timestamp(options_json.force_expire_at)
   );
 
   -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
@@ -156,12 +159,14 @@ begin
       and (
         -- Staled if destination partition does not exist
         destination.last_modified_time is null
+        -- Staled if partition is older than force_expire_at timestamp. If force_expire_at is null, the condition is ignored.
+        or ifnull(destination.last_modified_time > options.force_expire_at, false)
         -- Staled destination partition only if source partition is enough stable and old
         or (
-          destination.last_modified_time - source.last_modified_time >= options.tolerate_staleness
+          source.last_modified_time - destination.last_modified_time >= options.tolerate_staleness
           or (
             source.last_modified_time >= destination.last_modified_time
-            and current_timestamp() - source.last_modified_time >= options.tolerate_staleness
+            and current_timestamp() - destination.last_modified_time >= options.tolerate_staleness
           )
         )
       )
