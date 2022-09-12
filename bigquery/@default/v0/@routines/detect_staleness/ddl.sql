@@ -24,12 +24,19 @@ Argument
 Stalenss and Stablity Margin Checks
 ===
 
-                     past                                      now
-Source Table        : |       |               |                |
-                              ^ Refresh ^ Refresh
-
+Case 1: Partition staleness with tolerate_staleness option
+                     past                              now
+Source Table        : |       |               |         |
+                              ^ Refresh
 Staleness Timeline  : | Fresh | Ignore(Fresh) |  Stale  |
-                              <------------^ tolerate staleness
+                      +-----------------------^ tolerate staleness
+
+
+Case 2: Partition staleness timeline with force_expire_at option
+                     past                              now
+Source Table        : | Fresh                           |
+Staleness Timeline  : | Fresh | Stale                   |
+                              ^ force_expire_at
 
 
 """)
@@ -160,7 +167,7 @@ begin
         -- Staled if destination partition does not exist
         destination.last_modified_time is null
         -- Staled if partition is older than force_expire_at timestamp. If force_expire_at is null, the condition is ignored.
-        or ifnull(destination.last_modified_time > options.force_expire_at, false)
+        or ifnull(destination.last_modified_time >= options.force_expire_at, false)
         -- Staled destination partition only if source partition is enough stable and old
         or (
           source.last_modified_time - destination.last_modified_time >= options.tolerate_staleness
