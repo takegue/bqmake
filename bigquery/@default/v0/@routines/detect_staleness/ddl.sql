@@ -48,7 +48,7 @@ begin
   > default (
     ifnull(cast(safe.string(options_json.tolerate_staleness) as interval), interval 30 minute)
     , ifnull(safe.string(options_json.null_value), '__NULL__')
-    , safe.timestamp(options_json.force_expire_at)
+    , safe.timestamp(string(options_json.force_expire_at))
   );
 
   -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
