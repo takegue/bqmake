@@ -18,8 +18,8 @@ select
   format("""
       # %s
       create table if not exists `%s`
-      partition by DATE(valid_to)
-      cluster by unique_key
+      partition by DATE(valid_from)
+      cluster by valid_to
       as %s
     """
     , header
