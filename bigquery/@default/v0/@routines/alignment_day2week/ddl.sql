@@ -1,4 +1,4 @@
-create or replace function `v0.alignment__week2day`(`from` DATE, `to` DATE)
+create or replace function `v0.alignment_day2week`(`from` DATE, `to` DATE)
 as
 (
  array(
@@ -12,7 +12,7 @@ as
 ;
 
 begin
-  assert array_length(`v0.alignment__week2day`('2022-01-01', '2022-01-31')) = 6
+  assert array_length(`v0.alignment_day2week`('2022-01-01', '2022-01-31')) = 6
     as "v0.alignment__week2day('2022-01-01', '2022-01-01') should return 6 rows"
   ;
 end;
