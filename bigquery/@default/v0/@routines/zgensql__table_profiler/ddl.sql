@@ -1,10 +1,12 @@
-create or replace procedure `v0.zgensql__table_profile`(
+create or replace procedure `v0.zgensql__table_profiler`(
   ret string
   , destination struct<project string, dataset string, table string>
   , group_keys array<string>
-  , options array<struct<key string, value string>>
+  , options_json json
 )
 options(description="""Generate SQL for profiling table data
+
+This is private routine and not designed to be called directly.
 """
 )
 begin
@@ -13,11 +15,8 @@ begin
     , coalesce(destination.project, @@project_id)
     , ifnull(destination.dataset, error('Not found dataset'))
   );
-  declare option_materialized_view_mode bool default ifnull((
-    select safe_cast(max(opt.value) as bool)
-    from unnest(options) opt
-    where key = 'materialized_view_mode'
-  ), false);
+  declare option_materialized_view_mode bool default
+    ifnull(bool(options_json.materialized_view_mode), false);
 
   execute immediate format("""
     create or replace temp table _tmp_table_columns
