@@ -11,7 +11,7 @@ OPTIONS(
 Argument
 ===
 
-- ret                  : Output variable
+- ret                  : Output variable. array of staled partition like 20220101
 - destination          : destination table
 - sources              : source tables
 - partition_alignments : partition alignments
