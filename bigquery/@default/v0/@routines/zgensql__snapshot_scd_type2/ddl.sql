@@ -18,7 +18,7 @@ select
   format("""
       # %s
       create table if not exists `%s`
-      partition by DATE(valid_from)
+      partition by DATE(valid_to)
       cluster by valid_to
       as %s
     """
@@ -95,11 +95,13 @@ select
       create or replace table function `%s`(_at timestamp)
       as
         select * from `%s`
-      where
-        -- when _at is null, use latest version
-        (valid_from <= `_at` and ifnull(`_at` < valid_to, true))
-        or
-        (`_at` is null and valid_to is null)
+        where
+          -- when _at is null, use latest version
+          (`_at` is null and valid_to is null)
+          or (
+            _at is not null
+            and (valid_from <= `_at` and ifnull(`_at` < valid_to, true))
+          )
     """
     , header
     , destination_ref
