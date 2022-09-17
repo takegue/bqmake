@@ -18,7 +18,7 @@ as ((
         # %s
         create table if not exists `%s`
         partition by DATE(valid_to)
-        cluster by valid_to
+        cluster by unique_key
         as %s
       """
       , header
@@ -64,33 +64,86 @@ as ((
     ) as profile_query
     -- DML Query
     , format("""
-        # %s
-        merge `%s` T
-        using
-          (
-            %s
-          ) as S
+      # %s
+      merge `%s` T
+      using
+        (
+          with
+            reference as (
+              select * from `%s` where valid_to is null
+            )
+            , update_data as (
+              %s
+            )
+
+          /*
+          Create records for merge syntax.
+          There are three 4 of records for update:
+            1. New Record: The record is not in the reference table and exists only in update_data
+            2. Changed Record
+              2.1 New one
+              2.1 Old one
+            3. Deleted Records
+            4. Unchanged Records
+
+          This SQL will generate only 1., 2. and 3. records.
+          */
+          select
+            M.* replace(
+              if(
+                action in ('CHANGED', 'DELETE') and ix = 0
+                , @timestamp
+                , M.valid_to
+              ) as valid_to
+            )
+          from reference as R
+          full join update_data as U using(unique_key)
+          left join unnest([struct(
+            format('%%t', R.entity) != format('%%t', U.entity) as will_update
+            , case
+              when U.unique_key is not null and R.unique_key is not null
+                then if(
+                  format('%%t', R.entity) != format('%%t', U.entity)
+                  , 'CHANGED'
+                  , 'UNCHANGED'
+                )
+              when U.unique_key is not null and R.unique_key is null
+                then 'NEW'
+              when U.unique_key is null and R.unique_key is not null
+                then 'DELETE'
+              else error('UNKNOWN')
+            end as action
+          )])
+          join unnest(
+            case action
+              when 'CHANGED' then [R, U]
+              when 'NEW' then [U]
+              when 'DELETE' then [R]
+              when 'UNCHANGED' then []
+            end
+          ) as M with offset ix
+          where
+            action in ('CHANGED', 'NEW', 'DELETE')
+        ) as M
         on
-          S.unique_key = T.unique_key
-          and T.valid_to is null
-          and format('%%t', S.entity) = format('%%t', T.entity)
-        -- Insert new records changed
+          T.valid_to is null
+          and M.unique_key = T.unique_key
+          and M.valid_to is not null
+        -- Deactivate current record for update
+        when matched
+          then
+            update set T.valid_to = M.valid_to
+        -- Insert new for update
         when not matched by target
           then
             insert row
-        -- Deprecate old records changed
-        when
-          not matched by source
-          and T.valid_to is null
-          then
-            update set
-              valid_to = @timestamp
-      """
-      , header
-      , destination_ref
-      , snapshot_query
-    ) as update_dml
-    -- TVF DDL for Access
+          """
+            , header
+            , destination_ref
+            , destination_ref
+            , snapshot_query
+          ) as update_dml
+          -- TVF DDL for Access
     , format("""
         # %s
         create or replace table function `%s`(_at timestamp)
