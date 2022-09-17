@@ -1,4 +1,4 @@
-create or replace procedure `v0.dataset__update_labels`(
+create or replace procedure `v0.dataset__update_table_labels`(
   in destination struct<project string, dataset string>
 )
 begin

@@ -1,5 +1,3 @@
-declare ret array<struct<project_id string, dataset_id string, table_id string>>;
-
 create or replace procedure `v0.scan_query_referenced_tables`(
   out ret array<struct<project_id string, dataset_id string, table_id string>>
   , in query string
@@ -59,5 +57,8 @@ end
 ;
 
 -- Test
-call `v0.scan_query_referenced_tables`(ret, "select * from sandbox.sample_view", JSON '{"enable_query_rewrite": true}');
-select ret;
+begin
+  declare ret array<struct<project_id string, dataset_id string, table_id string>>;
+  call `v0.scan_query_referenced_tables`(ret, "select * from sandbox.sample_view", JSON '{"enable_query_rewrite": true}');
+  select ret;
+end
