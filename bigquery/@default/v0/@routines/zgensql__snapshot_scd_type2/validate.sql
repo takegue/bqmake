@@ -25,7 +25,7 @@ for t in (select as struct
       , ("Data Initialization", 2, "select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations`")
       , ("One record is deleted", 1, 'select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations` limit 101')
 
-      , ("Data Initialization", 1, "select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations`")
+      , ("Data Initialization", 204, "select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations`")
       , ("Almost all record is updated", 204, 'select * replace("invalid status" as status) from `bigquery-public-data.austin_bikeshare.bikeshare_stations`')
 
     ]) with offset idx
