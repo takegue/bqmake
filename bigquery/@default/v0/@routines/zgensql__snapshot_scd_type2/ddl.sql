@@ -31,14 +31,14 @@ as ((
           select
             *
             , ifnull(valid_to < (lead(valid_from) over (partition by unique_key order by valid_to nulls last)), false) as is_insane_valid_column
-            , version_hash is null as is_insale_version_column
+            , revision_hash is null as is_insale_revision_column
             , unique_key is null as is_insane_unique_key
           FROM %s
         )
 
         SELECT
           unique_key
-          , if(countif(is_insane_valid_column) > 0, max(format('Contradict valid_from with previous valid_to at %%t, %%s', unique_key, version_hash)), null) as validate_record_lifetime
+          , if(countif(is_insane_valid_column) > 0, max(format('Contradict valid_from with previous valid_to at %%t, %%s', unique_key, revision_hash)), null) as validate_record_lifetime
         from source
         group by unique_key
       """
@@ -50,7 +50,7 @@ as ((
         with grain as (
           SELECT
             date(valid_to) as changed_date, unique_key
-            , approx_count_distinct(version_hash) as n_changed
+            , approx_count_distinct(revision_hash) as n_changed
           from %s
           group by changed_date, unique_key
         )
@@ -71,12 +71,13 @@ as ((
             %s
           ) as S
         on
-          T.valid_to is null
-          and S.unique_key = T.unique_key
+          S.unique_key = T.unique_key
+          and T.valid_to is null
           and format('%%t', S.entity) = format('%%t', T.entity)
         -- Insert new records changed
-        when not matched then
-          insert row
+        when not matched by target
+          then
+            insert row
         -- Deprecate old records changed
         when
           not matched by source
@@ -96,7 +97,7 @@ as ((
         as
           select * from `%s`
           where
-            -- when _at is null, use latest version
+            -- when _at is null, use latest revision
             (`_at` is null and valid_to is null)
             or (
               _at is not null
@@ -120,13 +121,13 @@ as ((
       format("""
         select
           %s as unique_key
-          , version_hash
+          , revision_hash
           , @timestamp as valid_from
           , timestamp(null) as valid_to
           , entity
         from
           (%s) as entity
-          , (select as value generate_uuid()) as version_hash
+          , (select as value generate_uuid()) as revision_hash
         """
         , exp_unique_key
         , snapshot_query
