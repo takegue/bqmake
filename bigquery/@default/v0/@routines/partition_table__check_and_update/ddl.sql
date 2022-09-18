@@ -16,7 +16,7 @@ Arguments
 - query: The query to update destination table partitions. Its table schema must be same as destination table.
 - options: JSON value
     * dry_run: Whether to run the update job as a dry run. [Default: false].
-    * tolerate_delay: The delay to tolerate before updating partitions. If newer source partitions are found but its timestamp is within this delay, the procedure will not update partitions. [Default: 30 minutes].
+    * tolerate_delay: The delay to tolerate before updating partitions. If newer source partitions are found but its timestamp is within this delay, the procedure will not update partitions. [Default: 0 minutes].
     * max_update_partition_range: The interval to limit the range of partitions to update. This option is useful to avoid updating too many partitions at once. [Default: 1 month].
     * via_temp_table: Whether to update partitions via a temporary table. [Default: false].
     * force_expire_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
@@ -61,7 +61,7 @@ begin
   -- Options
   declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, max_update_partition_range INTERVAL, via_temp_table BOOL> default (
     ifnull(bool(options.dry_run), false)
-    , ifnull(safe_cast(string(options.tolerate_delay) as interval), interval 30 minute)
+    , ifnull(safe_cast(string(options.tolerate_delay) as interval), interval 0 minute)
     , ifnull(safe_cast(string(options.max_update_partition_range) as interval), interval 1 month)
     , ifnull(bool(options.via_temp_table), false)
   );
