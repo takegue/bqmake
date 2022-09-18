@@ -38,31 +38,24 @@ call `v0.detect_staleness`(
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref1")]
   , [("20060102", ["20060102"])]
-  , null
+  , to_json(struct(interval 0 hour as tolerate_staleness))
 );
 
-assert ret[safe_offset(0)] is null;
-
-call `v0.detect_staleness`(
-  ret
-  , (null, "zpreview_test", "dest2")
-  , [(string(null), "zpreview_test", "ref_1")]
-  , [("20060102", ["20060102"])]
-  , to_json(struct(interval 0 hour as tolerate_staleness, null as null_value))
-);
-
-assert ret[safe_offset(0)] is null;
-
+assert ret[safe_offset(0)] is null
+  as "Not stale partition: dest1 > ref1"
+;
 
 call `v0.detect_staleness`(
   ret
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref1")]
   , [("20060102", ["20060102"])]
-  , to_json(struct(interval 0 hour as tolerate_staleness, null as null_value))
+  , to_json(struct(interval 0 hour as tolerate_staleness, current_timestamp() as force_expire_at))
 );
 
-assert ret[safe_offset(0)] = '20060102';
+assert ret[safe_offset(0)] is null
+  as "Stale partition: force_expire_at option"
+;
 
 call `v0.detect_staleness`(
   ret
@@ -76,7 +69,8 @@ call `v0.detect_staleness`(
 );
 
 assert ret[safe_offset(0)] is null
-  as "invalidate destination partition under some source's partition is available";
+  as "Stale partition under some source's partition is fresher than destination: ref2 > dest1 > ref1"
+;
 
 call `v0.detect_staleness`(
   ret
@@ -86,7 +80,9 @@ call `v0.detect_staleness`(
   , to_json(struct(interval 0 hour as tolerate_staleness, null as null_value))
 );
 
-assert ret[safe_offset(0)] = '20060102';
+assert ret[safe_offset(0)] = '20060102'
+  as "Stale partition under non-partitioned source: dest1 > ref_no_partition"
+;
 
 call `v0.detect_staleness`(
   ret
@@ -96,7 +92,8 @@ call `v0.detect_staleness`(
   , to_json(struct(interval 0 hour as tolerate_staleness, null as null_value))
 );
 
-assert ret[safe_offset(0)] = '__NULL__';
-
+assert ret[safe_offset(0)] = '__NULL__'
+  as "Stale non-partitioned table under non-partitioned source: dest_no_partition > ref_no_partition"
+;
 
 drop schema if exists `zpreview_test` CASCADE;

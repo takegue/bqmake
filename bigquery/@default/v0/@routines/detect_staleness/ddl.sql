@@ -37,8 +37,6 @@ Case 2: Partition staleness timeline with force_expire_at option
 Source Table        : | Fresh                           |
 Staleness Timeline  : | Fresh | Stale                   |
                               ^ force_expire_at
-
-
 """)
 begin
   declare options struct<
@@ -82,6 +80,7 @@ begin
     )
   )
   ;
+
 
   -- Alignment and extract staled partition
   set ret = (
