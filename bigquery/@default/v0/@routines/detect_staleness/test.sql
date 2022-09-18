@@ -18,14 +18,14 @@ as
 select date '2006-01-02' as date_jst
 ;
 
-create or replace table `zpreview_test.ref2`
-partition by date_jst
-as select date '2006-01-03' as date_jst
-;
-
 create or replace table `zpreview_test.ref_20060102`
 partition by date_jst
 as select date '2006-01-02' as date_jst
+;
+
+create or replace table `zpreview_test.ref_20060103`
+partition by date_jst
+as select date '2006-01-03' as date_jst
 ;
 
 create or replace table `zpreview_test.ref_no_partition`
@@ -53,7 +53,7 @@ call `v0.detect_staleness`(
   , to_json(struct(interval 0 hour as tolerate_staleness, current_timestamp() as force_expire_at))
 );
 
-assert ret[safe_offset(0)] is null
+assert ret[safe_offset(0)] = '20060102'
   as "Stale partition: force_expire_at option"
 ;
 
@@ -62,14 +62,45 @@ call `v0.detect_staleness`(
   , (null, "zpreview_test", "dest1")
   , [
       (string(null), "zpreview_test", "ref1")
-      , (string(null), "zpreview_test", "ref2")
+      , (string(null), "zpreview_test", "ref_20060103")
     ]
   , [("20060102", ["20060102"])]
-  , to_json(struct(interval 0 hour as tolerate_staleness, null as null_value))
+  , to_json(struct(interval 0 hour as tolerate_staleness))
 );
 
 assert ret[safe_offset(0)] is null
-  as "Stale partition under some source's partition is fresher than destination: ref2 > dest1 > ref1"
+  as "Not stale partition: Inconsistent sources"
+;
+
+call `v0.detect_staleness`(
+  ret
+  , (null, "zpreview_test", "dest1")
+  , [
+      (string(null), "zpreview_test", "ref1")
+      , (string(null), "zpreview_test", "ref_20060103")
+    ]
+  , [("20060102", ["__ANY__"])]
+  , to_json(struct(interval 0 hour as tolerate_staleness))
+);
+
+assert ret[safe_offset(0)] = '20060102'
+  as "Satle partition: __ANY__"
+;
+
+
+call `v0.detect_staleness`(
+  ret
+  , (null, "zpreview_test", "dest1")
+  , [
+      (string(null), "zpreview_test", "ref1")
+      , (string(null), "zpreview_test", "ref_20060102")
+    ]
+  , [("20060102", ["20060102"])]
+  , to_json(struct(interval 0 hour as tolerate_staleness))
+);
+
+assert ret[safe_offset(0)] = '20060102'
+  as "Stale partition under some source's partition is fresher than destination: ref_20060102 > dest1 > ref1"
 ;
 
 call `v0.detect_staleness`(
@@ -77,7 +108,7 @@ call `v0.detect_staleness`(
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref_no_partition")]
   , [('20060102', ["__NULL__"])]
-  , to_json(struct(interval 0 hour as tolerate_staleness, null as null_value))
+  , to_json(struct(interval 0 hour as tolerate_staleness))
 );
 
 assert ret[safe_offset(0)] = '20060102'
@@ -89,7 +120,7 @@ call `v0.detect_staleness`(
   , (null, "zpreview_test", "dest_no_partition")
   , [(string(null), "zpreview_test", "ref_no_partition")]
   , [('__NULL__', ["__NULL__"])]
-  , to_json(struct(interval 0 hour as tolerate_staleness, null as null_value))
+  , to_json(struct(interval 0 hour as tolerate_staleness))
 );
 
 assert ret[safe_offset(0)] = '__NULL__'

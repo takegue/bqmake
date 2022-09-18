@@ -1,9 +1,9 @@
 CREATE OR REPLACE PROCEDURE `v0.detect_staleness`(
-  OUT ret ARRAY<STRING>
-  , destination STRUCT<project_id STRING, dataset_id STRING, table_id STRING>
-  , sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>
-  , partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>
-  , options_json JSON
+  out ret array<string>
+  , destination struct<project_id string, dataset_id string, table_id string>
+  , sources array<struct<project_id string, dataset_id string, table_id string>>
+  , partition_alignments array<struct<destination string, sources array<string>>>
+  , options_json json
 )
 OPTIONS(
   description="""Extracts partitions that are stale.
@@ -17,7 +17,6 @@ Argument
 - partition_alignments : partition alignments
 - options              : option values in json format
   * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)
-  *         null_value : Alignment options. __NULL__ meaning no partition (Default: '__NULL__')
   *    force_expire_at : The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: NULL].
 
 
@@ -39,15 +38,17 @@ Staleness Timeline  : | Fresh | Stale                   |
                               ^ force_expire_at
 """)
 begin
+  declare null_value string default '__NULL__';
+  declare any_value string default '__ANY__';
   declare options struct<
     tolerate_staleness interval
-    , null_value string
     , force_expire_at timestamp
   > default (
     ifnull(cast(safe.string(options_json.tolerate_staleness) as interval), interval 30 minute)
-    , ifnull(safe.string(options_json.null_value), '__NULL__')
     , safe.timestamp(string(options_json.force_expire_at))
   );
+
+  select options;
 
   -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
   execute immediate (
@@ -65,10 +66,11 @@ begin
           , label
           , target.table_id
           , ifnull(target.project_id, @@project_id), target.dataset_id
-          , format(if(
-            contains_substr(target.table_id, '*')
-            , 'starts_with(table_name, replace("%s", "*", ""))'
-            , 'table_name = "%s"'
+          , format(
+            if(
+              contains_substr(target.table_id, '*')
+              , 'starts_with(table_name, replace("%s", "*", ""))'
+              , 'table_name = "%s"'
             )
             , target.table_id)
         )
@@ -81,55 +83,51 @@ begin
   )
   ;
 
-
   -- Alignment and extract staled partition
   set ret = (
-    -- partition_id -> (null, null) -> ('__NULL__', '__NULL__')
-    -- partition_id -> (null, date) -> (_pseudo_date, date)
-    -- partition_id -> (date, null) -> (date, _pseudo_date)
-    -- partition_id -> (date, date) -> (date, date)
     with
     pseudo_partition as (
       SELECT
         label
-        , coalesce(
-            partition_id
-            , if(has_wildcard, regexp_replace(table_name, format('^%s', pattern), ''), null)
-            , format_date('%Y%m%d', _pseudo_date)
-            , options.null_value
-          )
-          as partition_id
+        , _pseudo_partition_id as partition_id
         , struct(partition_id, table_catalog, table_schema, table_name, last_modified_time)
           as alignment_paylod
       from _partitions_temp
       left join unnest([struct(
         contains_substr(argument, '*') as has_wildcard
         , regexp_replace(argument, r'\*$', '') as pattern
+        , (
+          select as value
+            array_agg(distinct d)
+          from unnest(partition_alignments) a
+          left join unnest(a.sources) src
+          left join unnest([a.destination, src]) d
+        ) as _pseudo_partitions
       )])
+      /*
+      * Pesudo partition generation for alignment
+      */
       left join unnest(
-        if(
-          partition_id is not null or has_wildcard
-          , []
-          , (
-            select as value
-              generate_date_array(
-                min(safe.parse_date('%Y%m%d', least(d, s)))
-                , max(safe.parse_date('%Y%m%d', greatest(d, s)))
-              )
-            from unnest(partition_alignments) a
-            left join unnest(a.sources) src
-            left join unnest([struct(
-              nullif(a.destination, options.null_value) as d
-              , nullif(src, options.null_value) as s
-            )])
-          )
-        )
-      ) as _pseudo_date
+        case
+          --  _TABLE_SUFFIX -> __ANY__, __NULL__, _TABLE_SUFFIX
+          when has_wildcard
+            then [null_value, any_value, regexp_replace(table_name, format('^%s', pattern), '')]
+          --       __NULL__ -> __ANY__, __NULL__, 20220101, 20220102, ... (alignment range)
+          when partition_id = null_value
+            then [null_value, any_value] || _pseudo_partitions
+          -- _PARTITIONTIME -> __ANY__, _PARTITIONTIME
+          else
+            [null_value, any_value, partition_id]
+        end
+      ) as _pseudo_partition_id
       where
         table_name = argument or starts_with(table_name, pattern)
     )
     , argument_alignment as (
-      select a.destination as partition_id, array_length(a.sources) as n_sources, source as source_partition_id
+      select
+        a.destination as partition_id
+        , array_length(a.sources) as n_sources
+        , source as source_partition_id
       from unnest(partition_alignments) a, unnest(a.sources) as source
     )
     , aligned as (
@@ -159,14 +157,14 @@ begin
     select
       array_agg(distinct partition_id order by partition_id)
     from aligned
-    left join unnest([ifnull(destination.partition_id, options.null_value)]) as partition_id
+    left join unnest([ifnull(destination.partition_id, null_value)]) as partition_id
     where
       is_ready_every_sources
       and (
         -- Staled if destination partition does not exist
         destination.last_modified_time is null
         -- Staled if partition is older than force_expire_at timestamp. If force_expire_at is null, the condition is ignored.
-        or ifnull(destination.last_modified_time >= options.force_expire_at, false)
+        or ifnull(destination.last_modified_time <= options.force_expire_at, false)
         -- Staled destination partition only if source partition is enough stable and old
         or (
           source.last_modified_time - destination.last_modified_time >= options.tolerate_staleness
