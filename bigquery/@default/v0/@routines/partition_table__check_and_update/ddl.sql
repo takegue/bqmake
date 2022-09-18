@@ -1,6 +1,6 @@
 create or replace procedure `v0.partition_table__check_and_update`(
-  destination STRUCT<project_id STRING, dataset_id STRING, table_id STRING>,
-  sources ARRAY<STRUCT<project_id STRING, dataset_id STRING, table_id STRING>>,
+  destination struct<project_id string, dataset_id string, table_id string>,
+  sources array<struct<project_id string, dataset_id string, table_id string>>,
   partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>,
   update_job_query STRING,
   options JSON
