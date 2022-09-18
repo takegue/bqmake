@@ -52,7 +52,7 @@ begin
   if _sources is null then
     -- Auto-detect sources
     call `v0.scan_query_referenced_tables`(
-      _sources, update_job_query, to_json(struct(true as enable_query_rewrite))
+      _sources, update_job.query, to_json(struct(true as enable_query_rewrite))
     );
   end if;
 
@@ -60,9 +60,12 @@ begin
   call `v0.detect_staleness`(
     _stale_partitions
     , destination
-    , sources
-    , ['__NULL__', ['__ANY__']]
-    , to_json(struct(interval 0 hours as tolerate_delay))
+    , _sources
+    , [('__NULL__', ['__ANY__'])]
+    , to_json(struct(
+      _options.tolerate_delay as tolerate_delay
+      , _options.force_expire_at as force_expire_at
+    ))
   );
 
   if ifnull(array_length(_stale_partitions), 0) = 0 then
@@ -83,12 +86,12 @@ begin
   end if;
 
   execute immediate `v0.zgensql__snapshot_scd_type2`(
-    destination, update_job_query, unique_key
-  ).updatge_dml
-    using update_job.snapshot_timestamp as timestamp
+    destination, update_job.query, update_job.unique_key
+  ).update_dml
+    using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
   ;
 
   if @@row_count = 0 then
-    raise using message = format('Update but No data update: %t', (update_job_query, partition_range));
+    raise using message = format('Update but No data update: %t', (update_job.query));
   end if;
 end;

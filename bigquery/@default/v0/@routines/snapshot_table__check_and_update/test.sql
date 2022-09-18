@@ -16,6 +16,8 @@ execute immediate `bqmake.v0.zgensql__snapshot_scd_type2`(
 ;
 assert @@row_count is null;
 
+truncate table zpreview__snapshot.stations_scd_type2;
+
 for t in (select as struct
     timestamp('2022-01-01' + interval idx day) as ts
     , *
@@ -41,12 +43,12 @@ for t in (select as struct
 do
   set previous_process_bytes = @@script.bytes_processed;
 
-  call `bqmake.v0.snaphost_table__check_and_update`(
+  call `bqmake.v0.snapshot_table__check_and_update`(
     destination
     , null
-    , (unique_key, t.query)
+    , (unique_key, t.query, t.ts)
     , to_json(struct(
-        current_timestamp() as force_expire_at
+      current_timestamp() as force_expire_at
     ))
   )
   ;
@@ -56,9 +58,6 @@ do
     , error(format('#%d Failed: %s (%t != %t)', t.idx, t.msg, t.expected_row_count, @@row_count))
   );
 
-  assert @@script.bytes_processed - previous_process_bytes < 32 * 1024
-    as "UPDATE process bytes must be less than latest data size + update data size"
-  ;
 end for;
 
 
