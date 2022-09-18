@@ -116,12 +116,15 @@ begin
           --  _TABLE_SUFFIX -> __ANY__, __NULL__, _TABLE_SUFFIX
           when has_wildcard
             then [null_value, any_value, regexp_replace(table_name, format('^%s', pattern), '')]
-          --       __NULL__ -> __ANY__, __NULL__, 20220101, 20220102, ... (alignment range)
-          when ifnull(partition_id, null_value) = null_value
-            then [null_value, any_value] || _pseudo_partitions
+          --           null -> __ANY__, __NULL__, 20220101, 20220102, ... (alignment range)
+          when partition_id is null
+            then [null_value, null_value, any_value] || _pseudo_partitions
+          --       __NULL__ -> __ANY__, __NULL__
+          when partition_id = null_value
+            then [null_value, any_value]
           -- _PARTITIONTIME -> __ANY__, _PARTITIONTIME
           else
-            [null_value, any_value, partition_id]
+            [any_value, partition_id]
         end
       ) as _pseudo_partition_id
       where
