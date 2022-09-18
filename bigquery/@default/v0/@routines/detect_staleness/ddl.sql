@@ -89,6 +89,7 @@ begin
     pseudo_partition as (
       SELECT
         label
+        , _pseudo_partitions
         , _pseudo_partition_id as partition_id
         , struct(partition_id, table_catalog, table_schema, table_name, last_modified_time)
           as alignment_paylod
@@ -98,7 +99,10 @@ begin
         , regexp_replace(argument, r'\*$', '') as pattern
         , (
           select as value
-            array_agg(distinct d)
+            ifnull(
+              array_agg(distinct nullif(nullif(d, any_value), null_value) ignore nulls)
+              , []
+            )
           from unnest(partition_alignments) a
           left join unnest(a.sources) src
           left join unnest([a.destination, src]) d
@@ -113,7 +117,7 @@ begin
           when has_wildcard
             then [null_value, any_value, regexp_replace(table_name, format('^%s', pattern), '')]
           --       __NULL__ -> __ANY__, __NULL__, 20220101, 20220102, ... (alignment range)
-          when partition_id = null_value
+          when ifnull(partition_id, null_value) = null_value
             then [null_value, any_value] || _pseudo_partitions
           -- _PARTITIONTIME -> __ANY__, _PARTITIONTIME
           else
@@ -138,8 +142,8 @@ begin
         ) as destination
         , source.alignment_paylod as source
         , -- # of source kind * # of source partition
-        array_length(sources) * n_sources
-          = countif(source.partition_id is not null) over (partition by _v.partition_id)
+          array_length(sources) * n_sources
+            = countif(source.partition_id is not null) over (partition by _v.partition_id)
           as is_ready_every_sources
       from
         argument_alignment
