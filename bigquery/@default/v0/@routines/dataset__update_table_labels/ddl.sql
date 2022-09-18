@@ -151,7 +151,7 @@ begin
   select * from `zvalidaiton__dataset__update_labels.table1`
   ;
 
-  call `v0.dataset__update_labels`((null, 'zvalidaiton__dataset__update_labels'))
+  call `v0.dataset__update_table_labels`((null, 'zvalidaiton__dataset__update_labels'))
   ;
 
   with expected as (
