@@ -18,7 +18,7 @@ as ((
         # %s
         create table if not exists `%s`
         partition by DATE(valid_to)
-        cluster by unique_key
+        cluster by valid_from
         as %s
       """
       , header
