@@ -10,8 +10,8 @@ set destination = (null, "zpreview__snapshot", "stations_scd_type2");
 call `v0.snapshot_table__init`(
     destination
     , (
-      "select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations` limit 0"
-      , unique_key
+      unique_key
+      , "select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations` limit 0"
       , timestamp '2022-01-01'
     )
     , null
