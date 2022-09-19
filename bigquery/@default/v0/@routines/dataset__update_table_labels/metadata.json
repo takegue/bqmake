@@ -1,0 +1,29 @@
+{
+    "routineType": "PROCEDURE",
+    "language": "SQL",
+    "arguments": [
+        {
+            "name": "destination",
+            "mode": "IN",
+            "dataType": {
+                "typeKind": "STRUCT",
+                "structType": {
+                    "fields": [
+                        {
+                            "name": "project",
+                            "type": {
+                                "typeKind": "STRING"
+                            }
+                        },
+                        {
+                            "name": "dataset",
+                            "type": {
+                                "typeKind": "STRING"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

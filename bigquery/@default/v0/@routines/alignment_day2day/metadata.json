@@ -1,0 +1,18 @@
+{
+    "routineType": "SCALAR_FUNCTION",
+    "language": "SQL",
+    "arguments": [
+        {
+            "name": "from",
+            "dataType": {
+                "typeKind": "DATE"
+            }
+        },
+        {
+            "name": "to",
+            "dataType": {
+                "typeKind": "DATE"
+            }
+        }
+    ]
+}
