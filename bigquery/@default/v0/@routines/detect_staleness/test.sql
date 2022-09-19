@@ -117,6 +117,19 @@ assert ret[safe_offset(0)] = '20060102'
 
 call `v0.detect_staleness`(
   ret
+  , (null, "zpreview_test", "dest1")
+  , [(string(null), "zpreview_test", "ref_no_partition")]
+  , [('20060102', ["20060102"])]
+  , to_json(struct(interval 0 hour as tolerate_staleness))
+);
+
+assert ret[safe_offset(0)] = '20060102'
+  as "Stale partition between alignment between Non-partition table and partition table"
+;
+
+
+call `v0.detect_staleness`(
+  ret
   , (null, "zpreview_test", "dest_no_partition")
   , [(string(null), "zpreview_test", "ref_no_partition")]
   , [('__NULL__', ["__NULL__"])]
