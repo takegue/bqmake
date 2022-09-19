@@ -51,7 +51,7 @@ begin
   declare _sources array<struct<project_id string, dataset_id string, table_id string>> default sources;
 
   -- Options
-  declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, force_expire_at timestamp, string> default (
+  declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, force_expire_at timestamp, job_region string> default (
     ifnull(safe.bool(options.dry_run), false)
     , ifnull(safe_cast(safe.string(options.tolerate_delay) as interval), interval 0 minute)
     , timestamp(safe.string(options.force_expire_at))
@@ -67,14 +67,14 @@ begin
   from unnest(if(`options` is not null, `bqutil.fn.json_extract_keys`(to_json_string(`options`)), [])) as key
   ;
 
+  -- Automatic source tables detection
   if _sources is null then
-    -- Auto-detect sources
     call `v0.scan_query_referenced_tables`(
       _sources, update_job.query, to_json(struct(options.job_region as default_region))
     );
   end if;
 
-
+  -- Check partition staleness
   call `v0.detect_staleness`(
     _stale_partitions
     , destination
@@ -110,6 +110,6 @@ begin
   ;
 
   if @@row_count = 0 then
-    raise using message = format('Update but No data update: %t', (update_job.query));
+    raise using message = format('Updated but No data: %t', (update_job.query));
   end if;
 end;
