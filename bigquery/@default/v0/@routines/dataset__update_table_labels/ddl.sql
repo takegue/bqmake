@@ -83,7 +83,7 @@ begin
   for record in (select * from table_labels)
   do
     if record.table_type in ("VIEW", "MATERIALIZED VIEW") then
-      call `v0.analyze_query_reference_tables`(
+      call `v0.analyze_query_referenced_tables`(
         _deps
         , format("select * from `%s.%s.%s`", record.table_catalog, record.table_schema, record.table_name)
         , to_json(struct(true as enable_query_rewrite))

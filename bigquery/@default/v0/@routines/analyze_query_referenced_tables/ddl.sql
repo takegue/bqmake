@@ -1,4 +1,4 @@
-create or replace procedure `v0.analyze_query_reference_tables`(
+create or replace procedure `v0.analyze_query_referenced_tables`(
   out ret array<struct<project_id string, dataset_id string, table_id string>>
   , in query string
   , in options JSON
@@ -59,6 +59,6 @@ end
 -- Test
 begin
   declare ret array<struct<project_id string, dataset_id string, table_id string>>;
-  call `v0.analyze_query_reference_tables`(ret, "select * from sandbox.sample_view", JSON '{"enable_query_rewrite": true}');
+  call `v0.analyze_query_referenced_tables`(ret, "select * from sandbox.sample_view", JSON '{"enable_query_rewrite": true}');
   select ret;
 end
