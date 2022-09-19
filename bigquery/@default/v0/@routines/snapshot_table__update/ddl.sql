@@ -1,4 +1,4 @@
-create or replace procedure `v0.snapshot_table__check_and_update`(
+create or replace procedure `v0.snapshot_table__update`(
   in destination struct<project_id string, dataset_id string, table_id string>,
   in sources array<struct<project_id string, dataset_id string, table_id string>>,
   in update_job struct<

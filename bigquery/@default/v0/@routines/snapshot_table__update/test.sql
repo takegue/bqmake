@@ -43,7 +43,7 @@ for t in (select as struct
 do
   set previous_process_bytes = @@script.bytes_processed;
 
-  call `bqmake.v0.snapshot_table__check_and_update`(
+  call `bqmake.v0.snapshot_table__update`(
     destination
     , null
     , (unique_key, t.query, t.ts)
