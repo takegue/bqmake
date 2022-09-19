@@ -17,7 +17,7 @@ options(
 )
 begin
   declare last_job_id string;
-  declare enable_query_rewrite bool default ifnull(bool(options.enable_query_rewrite), false);
+  declare enable_query_rewrite bool default ifnull(bool(options.enable_query_rewrite), true);
   declare default_region string default ifnull(string(options.default_region), "region-us");
 
   begin
