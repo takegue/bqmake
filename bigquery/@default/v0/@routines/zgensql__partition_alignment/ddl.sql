@@ -174,7 +174,7 @@ begin
     , [
       (string(null), "zpreview_test__alignment", 'ref1')
     ]
-    , `v0.alignment__day2day`('2006-01-02', '2006-01-02')
+    , `v0.alignment_day2day`('2006-01-02', '2006-01-02')
   );
 
   execute immediate query;

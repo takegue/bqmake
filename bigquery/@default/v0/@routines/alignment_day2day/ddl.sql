@@ -12,6 +12,6 @@ as
 
 begin
   assert array_length(`v0.alignment_day2day`('2022-01-01', '2022-01-31')) = 31
-    as "v0.alignment__day2day('2022-01-01', '2022-01-01') should return 31 rows"
+    as "v0.alignmentk_day2day('2022-01-01', '2022-01-01') should return 31 rows"
   ;
 end;

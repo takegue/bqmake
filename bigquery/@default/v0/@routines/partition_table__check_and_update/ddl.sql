@@ -43,7 +43,7 @@ begin
   call `bqmake.v0.partition_table__check_and_update`(
     (null, 'zsandbox', 'ga4_count')
     , [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')]
-    , `bqmake.v0.alignment__day2day`('2021-01-01', '2021-01-01')
+    , `bqmake.v0.alignment_day2day`('2021-01-01', '2021-01-01')
     , query
     , null
   );
