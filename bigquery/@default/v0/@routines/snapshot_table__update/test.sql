@@ -7,12 +7,15 @@ create schema if not exists `zpreview__snapshot`;
 
 set destination = (null, "zpreview__snapshot", "stations_scd_type2");
 
-execute immediate `bqmake.v0.zgensql__snapshot_scd_type2`(
+call `v0.snapshot_table__init`(
     destination
-    , "select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations` limit 0"
-    , unique_key
-  ).create_ddl
-    using timestamp '2022-01-01' as timestamp
+    , (
+      "select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations` limit 0"
+      , unique_key
+      , timestamp '2022-01-01'
+    )
+    , null
+  )
 ;
 assert @@row_count is null;
 

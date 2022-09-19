@@ -23,24 +23,6 @@ Arguments
 - options: JSON value
   * dry_run: Whether to run the update job as a dry run. [Default: false].
 
-Examples
-===
-
-```
-call `bqmake.v0.snapshot_table__check_and_update`(
-  destination
-  , null
-  (
-    "staion_id"
-    , "select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations` limit 0"
-    , current_timestamp()
-  )
-  , to_json(struct(
-    current_timestamp() as force_expire_at
-  ))
-)
-```
-
 """
 )
 begin
