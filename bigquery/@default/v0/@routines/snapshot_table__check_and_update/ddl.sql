@@ -51,7 +51,7 @@ begin
   declare _sources array<struct<project_id string, dataset_id string, table_id string>> default sources;
 
   -- Options
-  declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, force_expire_at timestamp, job_region string> default (
+  declare _options struct<dry_run bool, tolerate_delay interval, force_expire_at timestamp, job_region string> default (
     ifnull(safe.bool(options.dry_run), false)
     , ifnull(safe_cast(safe.string(options.tolerate_delay) as interval), interval 0 minute)
     , timestamp(safe.string(options.force_expire_at))
