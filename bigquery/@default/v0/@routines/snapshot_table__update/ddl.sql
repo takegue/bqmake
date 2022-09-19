@@ -69,7 +69,7 @@ begin
 
   -- Automatic source tables detection
   if _sources is null then
-    call `v0.scan_query_referenced_tables`(
+    call `v0.analyze_query_referenced_tables`(
       _sources, update_job.query, to_json(struct(options.job_region as default_region))
     );
   end if;

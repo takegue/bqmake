@@ -1,4 +1,4 @@
-create or replace function `v0.get_bqlabel_from_option`(
+create or replace function `v0.zget_bqlabel_from_option`(
   label_option_value string
 )
 returns array<struct<key string, value string>>
@@ -16,4 +16,4 @@ as (
   )
 );
 
-select `v0.get_bqlabel_from_option`('[STRUCT("hoge", "fuga"), STRUCT("hoge", "fugb")]')
+select `v0.zget_bqlabel_from_option`('[STRUCT("hoge", "fuga"), STRUCT("hoge", "fugb")]')

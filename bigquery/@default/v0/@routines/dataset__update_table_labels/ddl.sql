@@ -23,7 +23,7 @@ begin
       select
         table_catalog, table_schema, table_name
         , table_type
-        , ifnull(`bqmake.v0.get_bqlabel_from_option`(option_value), []) as labels
+        , ifnull(`bqmake.v0.zget_bqlabel_from_option`(option_value), []) as labels
       from `%s.INFORMATION_SCHEMA.TABLES`
       left join labels using(table_catalog, table_schema, table_name)
     """
@@ -83,7 +83,7 @@ begin
   for record in (select * from table_labels)
   do
     if record.table_type in ("VIEW", "MATERIALIZED VIEW") then
-      call `v0.scan_query_referenced_tables`(
+      call `v0.analyze_query_referenced_tables`(
         _deps
         , format("select * from `%s.%s.%s`", record.table_catalog, record.table_schema, record.table_name)
         , to_json(struct(true as enable_query_rewrite))
@@ -174,7 +174,7 @@ begin
       , format('%t: Expected %t but actual is %t', (table_name, key), expected.value, actual.value) as err
     from expected
     left join `zvalidaiton__dataset__update_labels.INFORMATION_SCHEMA.TABLE_OPTIONS` using(table_name, option_name)
-    left join unnest(`v0.get_bqlabel_from_option`(option_value)) as actual using(key)
+    left join unnest(`v0.zget_bqlabel_from_option`(option_value)) as actual using(key)
   )
   , report as (
     select as value
