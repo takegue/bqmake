@@ -1,75 +1,75 @@
 {
-    "routineType": "PROCEDURE",
-    "description": "Generate SQL for profiling table data\n",
-    "language": "SQL",
-    "arguments": [
-        {
-            "name": "ret",
-            "dataType": {
+  "routineType": "PROCEDURE",
+  "description": "Generate SQL for profiling table data\n",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "ret",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "destination",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "project",
+              "type": {
                 "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "dataset",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "table",
+              "type": {
+                "typeKind": "STRING"
+              }
             }
-        },
-        {
-            "name": "destination",
-            "dataType": {
-                "typeKind": "STRUCT",
-                "structType": {
-                    "fields": [
-                        {
-                            "name": "project",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "dataset",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "table",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "name": "group_keys",
-            "dataType": {
-                "typeKind": "ARRAY",
-                "arrayElementType": {
-                    "typeKind": "STRING"
-                }
-            }
-        },
-        {
-            "name": "options",
-            "dataType": {
-                "typeKind": "ARRAY",
-                "arrayElementType": {
-                    "typeKind": "STRUCT",
-                    "structType": {
-                        "fields": [
-                            {
-                                "name": "key",
-                                "type": {
-                                    "typeKind": "STRING"
-                                }
-                            },
-                            {
-                                "name": "value",
-                                "type": {
-                                    "typeKind": "STRING"
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
+          ]
         }
-    ]
+      }
+    },
+    {
+      "name": "group_keys",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRING"
+        }
+      }
+    },
+    {
+      "name": "options",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "key",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "value",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
 }

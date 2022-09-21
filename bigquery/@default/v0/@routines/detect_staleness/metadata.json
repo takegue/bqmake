@@ -1,110 +1,110 @@
 {
-    "routineType": "PROCEDURE",
-    "description": "Extracts partitions that are stale.\n\nArgument\n===\n\n- ret                  : Output variable\n- destination          : destination table\n- sources              : source tables\n- partition_alignments : partition alignments\n- options              : option values in json format\n  * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)\n  *         null_value : Alignment options. __NULL__ meaning no partition (Default: '__NULL__')\n\n\nStalenss and Stablity Margin Checks\n===\n\n                     past                                      now\nSource Table        : |       |         |                       |\n                              ^ Refresh ^ Refresh\n\nStaleness Timeline  : | Fresh | Ignore  |  Ignore    |   Stale  |\n                                        <------------^ tolerate staleness\n\n\n",
-    "language": "SQL",
-    "arguments": [
-        {
-            "name": "ret",
-            "mode": "OUT",
-            "dataType": {
-                "typeKind": "ARRAY",
-                "arrayElementType": {
-                    "typeKind": "STRING"
-                }
-            }
-        },
-        {
-            "name": "destination",
-            "dataType": {
-                "typeKind": "STRUCT",
-                "structType": {
-                    "fields": [
-                        {
-                            "name": "project_id",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "dataset_id",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "table_id",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "name": "sources",
-            "dataType": {
-                "typeKind": "ARRAY",
-                "arrayElementType": {
-                    "typeKind": "STRUCT",
-                    "structType": {
-                        "fields": [
-                            {
-                                "name": "project_id",
-                                "type": {
-                                    "typeKind": "STRING"
-                                }
-                            },
-                            {
-                                "name": "dataset_id",
-                                "type": {
-                                    "typeKind": "STRING"
-                                }
-                            },
-                            {
-                                "name": "table_id",
-                                "type": {
-                                    "typeKind": "STRING"
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        {
-            "name": "partition_alignments",
-            "dataType": {
-                "typeKind": "ARRAY",
-                "arrayElementType": {
-                    "typeKind": "STRUCT",
-                    "structType": {
-                        "fields": [
-                            {
-                                "name": "destination",
-                                "type": {
-                                    "typeKind": "STRING"
-                                }
-                            },
-                            {
-                                "name": "sources",
-                                "type": {
-                                    "typeKind": "ARRAY",
-                                    "arrayElementType": {
-                                        "typeKind": "STRING"
-                                    }
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        {
-            "name": "options_json",
-            "dataType": {
-                "typeKind": "JSON"
-            }
+  "routineType": "PROCEDURE",
+  "description": "Extracts partitions that are stale.\n\nArgument\n===\n\n- ret                  : Output variable\n- destination          : destination table\n- sources              : source tables\n- partition_alignments : partition alignments\n- options              : option values in json format\n  * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)\n  *         null_value : Alignment options. __NULL__ meaning no partition (Default: '__NULL__')\n\n\nStalenss and Stablity Margin Checks\n===\n\n                     past                                      now\nSource Table        : |       |         |                       |\n                              ^ Refresh ^ Refresh\n\nStaleness Timeline  : | Fresh | Ignore  |  Ignore    |   Stale  |\n                                        <------------^ tolerate staleness\n\n\n",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "ret",
+      "mode": "OUT",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRING"
         }
-    ]
+      }
+    },
+    {
+      "name": "destination",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "project_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "dataset_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "table_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "sources",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "project_id",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "dataset_id",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "table_id",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "partition_alignments",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "destination",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "sources",
+                "type": {
+                  "typeKind": "ARRAY",
+                  "arrayElementType": {
+                    "typeKind": "STRING"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "options_json",
+      "dataType": {
+        "typeKind": "JSON"
+      }
+    }
+  ]
 }

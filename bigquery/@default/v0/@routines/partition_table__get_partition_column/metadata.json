@@ -1,58 +1,58 @@
 {
-    "routineType": "PROCEDURE",
-    "language": "SQL",
-    "arguments": [
-        {
-            "name": "ret_column",
-            "mode": "OUT",
-            "dataType": {
-                "typeKind": "STRUCT",
-                "structType": {
-                    "fields": [
-                        {
-                            "name": "name",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "type",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        }
-                    ]
-                }
+  "routineType": "PROCEDURE",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "ret_column",
+      "mode": "OUT",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "name",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "type",
+              "type": {
+                "typeKind": "STRING"
+              }
             }
-        },
-        {
-            "name": "target",
-            "mode": "IN",
-            "dataType": {
-                "typeKind": "STRUCT",
-                "structType": {
-                    "fields": [
-                        {
-                            "name": "project_id",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "dataset_id",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "table_id",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        }
-                    ]
-                }
-            }
+          ]
         }
-    ]
+      }
+    },
+    {
+      "name": "target",
+      "mode": "IN",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "project_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "dataset_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "table_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
 }

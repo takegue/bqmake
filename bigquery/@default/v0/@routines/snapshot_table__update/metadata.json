@@ -1,104 +1,104 @@
 {
-    "routineType": "PROCEDURE",
-    "description": "Procedure to check partition stalesns and update partitions if needed.\n\nArguments\n====\n\n- destination: The destination table to check and update partitions.\n-     sources: The source tables of destination table referecend by update_job.query. The procedure will check if the source tables have new partitions.\n               If null is given, the procedure will automatically detect the source tables from update_job.query.\n-  update_job:\n  * unique_key: The unique key of the update job. The procedure will check if the update job is already running.\n  * query: The query to update the destination table.\n  * snapshot_timestamp: The timestamp to use for the snapshot. If null is given, the procedure will use the current timestamp.\n- options: JSON value\n  * dry_run: Whether to run the update job as a dry run. [Default: false].\n  * tolerate_delay: The delay to tolerate before updating partitions. If newer source partitions are found but its timestamp is within this delay, the procedure will not update partitions. [Default: 30 minutes].\n  * force_expire_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].\n  * job_region: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: \"region-us\"]\n\nExamples\n===\n\n```\ncall `bqmake.v0.snapshot_table__check_and_update`(\n  destination\n  , null\n  (\n    \"staion_id\"\n    , \"select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations` limit 0\"\n    , current_timestamp()\n  )\n  , to_json(struct(\n    current_timestamp() as force_expire_at\n  ))\n)\n```\n\n",
-    "language": "SQL",
-    "arguments": [
-        {
-            "name": "destination",
-            "mode": "IN",
-            "dataType": {
-                "typeKind": "STRUCT",
-                "structType": {
-                    "fields": [
-                        {
-                            "name": "project_id",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "dataset_id",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "table_id",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        }
-                    ]
-                }
+  "routineType": "PROCEDURE",
+  "description": "Procedure to check partition stalesns and update partitions if needed.\n\nArguments\n====\n\n- destination: The destination table to check and update partitions.\n-     sources: The source tables of destination table referecend by update_job.query. The procedure will check if the source tables have new partitions.\n               If null is given, the procedure will automatically detect the source tables from update_job.query.\n-  update_job:\n  * unique_key: The unique key of the update job. The procedure will check if the update job is already running.\n  * query: The query to update the destination table.\n  * snapshot_timestamp: The timestamp to use for the snapshot. If null is given, the procedure will use the current timestamp.\n- options: JSON value\n  * dry_run: Whether to run the update job as a dry run. [Default: false].\n  * tolerate_delay: The delay to tolerate before updating partitions. If newer source partitions are found but its timestamp is within this delay, the procedure will not update partitions. [Default: 30 minutes].\n  * force_expire_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].\n  * job_region: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: \"region-us\"]\n\nExamples\n===\n\n```\ncall `bqmake.v0.snapshot_table__check_and_update`(\n  destination\n  , null\n  (\n    \"staion_id\"\n    , \"select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations` limit 0\"\n    , current_timestamp()\n  )\n  , to_json(struct(\n    current_timestamp() as force_expire_at\n  ))\n)\n```\n\n",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "destination",
+      "mode": "IN",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "project_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "dataset_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "table_id",
+              "type": {
+                "typeKind": "STRING"
+              }
             }
-        },
-        {
-            "name": "sources",
-            "mode": "IN",
-            "dataType": {
-                "typeKind": "ARRAY",
-                "arrayElementType": {
-                    "typeKind": "STRUCT",
-                    "structType": {
-                        "fields": [
-                            {
-                                "name": "project_id",
-                                "type": {
-                                    "typeKind": "STRING"
-                                }
-                            },
-                            {
-                                "name": "dataset_id",
-                                "type": {
-                                    "typeKind": "STRING"
-                                }
-                            },
-                            {
-                                "name": "table_id",
-                                "type": {
-                                    "typeKind": "STRING"
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        {
-            "name": "update_job",
-            "mode": "IN",
-            "dataType": {
-                "typeKind": "STRUCT",
-                "structType": {
-                    "fields": [
-                        {
-                            "name": "unique_key",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "query",
-                            "type": {
-                                "typeKind": "STRING"
-                            }
-                        },
-                        {
-                            "name": "snapshot_timestamp",
-                            "type": {
-                                "typeKind": "TIMESTAMP"
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "name": "options",
-            "mode": "IN",
-            "dataType": {
-                "typeKind": "JSON"
-            }
+          ]
         }
-    ]
+      }
+    },
+    {
+      "name": "sources",
+      "mode": "IN",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "project_id",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "dataset_id",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "table_id",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "update_job",
+      "mode": "IN",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "unique_key",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "query",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "snapshot_timestamp",
+              "type": {
+                "typeKind": "TIMESTAMP"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "options",
+      "mode": "IN",
+      "dataType": {
+        "typeKind": "JSON"
+      }
+    }
+  ]
 }
