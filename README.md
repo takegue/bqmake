@@ -3,7 +3,7 @@
 BigQuery Data Build Tool like `GNU make`
 The `bqmake` provide some utilities to get table staleness against source tables.
 
-All utilties are provided by **BigQuery Routines (UDF or PROCEDER)**.  
+All utilties are provided by **BigQuery Routines (UDF or PROCEDER)**.
 You can use these routines out-of-the-box!
 
 This tool supports following features.
@@ -17,6 +17,9 @@ This tool supports following features.
 - Supported metadata/table profiling utilities for data management
     * BigQuery Labeling tools for partition tables
     * SQL Generator for descriptive statistics
+
+Currently this is public beta and all routines are subject to change wihtout notice.
+Please send us your comments and suggestion via issue!
 
 ## Get Started
 
