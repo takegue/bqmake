@@ -7,18 +7,22 @@ begin
   declare started_at, waited_at timestamp;
 
   set started_at = current_timestamp();
-  while ifnull(timeout, interval 10 minute) > current_timestamp() - started_at do
+  loop
     begin
       execute immediate query;
       return;
      exception when error then
     end;
 
+    if ifnull(timeout, interval 10 minute) > current_timestamp() - started_at
+      break
+    end if
+
     set waited_at = current_timestamp();
     while retry_interval_seconds > timestamp_diff(current_timestamp(), waited_at, second) do
     end while;
     set retry_interval_seconds = retry_interval_seconds * 2;
-  end while;
+  end loop;
 
   raise using message = "Timeout";
 end;
