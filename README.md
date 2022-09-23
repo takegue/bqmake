@@ -2,11 +2,11 @@
 
 BigQuery Data Build Tool like `GNU make`
 The `bqmake` provide some utilities to get table staleness against source tables.
-All utilities provided by BigQuery routines.
-You can use this routines out-of-box without any installation.
+
+All utilties are provided by **BigQuery Routines (UDF or PROCEDER)**.  
+You can use these routines out-of-the-box!
 
 This tool supports following features.
-
 - Supported **Ingestion Partition Table**
     * Routine to update partial partition with staleness check.
         * Also supports complicated partition alignment i.e. week to day.
@@ -82,7 +82,6 @@ call `bqmake.v0.snapshot_table__update`(
 ```
 
 ### Metadata for partition tables
-
 
 ### Labeling partition tables
 
