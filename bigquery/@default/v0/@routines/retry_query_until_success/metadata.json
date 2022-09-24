@@ -1,0 +1,18 @@
+{
+  "routineType": "PROCEDURE",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "query",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "timeout",
+      "dataType": {
+        "typeKind": "INTERVAL"
+      }
+    }
+  ]
+}

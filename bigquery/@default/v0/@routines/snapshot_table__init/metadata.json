@@ -1,6 +1,5 @@
 {
   "routineType": "PROCEDURE",
-  "description": "Procedure to check partition stalesns and update partitions if needed.\n\nArguments\n====\n\n- destination: The destination table to check and update partitions.\n-     sources: The source tables of destination table referecend by update_job.query. The procedure will check if the source tables have new partitions.\n               If null is given, the procedure will automatically detect the source tables from update_job.query.\n-  update_job:\n  * unique_key: The unique key of the update job. The procedure will check if the update job is already running.\n  * query: The query to update the destination table.\n  * snapshot_timestamp: The timestamp to use for the snapshot. If null is given, the procedure will use the current timestamp.\n\n- options: JSON value\n  * dry_run: Whether to run the update job as a dry run. [Default: false].\n\n",
   "language": "SQL",
   "arguments": [
     {
@@ -68,5 +67,6 @@
         "typeKind": "JSON"
       }
     }
-  ]
+  ],
+  "description": "Procedure to check partition stalesns and update partitions if needed.\n\nArguments\n====\n\n- destination: The destination table to check and update partitions.\n-     sources: The source tables of destination table referecend by update_job.query. The procedure will check if the source tables have new partitions.\n               If null is given, the procedure will automatically detect the source tables from update_job.query.\n-  update_job:\n  * unique_key: The unique key of the update job. The procedure will check if the update job is already running.\n  * query: The query to update the destination table.\n  * snapshot_timestamp: The timestamp to use for the snapshot. If null is given, the procedure will use the current timestamp.\n\n- options: JSON value\n  * dry_run: Whether to run the update job as a dry run. [Default: false].\n\n"
 }

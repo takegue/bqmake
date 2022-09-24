@@ -1,6 +1,5 @@
 {
   "routineType": "TABLE_VALUED_FUNCTION",
-  "description": "Generate SQL for Snapshots in Slowly Changing Dimensions Type 2\n",
   "language": "SQL",
   "arguments": [
     {
@@ -43,5 +42,6 @@
         "typeKind": "STRING"
       }
     }
-  ]
+  ],
+  "description": "Generate SQL for Snapshots in Slowly Changing Dimensions Type 2\n"
 }

@@ -1,6 +1,5 @@
 {
   "routineType": "PROCEDURE",
-  "description": "Get referenced tables by query\n\n  Arguments:\n  ===\n    ret: output variable to store the referenced tables\n    query: query to analyize\n    optiosn:\n      enable_query_rewrite: Enable dynamic query rewrite to minimize slot or billing scan amount (default: false)\n      default_region: region-us (default: \"region-us\")\n  ",
   "language": "SQL",
   "arguments": [
     {
@@ -49,5 +48,6 @@
         "typeKind": "JSON"
       }
     }
-  ]
+  ],
+  "description": "Get referenced tables by query\n\n  Arguments:\n  ===\n    ret: output variable to store the referenced tables\n    query: query to analyize\n    optiosn:\n      enable_query_rewrite: Enable dynamic query rewrite to minimize slot or billing scan amount (default: false)\n      default_region: region-us (default: \"region-us\")\n  "
 }

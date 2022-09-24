@@ -1,6 +1,5 @@
 {
   "routineType": "PROCEDURE",
-  "description": "Generate SQL for profiling table data\n",
   "language": "SQL",
   "arguments": [
     {
@@ -71,5 +70,6 @@
         }
       }
     }
-  ]
+  ],
+  "description": "Generate SQL for profiling table data\n\nThis is private routine and not designed to be called directly.\n"
 }
