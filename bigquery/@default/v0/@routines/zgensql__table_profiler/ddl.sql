@@ -58,8 +58,7 @@ begin
             ", nullif(format('%%t', (%s)), '') as group_keys\n"
             , nullif(array_to_string(group_keys, ', '), '')
           )
-          , ', null as group_keys\n'
-        )
+          , ', null as group_keys\n')
         || '   , count(1) as count\n'
         || string_agg(
             trim(replace(
