@@ -1,5 +1,5 @@
 create or replace procedure `v0.zgensql__table_profiler`(
-  ret string
+  out ret string
   , destination struct<project string, dataset string, table string>
   , group_keys array<string>
   , options_json json
@@ -54,9 +54,12 @@ begin
         "  select\n"
         || "   partition_key\n"
         || ifnull(
-          format(", nullif(format('%%t', (%s)), '') as group_keys\n"
-            , array_to_string(group_keys, ', '))
-          , ', null as group_keys\n')
+          format(
+            ", nullif(format('%%t', (%s)), '') as group_keys\n"
+            , nullif(array_to_string(group_keys, ', '), '')
+          )
+          , ', null as group_keys\n'
+        )
         || '   , count(1) as count\n'
         || string_agg(
             trim(replace(
@@ -84,73 +87,73 @@ begin
       left join unnest([struct(
         r"""
           -- !column! (!fieldnum!)
-          , '!fieldname!' as !fieldnum!__name
-          , count(!column! is not null) as !fieldnum!__nonnull
-          , approx_count_distinct(!column!) as !fieldnum!__unique
-          , hll_count.init(!column!) as !fieldnum!__hll
-          , sum(!column!) as !fieldnum!__sum
-          , avg(!column!) as !fieldnum!__avg
-          , min(!column!) as !fieldnum!__min
-          , max(!column!) as !fieldnum!__max
+          , '!fieldname!' as !column!__name
+          , count(!column! is not null) as !column!__nonnull
+          , approx_count_distinct(!column!) as !column!__unique
+          , hll_count.init(!column!) as !column!__hll
+          , sum(cast(!column! as bignumeric)) as !column!__sum
+          , avg(!column!) as !column!__avg
+          , min(!column!) as !column!__min
+          , max(!column!) as !column!__max
         """
         || if(
           not option_materialized_view_mode
           , """
-            , approx_top_count(!column!, 5) as !fieldnum!__top_count
-            , approx_quantiles(!column!, 20) as !fieldnum!__20quantile
+            , approx_top_count(!column!, 5) as !column!__top_count
+            , approx_quantiles(!column!, 20) as !column!__20quantile
           """
           , ''
         )
           as number
         , r"""
           -- !column! (!fieldnum!)
-          , '!fieldname!' as !fieldnum!__name
-          , count(!column! is not null) as !fieldnum!__nonnull
-          , sum(!column!) as !fieldnum!__sum
-          , avg(!column!) as !fieldnum!__avg
-          , min(!column!) as !fieldnum!__min
-          , max(!column!) as !fieldnum!__max
+          , '!fieldname!' as !column!__name
+          , count(!column! is not null) as !column!__nonnull
+          , sum(cast(!column! as bignumeric)) as !column!__sum
+          , avg(!column!) as !column!__avg
+          , min(!column!) as !column!__min
+          , max(!column!) as !column!__max
         """
         || if(
           not option_materialized_view_mode
           , """
-            , approx_top_count(!column!, 5) as !fieldnum!__top_count
-            , approx_quantiles(!column!, 20) as !fieldnum!__20quantile
+            , approx_top_count(!column!, 5) as !column!__top_count
+            , approx_quantiles(!column!, 20) as !column!__20quantile
           """
           , ''
         )
           as float
         , r"""
           -- !column! (!fieldnum!)
-          , '!fieldname!' as !fieldnum!__name
-          , count(!column! is not null) as !fieldnum!__nonnull
-          , approx_count_distinct(!column!) as !fieldnum!__unique
-          , hll_count.init(!column!) as !fieldnum!__hll
-          , avg(CHARACTER_LENGTH(!column!)) as !fieldnum!__avg_len
-          , min(CHARACTER_LENGTH(!column!)) as !fieldnum!__min_len
-          , max(CHARACTER_LENGTH(!column!)) as !fieldnum!__max_len
+          , '!fieldname!' as !column!__name
+          , count(!column! is not null) as !column!__nonnull
+          , approx_count_distinct(!column!) as !column!__unique
+          , hll_count.init(!column!) as !column!__hll
+          , avg(CHARACTER_LENGTH(!column!)) as !column!__avg_len
+          , min(CHARACTER_LENGTH(!column!)) as !column!__min_len
+          , max(CHARACTER_LENGTH(!column!)) as !column!__max_len
         """ || if(
           not option_materialized_view_mode
           , """
-            , approx_top_count(!column!, 5) as !fieldnum!__top_count
-            , approx_quantiles(!column!, 20) as !fieldnum!__20quantile
+            , approx_top_count(!column!, 20) as !column!__top_count
+            , approx_quantiles(!column!, 20) as !column!__20quantile
           """
           , ''
         )
           as string
         , r"""
           -- !column! (!fieldnum!)
-          , '!fieldname!' as !fieldnum!__name
-          , count(!column! is not null) as !fieldnum!__nonnull
-          , hll_count.init(string(date(!column!))) as !fieldnum!__day_hll
-          , min(!column!) as !fieldnum!__min
-          , max(!column!) as !fieldnum!__max
+          , '!fieldname!' as !column!__name
+          , count(!column! is not null) as !column!__nonnull
+          , hll_count.init(string(date(!column!))) as !column!__day_hll
+          , min(!column!) as !column!__min
+          , max(!column!) as !column!__max
         """
           as timestamp
         , r"""
           -- !column! (!fieldnum!)
-          , '!fieldname!' as !fieldnum!__name
-          , count(!column! is not null) as nonnull
+          , '!fieldname!' as !column!__name
+          , count(!column! is not null) as !column!__nonnull
         """
           as anything
       )]) as template
@@ -170,8 +173,9 @@ begin
       )])
       where
         -- Filter unsuported types
-        not is_under_array
-        and not starts_with(data_type, 'STRUCT')
+        not starts_with(data_type, 'STRUCT')
+        and field_path not in unnest(group_keys)
+
       group by table_catalog, table_schema, table_name
     )
 
