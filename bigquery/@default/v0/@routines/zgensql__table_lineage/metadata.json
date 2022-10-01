@@ -1,0 +1,25 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "project_id",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "location",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "information_schema_job_table_name",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    }
+  ],
+  "description": "Generate SQL for lineage table data\n\nThis is private routine and not designed to be called directly.\n"
+}

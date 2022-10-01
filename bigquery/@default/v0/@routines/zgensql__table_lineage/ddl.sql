@@ -129,8 +129,8 @@ select * from user_query
 order by destination, depth
 """
   , coalesce(
-    format('%s.%s.%s.', project_id, ifnull(location, 'regin-us'), ifnull(information_schema_job_table_name, 'JOBS_BY_PROJECT'))
-    , format('%s.%s.',  ifnull(location, 'regin-us'), ifnull(information_schema_job_table_name, 'JOBS_BY_PROJECT'))
+    format('%s.%s.INFORMATION_SCHEMA.%s', project_id, ifnull(location, 'region-us'), ifnull(information_schema_job_table_name, 'JOBS_BY_PROJECT'))
+    , format('%s.INFORMATION_SCHEMA.%s',  ifnull(location, 'region-us'), ifnull(information_schema_job_table_name, 'JOBS_BY_PROJECT'))
     , error(format("invalid arguments: %t", (project_id, location, information_schema_job_table_name)))
   )
 )
