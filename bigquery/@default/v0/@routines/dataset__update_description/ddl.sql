@@ -1,0 +1,165 @@
+create or replace procedure `bqmake.v0.dataset__update_description`(
+  in destination array<struct<project string, dataset string>>
+)
+begin
+  declare dst_ref string default @@project_id;
+
+  execute immediate format("""
+    create or replace temp table `tmp_schema_options`
+    as
+    with schema_description as (
+      select
+        catalog_name
+        , schema_name
+        , string(parse_json(option_value)) as description
+      from `%s.INFORMATION_SCHEMA.SCHEMATA_OPTIONS`
+      where option_name = 'description'
+    )
+    select
+        *
+    from `%s.INFORMATION_SCHEMA.SCHEMATA`
+    left join schema_description
+      using(catalog_name, schema_name)
+  """
+    , dst_ref
+    , dst_ref
+  );
+  execute immediate format("""
+    create or replace temp table `tmp_lineage`
+    as
+      %s
+    """
+    , `bqmake.v0.zgensql__table_lineage`(null, null, null)
+  ) using
+    timestamp('2022-09-01', 'Asia/Tokyo') as `begin`
+    , timestamp('2022-10-01', 'Asia/Tokyo') as `end`
+  ;
+
+  create or replace temp table `tmp_mermaid`
+  as
+    /*
+    graph TD
+        A[Christmas] -->|Get money| B(Go shopping)
+        B --> C{Let me think}
+        C -->|One| D[Laptop]
+        C -->|Two| E[iPhone]
+        C -->|Three| F[fa:fa-car Car]
+    */
+    with datasource as (
+      select *
+      from `tmp_lineage`
+      left join unnest([struct(
+        substr(to_base64(md5(format('%s.%s.%s', dst_project, dst_dataset, dst_table))), 0, 4) as dst_hash
+        ,substr(to_base64(md5(format('%s.%s.%s', src_project, src_dataset, src_table))), 0, 4) as src_hash
+        ,
+          split(destination, '.')[safe_offset(0)] || '.' ||  split(destination, '.')[safe_offset(1)] as unit
+      )])
+      where depth >= 0
+    )
+    , mermaid_nodes as (
+      with mermeid_dataset_subgraph as (
+        select
+          unit
+          , format('subgraph %s.%s\n', project, dataset)
+          || string_agg(
+            distinct format('\t%s(%s)', _hash, table)
+            , '\n'
+          )
+          || '\n end'
+          as mermaid_subgraph
+        from datasource
+        left join unnest([
+          struct(dst_hash as _hash, dst_project as project, dst_dataset as dataset, dst_table as table)
+          , struct(src_hash as _hash, src_project as project, src_dataset as dataset, src_table as table)
+        ]) id
+        group by unit, project, dataset
+      )
+      select
+        unit
+        , string_agg(mermaid_subgraph, '\n') as nodes
+      from mermeid_dataset_subgraph
+      group by unit
+    )
+    , mermaid_relations as (
+      SELECT
+        unit
+        , string_agg(
+          distinct format('%s --> %s', src_hash, dst_hash)
+          , '\n'
+        ) as relations
+      FROM datasource
+      group by unit
+    )
+
+    SELECT
+      unit
+      , format("""
+    graph LR
+      %s
+      %s
+    """
+      , nodes
+      , relations
+    ) as mermaid
+    FROM mermaid_nodes
+    left join mermaid_relations using(unit)
+  ;
+
+  for record in (
+    with newone as (
+      select
+        * replace(
+          array_to_string(
+            [
+              coalesce(substr(description, 0, header_position - 1) || substr(description, footer_position + char_length(footer) + 1), description)
+            ]
+            || if(
+              mermaid is not null,
+              [
+                header
+                , format('```mermaid\n%s\n```', mermaid)
+                , footer
+              ]
+              , []
+            )
+            , '\n'
+          )
+          as description
+        )
+      from tmp_schema_options
+      left join unnest([struct(
+        '<!--- BQMAKE_DATASET: BEGIN -->' as header
+        , '<!--- BQMAKE_DATASET: END -->' as footer
+       )])
+      left join unnest([struct(
+        nullif(instr(description, header), 0) as header_position
+        , nullif(instr(description, footer), 0) as footer_position
+        , format('%s.%s', catalog_name, schema_name) as unit
+      )])
+      left join tmp_mermaid using(unit)
+    )
+
+    select
+      catalog_name
+      , schema_name
+      , description
+    from newone
+  )
+  do
+
+    execute immediate format("""
+      alter schema `%s.%s`
+      set options (description=@description);
+    """
+      , record.catalog_name
+      , record.schema_name
+    )
+      using record.description as description
+    ;
+  end for;
+end;
+
+-- Unit test
+begin
+  call `bqmake.v0.dataset__update_description`(null);
+end
