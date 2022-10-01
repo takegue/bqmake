@@ -14,9 +14,9 @@ begin
      exception when error then
     end;
 
-    if ifnull(timeout, interval 10 minute) > current_timestamp() - started_at
-      break
-    end if
+    if ifnull(timeout, interval 10 minute) > current_timestamp() - started_at then
+      break;
+    end if;
 
     set waited_at = current_timestamp();
     while retry_interval_seconds > timestamp_diff(current_timestamp(), waited_at, second) do
