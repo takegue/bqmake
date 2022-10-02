@@ -43,11 +43,13 @@ begin
             from `%s.%s.INFORMATION_SCHEMA.TABLES`
             """
             , @@project_id
-            , schema
           )
           , '\nunion all'
         )
-      from unnest(target_schemata) as schema
+      from unnest(ifnull(
+        target_schemata
+        , array(select distinct schema_name from tmp_schema_options)
+      )) as schema
     )
     ;
     execute immediate (
