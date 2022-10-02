@@ -9,6 +9,7 @@ create or replace procedure `bqmake.v0.dataset__update_description`(
 begin
   declare dst_ref string default @@project_id;
 
+  -- Prepare Current Schema
   execute immediate format("""
     create or replace temp table `tmp_schema_options`
     as
@@ -29,6 +30,49 @@ begin
     , dst_ref
     , dst_ref
   );
+
+  begin
+    -- Force create query reference for lineage generation
+    execute immediate (
+      select as value
+        "create or replace temp table `_temp_tables` as "
+        || string_agg(
+          format("""
+            select
+              *
+            from `%s.%s.INFORMATION_SCHEMA.TABLES`
+            """
+            , @@project_id
+            , schema
+          )
+          , '\nunion all'
+        )
+      from unnest(['sandbox']) as schema
+    )
+    ;
+    execute immediate (
+      SELECT
+        array_to_string(
+          [
+          'with'
+          , string_agg(
+              format(
+                "cte_%s as (select 1 from `%s.%s.%s`)"
+                , substr(generate_uuid(), 0, 6)
+                , table_catalog
+                , table_schema
+                , table_name
+              )
+              , '\n, '
+            )
+            , 'select 1'
+          ]
+          , '\n'
+        )
+      FROM `_temp_tables`
+    );
+  end;
+
   execute immediate format("""
     create or replace temp table `tmp_lineage`
     as
@@ -60,11 +104,12 @@ begin
       from `tmp_lineage`
       left join unnest([struct(
         substr(to_base64(md5(format('%s.%s.%s', dst_project, dst_dataset, dst_table))), 0, 4) as dst_hash
-        ,substr(to_base64(md5(format('%s.%s.%s', src_project, src_dataset, src_table))), 0, 4) as src_hash
+        , substr(to_base64(md5(format('%s.%s.%s', src_project, src_dataset, src_table))), 0, 4) as src_hash
         ,
           split(destination, '.')[safe_offset(0)] || '.' ||  split(destination, '.')[safe_offset(1)] as unit
       )])
-      where depth >= 0
+    where
+      ifnull(not starts_with(src_table, 'INFORMATION_SCHEMA'), true)
     )
     , mermaid_nodes as (
       with mermeid_dataset_subgraph as (
@@ -75,7 +120,7 @@ begin
             distinct format('\t%s(%s)', _hash, table)
             , '\n'
           )
-          || '\n end'
+          || '\nend'
           as mermaid_subgraph
         from datasource
         left join unnest([
@@ -98,19 +143,13 @@ begin
           , '\n'
         ) as relations
       FROM datasource
+      where depth >= 0
       group by unit
     )
 
     SELECT
       unit
-      , format("""
-    graph LR
-      %s
-      %s
-    """
-      , nodes
-      , relations
-    ) as mermaid
+      , format("graph LR\n%s\n%s", nodes, relations) as mermaid
     FROM mermaid_nodes
     left join mermaid_relations using(unit)
   ;
