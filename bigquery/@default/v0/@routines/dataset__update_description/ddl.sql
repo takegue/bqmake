@@ -47,7 +47,7 @@ begin
           )
           , '\nunion all'
         )
-      from unnest(['sandbox']) as schema
+      from unnest(target_schemata) as schema
     )
     ;
     execute immediate (
