@@ -1,0 +1,45 @@
+{
+  "routineType": "PROCEDURE",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "target_schemata",
+      "mode": "IN",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRING"
+        }
+      }
+    },
+    {
+      "name": "lineage_parameter",
+      "mode": "IN",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "begin",
+              "type": {
+                "typeKind": "TIMESTAMP"
+              }
+            },
+            {
+              "name": "end",
+              "type": {
+                "typeKind": "TIMESTAMP"
+              }
+            },
+            {
+              "name": "location",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,5 +1,10 @@
 create or replace procedure `bqmake.v0.dataset__update_description`(
-  in destination array<struct<project string, dataset string>>
+  in target_schemata array<string>
+  , in lineage_parameter struct<
+    `begin` timestamp
+    , `end` timestamp
+    , location string
+  >
 )
 begin
   declare dst_ref string default @@project_id;
@@ -16,7 +21,7 @@ begin
       where option_name = 'description'
     )
     select
-        *
+      *
     from `%s.INFORMATION_SCHEMA.SCHEMATA`
     left join schema_description
       using(catalog_name, schema_name)
@@ -29,12 +34,17 @@ begin
     as
       %s
     """
-    , `bqmake.v0.zgensql__table_lineage`(null, null, null)
+    , `bqmake.v0.zgensql__table_lineage`(
+      @@project_id
+      , ifnull(lineage_parameter.location, 'region-us')
+      , null
+    )
   ) using
-    timestamp('2022-09-01', 'Asia/Tokyo') as `begin`
-    , timestamp('2022-10-01', 'Asia/Tokyo') as `end`
+    ifnull(lineage_parameter.`begin`, current_timestamp() - interval 30 day) as `begin`
+    , ifnull(lineage_parameter.`end`, current_timestamp()) as `end`
   ;
 
+  -- Lineage Generation
   create or replace temp table `tmp_mermaid`
   as
     /*
@@ -127,6 +137,8 @@ begin
           as description
         )
       from tmp_schema_options
+      left join unnest(target_schemata) as schema_name
+        using(schema_name)
       left join unnest([struct(
         '<!--- BQMAKE_DATASET: BEGIN -->' as header
         , '<!--- BQMAKE_DATASET: END -->' as footer
@@ -137,6 +149,8 @@ begin
         , format('%s.%s', catalog_name, schema_name) as unit
       )])
       left join tmp_mermaid using(unit)
+      where
+       schema_name is not null
     )
 
     select
@@ -161,5 +175,5 @@ end;
 
 -- Unit test
 begin
-  call `bqmake.v0.dataset__update_description`(null);
+  call `bqmake.v0.dataset__update_description`(null, null);
 end
