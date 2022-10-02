@@ -105,6 +105,5 @@
         "typeKind": "JSON"
       }
     }
-  ],
-  "description": "Extracts partitions that are stale.\n\nArgument\n===\n\n- ret                  : Output variable. array of staled partition like 20220101\n- destination          : destination table\n- sources              : source tables\n- partition_alignments : partition alignments\n- options              : option values in json format\n  * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)\n  *    force_expire_at : The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: NULL].\n\n\nStalenss and Stablity Margin Checks\n===\n\nCase 1: Partition staleness with tolerate_staleness option\n                     past                              now\nSource Table        : |       |               |         |\n                              ^ Refresh\nStaleness Timeline  : | Fresh | Ignore(Fresh) |  Stale  |\n                      +-----------------------^ tolerate staleness\n\n\nCase 2: Partition staleness timeline with force_expire_at option\n                     past                              now\nSource Table        : | Fresh                           |\nStaleness Timeline  : | Fresh | Stale                   |\n                              ^ force_expire_at\n"
+  ]
 }
