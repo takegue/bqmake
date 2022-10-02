@@ -91,14 +91,6 @@ begin
   -- Lineage Generation
   create or replace temp table `tmp_mermaid`
   as
-    /*
-    graph TD
-        A[Christmas] -->|Get money| B(Go shopping)
-        B --> C{Let me think}
-        C -->|One| D[Laptop]
-        C -->|Two| E[iPhone]
-        C -->|Three| F[fa:fa-car Car]
-    */
     with datasource as (
       select *
       from `tmp_lineage`
@@ -158,7 +150,7 @@ begin
     with newone as (
       select
         * replace(
-          array_to_string(
+          ltrim(array_to_string(
             [
               coalesce(substr(description, 0, header_position - 1) || substr(description, footer_position + char_length(footer) + 1), description)
             ]
@@ -172,7 +164,7 @@ begin
               , []
             )
             , '\n'
-          )
+          ))
           as description
         )
       from tmp_schema_options
