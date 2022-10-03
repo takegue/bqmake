@@ -1,17 +1,17 @@
 # bqmake
 
-BigQuery Data Build Tool like `GNU make`
-The `bqmake` provide some utilities to get table staleness against source tables.
+BigQuery Data Build Tool like `make`
+`bqmake` provides some utilities for update
 
 All utilties are provided by **BigQuery Routines (UDF or PROCEDER)**.
 You can use these routines out-of-the-box!
 
 This tool supports following features.
-- Supported **Ingestion Partition Table**
+- Supported **Partition Table** Data Update
     * Routine to update partial partition with staleness check.
-        * Also supports complicated partition alignment i.e. week to day.
-    * You can keep tables fresh although they have various and complexed source tables.
-    * Dynamic dependency staleness check saves BigQuery query processed bytes and slots!
+        * Supports complicated partition alignment i.e. week to day.
+        * Dynamic staleness check saves BigQuery query processed bytes and slots!
+    * You can keep tables fresh even though they have various and complexed source tables.
 - Supported **Table Snapshot**
     * Table snapshot enable you to query with historical changes and saves your storage capacity.
 - Supported metadata/table profiling utilities for data management
@@ -47,6 +47,17 @@ call `bqmake.v0.partition_table__check_and_update`(
   , query
   , null
 );
+--> Affect 16 rows
+
+-- If you re-call this routine, this avoid to update already updated partitions.
+call `bqmake.v0.partition_table__check_and_update`(
+  (null, 'zsandbox', 'ga4_count')
+  , [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')]
+  , `bqmake.v0.alignment_day2day`('2021-01-01', '2021-01-01')
+  , query
+  , null
+);
+--> No affect
 ```
 
 ### Snapshot Table
@@ -86,7 +97,7 @@ call `bqmake.v0.snapshot_table__update`(
 
 ### Metadata for partition tables
 
-### Labeling partition tables
+### Labeling partition tables on Dataset
 
 `v0.dataset__update_table_labels` set useful labels for partitions to tables and views in dataset.
 
