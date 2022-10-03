@@ -48,8 +48,6 @@ begin
     , safe.timestamp(string(options_json.force_expire_at))
   );
 
-  select options;
-
   -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
   execute immediate (
     select as value
