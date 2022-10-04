@@ -1,9 +1,9 @@
 create or replace procedure `v0.partition_table__check_and_update`(
-  destination struct<project_id string, dataset_id string, table_id string>,
-  sources array<struct<project_id string, dataset_id string, table_id string>>,
-  partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>,
-  update_job_query STRING,
-  options JSON
+  in destination struct<project_id string, dataset_id string, table_id string>,
+  in sources array<struct<project_id string, dataset_id string, table_id string>>,
+  in partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>,
+  in update_job_query STRING,
+  in options JSON
 )
 options(description="""Procedure to check partition stalesns and update partitions if needed.
 
@@ -20,6 +20,7 @@ Arguments
     * max_update_partition_range: The interval to limit the range of partitions to update. This option is useful to avoid updating too many partitions at once. [Default: 1 month].
     * via_temp_table: Whether to update partitions via a temporary table. [Default: false].
     * force_expire_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
+    * bq_location: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: "region-us"]
 
 Examples
 ===
@@ -60,11 +61,12 @@ begin
   declare partition_unit string;
 
   -- Options
-  declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, max_update_partition_range INTERVAL, via_temp_table BOOL> default (
+  declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, max_update_partition_range INTERVAL, via_temp_table BOOL, bq_location string> default (
     ifnull(bool(options.dry_run), false)
     , ifnull(safe_cast(string(options.tolerate_delay) as interval), interval 0 minute)
     , ifnull(safe_cast(string(options.max_update_partition_range) as interval), interval 1 month)
     , ifnull(bool(options.via_temp_table), false)
+    , ifnull(string(options.bq_location), "region-us")
   );
 
   -- Assert invalid options
@@ -79,7 +81,7 @@ begin
   -- Automatic source tables detection
   if _sources is null then
     call `v0.analyze_query_referenced_tables`(
-      _sources, update_job.query, to_json(struct(options.job_region as default_region))
+      _sources, update_job_query, to_json(struct(options.bq_location as default_region))
     );
   end if;
 

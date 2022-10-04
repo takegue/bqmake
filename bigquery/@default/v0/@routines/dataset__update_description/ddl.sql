@@ -42,7 +42,8 @@ begin
               *
             from `%s.%s.INFORMATION_SCHEMA.TABLES`
             """
-            , @@project_id
+            , dst_ref
+            , schema
           )
           , '\nunion all'
         )

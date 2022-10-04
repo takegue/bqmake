@@ -24,7 +24,7 @@ Arguments
   * dry_run: Whether to run the update job as a dry run. [Default: false].
   * tolerate_delay: The delay to tolerate before updating partitions. If newer source partitions are found but its timestamp is within this delay, the procedure will not update partitions. [Default: 30 minutes].
   * force_expire_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
-  * job_region: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: "region-us"]
+  * bq_location: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: "region-us"]
 
 Examples
 ===
@@ -51,16 +51,16 @@ begin
   declare _sources array<struct<project_id string, dataset_id string, table_id string>> default sources;
 
   -- Options
-  declare _options struct<dry_run bool, tolerate_delay interval, force_expire_at timestamp, job_region string> default (
+  declare _options struct<dry_run bool, tolerate_delay interval, force_expire_at timestamp, bq_location string> default (
     ifnull(safe.bool(options.dry_run), false)
     , ifnull(safe_cast(safe.string(options.tolerate_delay) as interval), interval 0 minute)
     , timestamp(safe.string(options.force_expire_at))
-    , ifnull(safe.string(options.job_region), 'region-us')
+    , ifnull(safe.string(options.bq_location), 'region-us')
   );
 
   -- Assert invalid options
   select logical_and(if(
-    key in ('dry_run', 'tolerate_delay', 'job_region', 'force_expire_at')
+    key in ('dry_run', 'tolerate_delay', 'bq_location', 'force_expire_at')
     , true
     , error(format("Invalid Option: name=%t in %t'", key, `options`))
   ))
@@ -70,7 +70,7 @@ begin
   -- Automatic source tables detection
   if _sources is null then
     call `v0.analyze_query_referenced_tables`(
-      _sources, update_job.query, to_json(struct(options.job_region as default_region))
+      _sources, update_job.query, to_json(struct(options.bq_location as default_region))
     );
   end if;
 
