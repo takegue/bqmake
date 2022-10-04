@@ -29,6 +29,7 @@ Examples
 ```
 begin
   declare query string;
+  declare _sources array<struct<project_id string, dataset_id string, table_id string>> default sources;
 
   set query = \"\"\"
     select date(timestamp_micros(event_timestamp)) as event_date, event_name, count(1)
@@ -75,10 +76,17 @@ begin
   from unnest(if(`options` is not null, `bqutil.fn.json_extract_keys`(to_json_string(`options`)), [])) as key
   ;
 
+  -- Automatic source tables detection
+  if _sources is null then
+    call `v0.analyze_query_referenced_tables`(
+      _sources, update_job.query, to_json(struct(options.job_region as default_region))
+    );
+  end if;
+
   call `v0.detect_staleness`(
     stale_partitions
     , destination
-    , sources
+    , _sources
     , partition_alignments
     , to_json(struct(_options.tolerate_delay))
   );
@@ -136,7 +144,7 @@ begin
     select
       format('%P', to_json(struct(
         destination
-        , sources
+        , _sources
         , _options
         , partition_range
     )))
