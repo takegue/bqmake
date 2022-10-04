@@ -1,4 +1,4 @@
-create or replace procedure `v0.partition_table__check_and_update`(
+create or replace procedure `v0.partition_table__update`(
   in destination struct<project_id string, dataset_id string, table_id string>,
   in sources array<struct<project_id string, dataset_id string, table_id string>>,
   in partition_alignments ARRAY<STRUCT<destination STRING, sources ARRAY<STRING>>>,
@@ -42,7 +42,7 @@ begin
   create schema if not exists `zsandbox`;
   create or replace table `zsandbox.ga4_count`(event_date date, event_name string, records int64)
   partition by event_date;
-  call `bqmake.v0.partition_table__check_and_update`(
+  call `bqmake.v0.partition_table__update`(
     (null, 'zsandbox', 'ga4_count')
     , [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')]
     , `bqmake.v0.alignment_day2day`('2021-01-01', '2021-01-01')
