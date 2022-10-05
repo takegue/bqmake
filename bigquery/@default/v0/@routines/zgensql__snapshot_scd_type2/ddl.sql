@@ -161,6 +161,53 @@ as ((
       , destination_ref
       , destination_ref
     ) as access_tvf_ddl
+    , format("""
+      # %s
+      merge `%s` as T
+      using (
+        with
+        coherence_checker as (
+        select
+          *
+          , struct(
+            ifnull(
+              -- Remove duplicated records on time-series
+              -- NOTE:
+              --  ARRAY type sometimes causes inconsitent mateching such as array<any>(null) != null
+              --  becasuse BigQuery cannot hold null value for ARRAY type.
+              format('%%t', entity)
+                = lead(format('%%t', entity), 1) over w_history
+              -- Remove transient `valid_from` records
+              or valid_from = lead(valid_from, 1) over w_history
+              , false
+            )
+            as will_remove
+            , lead(valid_from, 1) over w_history as new_valid_to
+          ) as _checker
+        from `%s`
+        window
+          w_history as (partition by unique_key order by valid_from nulls last)
+        )
+
+        select
+          * except(_checker)
+            replace(_checker.new_valid_to as valid_to)
+        from coherence_checker
+        where
+          not _checker.will_remove
+      ) as S
+      on
+        T.unique_key = S.unique_key
+        and T.revision_hash = S.revision_hash
+      when matched then
+        update set valid_to = S.valid_to
+      when not matched by source then
+        delete
+    """
+   , header
+   , destination_ref
+   , destination_ref
+  ) as reconstruct_dml
   from unnest([struct(
     coalesce(
       format('%s.%s.%s', destination.project_id, destination.dataset_id, destination.table_id)
