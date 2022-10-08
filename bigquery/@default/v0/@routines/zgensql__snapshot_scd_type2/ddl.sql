@@ -47,21 +47,31 @@ as ((
     ) as validate_query
     , format("""
         # %s
-        with grain as (
-          SELECT
-            date(valid_to) as changed_date, unique_key
-            , approx_count_distinct(revision_hash) as n_changed
-          from %s
-          group by changed_date, unique_key
-        )
-        , stats as (
-          select change_date, approx_quantiles(n_changed, 4) from grain
-        )
-        select * from stats
+        SELECT
+          revision_hash
+          , min(valid_from) as changed_at
+          , approx_count_distinct(unique_key) as n_changes
+        FROM %s
+        group by revision_hash
+        order by changed_at desc
       """
       , header
       , destination_ref
-    ) as profile_query
+    ) as profiler__change_history
+    , format("""
+        # %s
+        select
+          unique_key
+          , min(valid_from) as first_changed_at
+          , max(valid_from) as last_changed_at
+          , approx_count_distinct(revision_hash) as n_changed
+        from `%s`
+        group by unique_key
+        order by n_changed desc
+      """
+      , header
+      , destination_ref
+    ) as profiler__entity_stats
     -- DML Query
     , format("""
       # %s

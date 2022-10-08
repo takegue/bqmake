@@ -77,7 +77,8 @@ begin
     using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
   ;
 
-  if @@row_count = 0 then
-    raise using message = format('Updated but No data: %t', (update_job.query));
-  end if;
+  execute immediate _tvf_ddl
+    using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
+  ;
+
 end;
