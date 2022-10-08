@@ -53,11 +53,10 @@ as ((
           , approx_count_distinct(unique_key) as n_changes
         FROM %s
         group by revision_hash
-        order by changed_at desc
       """
       , header
       , destination_ref
-    ) as profiler__change_history
+    ) as profiler__snapshot_history
     , format("""
         # %s
         select
@@ -67,7 +66,6 @@ as ((
           , approx_count_distinct(revision_hash) as n_changed
         from `%s`
         group by unique_key
-        order by n_changed desc
       """
       , header
       , destination_ref

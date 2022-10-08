@@ -27,8 +27,7 @@ Arguments
 )
 begin
   declare _stale_partitions array<string>;
-  declare _table_ddl string;
-  declare _tvf_ddl string;
+  declare _table_ddl, _tvf_ddl, _snapshot_history, _entity_stats string;
 
   -- Options
   declare _options struct<dry_run bool> default struct(
@@ -44,11 +43,12 @@ begin
   from unnest(if(`options` is not null, `bqutil.fn.json_extract_keys`(to_json_string(`options`)), [])) as key
   ;
 
-  set (_table_ddl, _tvf_ddl) = (
+  set (_table_ddl, _tvf_ddl, _snapshot_history, _entity_stats) = (
     select as struct
-      t.create_ddl, t.access_tvf_ddl
+      t.create_ddl, t.access_tvf_ddl, t.profiler__snapshot_history, t.profiler__entity_stats
     from unnest([`v0.zgensql__snapshot_scd_type2`(
-      destination, update_job.query, update_job.unique_key
+      (ifnull(destination.project_id, @@project_id), destination.dataset_id, destination.table_id)
+      , update_job.query, update_job.unique_key
     )]) as t
   )
   ;
@@ -77,8 +77,28 @@ begin
     using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
   ;
 
-  execute immediate _tvf_ddl
-    using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
+  execute immediate format(
+    """
+    create or replace materialized view `%s.%s.%s`
+    as %s
+    """
+      , ifnull(destination.project_id, @@project_id)
+      , destination.dataset_id
+      , destination.table_id || '__snapshot_history'
+      , _snapshot_history
+  )
+  ;
+
+  execute immediate format(
+    """
+    create or replace materialized view `%s.%s.%s`
+    as %s
+    """
+      , ifnull(destination.project_id, @@project_id)
+      , destination.dataset_id
+      , destination.table_id || '__entity_stats'
+      , _entity_stats
+  )
   ;
 
 end;

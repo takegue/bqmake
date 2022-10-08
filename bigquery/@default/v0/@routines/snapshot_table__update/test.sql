@@ -63,5 +63,4 @@ do
 
 end for;
 
-
 drop schema `zpreview__snapshot` cascade;

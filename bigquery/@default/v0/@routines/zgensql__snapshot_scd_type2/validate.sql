@@ -45,7 +45,7 @@ do
     , t.query
     , unique_key
   ).update_dml
-    using timestamp '2022-01-02' as timestamp
+    using t.ts as timestamp
   ;
   select if(
     t.expected_row_count = @@row_count
