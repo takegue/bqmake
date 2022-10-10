@@ -15,5 +15,3 @@ as (
     from unnest(json_extract_array(safe.parse_json(replace(replace(replace(label_option_value, "STRUCT", ""), '(', '['), ')', ']')))) as label
   )
 );
-
-select `v0.zget_bqlabel_from_option`('[STRUCT("hoge", "fuga"), STRUCT("hoge", "fugb")]')
