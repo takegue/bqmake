@@ -1,4 +1,4 @@
-create or replace procedure `bqmake.v0.dataset__update_description`(
+create or replace procedure `v0.dataset__update_description`(
   in target_schemata array<string>
   , in lineage_parameter struct<
     `begin` timestamp
@@ -209,5 +209,5 @@ end;
 
 -- Unit test
 begin
-  call `bqmake.v0.dataset__update_description`(null, null);
+  call `v0.dataset__update_description`(null, null);
 end

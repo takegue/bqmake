@@ -1,4 +1,4 @@
-create or replace function `bqmake.v0.zgensql__table_lineage`(
+create or replace function `v0.zgensql__table_lineage`(
   project_id STRING
   , location STRING
   , information_schema_job_table_name STRING

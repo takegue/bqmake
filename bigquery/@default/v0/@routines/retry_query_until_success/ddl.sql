@@ -1,4 +1,4 @@
-create or replace procedure `bqmake.v0.retry_query_until_success`(
+create or replace procedure `v0.retry_query_until_success`(
   query string
   , timeout interval
 )
