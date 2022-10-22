@@ -93,6 +93,7 @@ begin
   ) using
     ifnull(lineage_parameter.`begin`, current_timestamp() - interval 30 day) as `begin`
     , ifnull(lineage_parameter.`end`, current_timestamp()) as `end`
+    , 50 as `max_depth`
   ;
 
   -- Lineage Generation

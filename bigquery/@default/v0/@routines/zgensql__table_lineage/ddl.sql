@@ -1,7 +1,7 @@
 create or replace function `v0.zgensql__table_lineage`(
   project_id STRING
   , location STRING
-  , information_schema_job_table_name STRING
+  , max_depth INT64
 )
 options(description="""Generate SQL for lineage table data
 
@@ -33,6 +33,7 @@ with recursive lineage as (
     join relations
       on (relations.dst_project, relations.dst_dataset, relations.dst_table)
        = (lineage.src_project, lineage.src_dataset, lineage.src_table)
+  where depth <= @max_depth
 )
 , job as (
   select
