@@ -21,7 +21,7 @@ assert exists(select @@row_count > 0)
   as "20110101 partition update call should be added"
 ;
 
-call `v0.partition_table__check_and_update`(
+call `v0.partition_table__update`(
   (null, 'zpreview__partition_check_and_update', 'ga4_count')
   , [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')]
   , `bqmake.v0.alignment_day2day`('2021-01-01', '2021-01-01')

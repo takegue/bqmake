@@ -53,27 +53,31 @@ begin
       )) as schema
     )
     ;
-    execute immediate (
-      SELECT
-        array_to_string(
-          [
-          'with'
-          , string_agg(
-              format(
-                "cte_%s as (select 1 from `%s.%s.%s`)"
-                , substr(generate_uuid(), 0, 6)
-                , table_catalog
-                , table_schema
-                , table_name
+
+    begin
+      execute immediate (
+        SELECT
+          array_to_string(
+            [
+            'with'
+            , string_agg(
+                format(
+                  "cte_%s as (select 1 from `%s.%s.%s`)"
+                  , substr(generate_uuid(), 0, 6)
+                  , table_catalog
+                  , table_schema
+                  , table_name
+                )
+                , '\n, '
               )
-              , '\n, '
-            )
-            , 'select 1'
-          ]
-          , '\n'
-        )
-      FROM `_temp_tables`
-    );
+              , 'select 1'
+            ]
+            , '\n'
+          )
+        FROM `_temp_tables`
+      );
+    exception when error then
+    end;
   end;
 
   execute immediate format("""

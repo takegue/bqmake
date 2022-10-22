@@ -79,7 +79,7 @@ begin
 
   execute immediate format(
     """
-    create or replace materialized view `%s.%s.%s`
+    create materialized view `%s.%s.%s`
     as %s
     """
       , ifnull(destination.project_id, @@project_id)
@@ -91,7 +91,7 @@ begin
 
   execute immediate format(
     """
-    create or replace materialized view `%s.%s.%s`
+    create materialized view `%s.%s.%s`
     as %s
     """
       , ifnull(destination.project_id, @@project_id)

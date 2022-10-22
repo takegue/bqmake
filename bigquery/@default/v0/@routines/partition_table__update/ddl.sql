@@ -42,7 +42,7 @@ begin
   create schema if not exists `zsandbox`;
   create or replace table `zsandbox.ga4_count`(event_date date, event_name string, records int64)
   partition by event_date;
-  call `bqmake.v0.partition_table__update`(
+  call `bqmake.v0.partition_table__check_and_update`(
     (null, 'zsandbox', 'ga4_count')
     , [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')]
     , `bqmake.v0.alignment_day2day`('2021-01-01', '2021-01-01')
@@ -55,6 +55,7 @@ end
 """
 )
 begin
+  declare _sources array<struct<project_id string, dataset_id string, table_id string>> default sources;
   declare stale_partitions array<string>;
   declare partition_range struct<begin string, `end` string>;
   declare partition_column struct<name string, type string>;
