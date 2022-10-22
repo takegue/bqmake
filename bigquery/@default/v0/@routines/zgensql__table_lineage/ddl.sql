@@ -83,7 +83,13 @@ with recursive lineage as (
 
   from job, unnest(referenced_tables) as ref
     left join unnest([struct(
-      extract(millisecond from processed_time)
+      coalesce(
+        statement_type
+        -- Interpolate statement_type because materialized view udpate by system is lacking statement_type
+        , if(contains_substr(query, 'CALL'), 'CALL', null)
+        , 'UNKNOWN'
+      ) as statement_type
+      , extract(millisecond from processed_time)
         + extract(second from processed_time) * 1000
         + extract(minute from processed_time) * 60 * 1000
         + extract(hour from processed_time) * 60 * 60 * 1000
@@ -105,8 +111,29 @@ with recursive lineage as (
     )])
   where
     not is_self_reference
-    and not statement_type in ('INSERT', 'DELETE', 'ALTER_TABLE', 'DROP_TABLE')
-    and statement_type is not null
+    and v.statement_type in (
+      'ALTER_TABLE'
+      , 'ALTER_VIEW'
+      , 'ASSERT'
+      , 'CREATE_CLONE_TABLE'
+      , 'CREATE_MATERIALIZED_VIEW'
+      , 'CREATE_MODEL'
+      , 'CREATE_SNAPSHOT_TABLE'
+      , 'CREATE_TABLE'
+      , 'CREATE_TABLE_AS_SELECT'
+      , 'CREATE_VIEW'
+      , 'DELETE'
+      , 'DROP_MATERIALIZED_VIEW'
+      , 'DROP_TABLE'
+      , 'DROP_VIEW'
+      , 'EXPORT_DATA'
+      , 'INSERT'
+      , 'MERGE'
+      , 'SELECT'
+      , 'TRUNCATE'
+      , 'UPDATE'
+    )
+    and v.statement_type is not null
   group by unique_key
 )
 , user_query as (
