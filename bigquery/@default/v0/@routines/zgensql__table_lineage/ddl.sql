@@ -105,7 +105,7 @@ with recursive lineage as (
       , destination_table = ref as is_self_reference
       , starts_with(destination_table.dataset_id, '_') and char_length(destination_table.dataset_id) > 40 as is_temporary
       , starts_with(destination_table.table_id, 'anon') as is_anonymous_query
-    )])
+    )]) as v
     left join unnest([struct(
       if(safe.parse_date('%%Y%%m%%d', _src_suffix_number) is not null, regexp_replace(ref.table_id, r'\d+$', '*'), ref.table_id) as normalized_ref_table
       , if(safe.parse_date('%%Y%%m%%d', _dst_suffix_number) is not null, regexp_replace(destination_table.table_id, r'\d+$', '*'), destination_table.table_id) as normalized_dst_table
