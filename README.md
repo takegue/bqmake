@@ -1,7 +1,8 @@
 # bqmake
 
-BigQuery Data Build Tool like `make`
-`bqmake` provides some utilities for update
+BigQuery Powered Data Build Tool like `make`.  
+`bqmake` provides some utilities for maintaining up-to-date tables.
+
 
 All utilties are provided by **BigQuery Routines (UDF or PROCEDER)**.
 You can use these routines out-of-the-box!
