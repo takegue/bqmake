@@ -45,7 +45,7 @@ begin
 
   set (_table_ddl, _tvf_ddl, _snapshot_history, _entity_stats) = (
     select as struct
-      t.create_ddl, t.access_tvf_ddl, t.profiler__snapshot_history, t.profiler__entity_stats
+      t.create_ddl, t.access_tvf_ddl, t.profiler__snapshot_job, t.profiler__entity
     from unnest([`v0.zgensql__snapshot_scd_type2`(
       (ifnull(destination.project_id, @@project_id), destination.dataset_id, destination.table_id)
       , update_job.query, update_job.unique_key
@@ -79,24 +79,24 @@ begin
 
   execute immediate format(
     """
-    create materialized view `%s.%s.%s`
+    create or replace view `%s.%s.%s`
     as %s
     """
       , ifnull(destination.project_id, @@project_id)
       , destination.dataset_id
-      , destination.table_id || '__snapshot_history'
+      , format('monitor__%s__snapshot_job', destination.table_id)
       , _snapshot_history
   )
   ;
 
   execute immediate format(
     """
-    create materialized view `%s.%s.%s`
+    create or replace view `%s.%s.%s`
     as %s
     """
       , ifnull(destination.project_id, @@project_id)
       , destination.dataset_id
-      , destination.table_id || '__entity_stats'
+      , format('monitor__%s__entity', destination.table_id)
       , _entity_stats
   )
   ;

@@ -47,16 +47,21 @@ as ((
     ) as validate_query
     , format("""
         # %s
-        SELECT
+        select
           revision_hash
           , min(valid_from) as changed_at
-          , approx_count_distinct(unique_key) as n_changes
-        FROM %s
+          , approx_count_distinct(unique_key) as n_changed
+          , countif(valid_to is null) as n_alive
+          , approx_quantiles(
+            `bqutil.fn.interval_seconds`(ifnull(valid_to, current_timestamp()) - valid_from), 4)
+            as lifetime_seconds_quartile
+        from `%s`
         group by revision_hash
+        order by changed_at desc
       """
       , header
       , destination_ref
-    ) as profiler__snapshot_history
+    ) as profiler__snapshot_job
     , format("""
         # %s
         select
@@ -69,7 +74,7 @@ as ((
       """
       , header
       , destination_ref
-    ) as profiler__entity_stats
+    ) as profiler__entity
     -- DML Query
     , format("""
       # %s
