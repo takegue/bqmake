@@ -7,15 +7,16 @@ You can use these routines out-of-the-box!
 
 This tool supports following features.
 
-- **Refresh (Partition) Data**:\
+- **Data Refresh Utilities**:\
   The routine `bqmake.v0.partition_table__update` automatically checks whether to update a target table, taking into account reference tables of query generating target's data.
     * Dynamic staleness check saves BigQuery query processed bytes and slots!
     * Supports partial partition update including complicated alignment i.e. week to day.
-- **Snapshot Data**:\
+- **Data Snapshot Utilities**:\
   Table snapshot enable you to query with historical changes and saves your storage capacity.
-- **Metadata Update**:\
-  Supports metadata/table profiling utilities for data management
-  * BigQuery Labeling tools for partition tables
+- **Update Metadata Utilities**:\
+  Metadata utilties make you free to manage complex/irritated table information.
+    * Intra-dataset data lineage embedding into dataset
+    * Partition table labeling
 
 Currently this is public beta and all routines are subject to change wihtout notice.
 Please send us your comments and suggestion via issue!
