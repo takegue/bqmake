@@ -30,13 +30,19 @@ begin
   declare _table_ddl, _tvf_ddl, _snapshot_history, _entity_stats string;
 
   -- Options
-  declare _options struct<dry_run bool> default struct(
+  declare _options struct<
+    dry_run bool
+    , enable_snapshot_monitor bool
+    , enable_entity_monitor bool
+    > default (
     ifnull(safe.bool(options.dry_run), false)
+    , ifnull(safe.bool(options.enable_snapshot_monitor), true)
+    , ifnull(safe.bool(options.enable_entity_monitor), true)
   );
 
   -- Assert invalid options
   select logical_and(if(
-    key in ('dry_run')
+    key in ('dry_run', 'enable_snapshot_monitor', 'enable_entity_monitor')
     , true
     , error(format("Invalid Option: name=%t in %t'", key, `options`))
   ))
@@ -77,28 +83,31 @@ begin
     using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
   ;
 
-  execute immediate format(
-    """
-    create or replace view `%s.%s.%s`
-    as %s
-    """
-      , ifnull(destination.project_id, @@project_id)
-      , destination.dataset_id
-      , format('monitor__%s__snapshot_job', destination.table_id)
-      , _snapshot_history
-  )
-  ;
 
-  execute immediate format(
-    """
-    create or replace view `%s.%s.%s`
-    as %s
-    """
-      , ifnull(destination.project_id, @@project_id)
-      , destination.dataset_id
-      , format('monitor__%s__entity', destination.table_id)
-      , _entity_stats
-  )
-  ;
+  if _options.enable_snapshot_monitor then
+    execute immediate format(
+      """
+      create or replace view `%s.%s.%s`
+      as %s
+      """
+        , ifnull(destination.project_id, @@project_id)
+        , destination.dataset_id
+        , format('monitor__%s__snapshot_job', destination.table_id)
+        , _snapshot_history
+    );
+  end if;
+
+  if _options.enable_entity_monitor then
+    execute immediate format(
+      """
+      create or replace view `%s.%s.%s`
+      as %s
+      """
+        , ifnull(destination.project_id, @@project_id)
+        , destination.dataset_id
+        , format('monitor__%s__entity', destination.table_id)
+        , _entity_stats
+    );
+  end if;
 
 end;
