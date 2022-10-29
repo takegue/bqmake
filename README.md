@@ -7,7 +7,7 @@ You can use these routines out-of-the-box!
 
 This tool supports following features.
 
-- **Data Refresh Utilities**:\
+- **Dynamic Data Refresh Utilities**:\
   The routine `bqmake.v0.partition_table__update` automatically checks whether to update a target table, taking into account reference tables of query generating target's data.
     * Dynamic staleness check saves BigQuery query processed bytes and slots!
     * Supports partial partition update including complicated alignment i.e. week to day.
