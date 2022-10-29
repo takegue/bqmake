@@ -26,7 +26,7 @@ begin
         , field_path
         , ordinal_position as position
         , depth
-        , max(if(is_partitioning_column = 'YES', field_path, null)) over (partition by table_name, column_name) as partition_column
+        , max(partition_column) over (partition by table_name) as partition_column
         , row_number() over (partition by table_name, column_name, ordinal_position, depth) as subposition
         , path.data_type
         , starts_with(c.data_type, 'ARRAY') as is_under_array
@@ -34,10 +34,23 @@ begin
       left join `%s.INFORMATION_SCHEMA.COLUMN_FIELD_PATHS` as path
         using(table_catalog, table_schema, table_name, column_name)
       left join unnest([struct(
-          array_length(REGEXP_EXTRACT_ALL(field_path, r'\\.')) as depth
+        array_length(REGEXP_EXTRACT_ALL(field_path, r'\\.')) as depth
+        , contains_substr(table_name, '*') as has_wildcard
+        , "%s" as target_table
+      )])
+      left join unnest([struct(
+        coalesce(
+          if(is_partitioning_column = 'YES', column_name, null)
+          , if(has_wildcard, '_TABLE_SUFFIX', null)
+          , null
+        ) as partition_column
       )])
       where
-        table_name = '%s'
+        if(
+          has_wildcard
+          , starts_with(table_name, regexp_replace(target_table, r'\\*$', ''))
+          , table_name = target_table
+        )
   """
     , dataset_ref
     , dataset_ref
@@ -86,7 +99,6 @@ begin
       left join unnest([struct(
         r"""
           -- !column! (!fieldnum!)
-          , '!fieldname!' as !column!__name
           , count(!column! is not null) as !column!__nonnull
           , approx_count_distinct(!column!) as !column!__unique
           , hll_count.init(!column!) as !column!__hll
@@ -100,13 +112,13 @@ begin
           , """
             , approx_top_count(!column!, 5) as !column!__top_count
             , approx_quantiles(!column!, 20) as !column!__20quantile
+            , '!fieldname!' as !column!__name
           """
           , ''
         )
           as number
         , r"""
           -- !column! (!fieldnum!)
-          , '!fieldname!' as !column!__name
           , count(!column! is not null) as !column!__nonnull
           , sum(cast(!column! as bignumeric)) as !column!__sum
           , avg(!column!) as !column!__avg
@@ -118,13 +130,13 @@ begin
           , """
             , approx_top_count(!column!, 5) as !column!__top_count
             , approx_quantiles(!column!, 20) as !column!__20quantile
+          , '!fieldname!' as !column!__name
           """
           , ''
         )
           as float
         , r"""
           -- !column! (!fieldnum!)
-          , '!fieldname!' as !column!__name
           , count(!column! is not null) as !column!__nonnull
           , approx_count_distinct(!column!) as !column!__unique
           , hll_count.init(!column!) as !column!__hll
@@ -136,13 +148,13 @@ begin
           , """
             , approx_top_count(!column!, 20) as !column!__top_count
             , approx_quantiles(!column!, 20) as !column!__20quantile
+            , '!fieldname!' as !column!__name
           """
           , ''
         )
           as string
         , r"""
           -- !column! (!fieldnum!)
-          , '!fieldname!' as !column!__name
           , count(!column! is not null) as !column!__nonnull
           , hll_count.init(string(date(!column!))) as !column!__day_hll
           , min(!column!) as !column!__min
@@ -151,8 +163,8 @@ begin
           as timestamp
         , r"""
           -- !column! (!fieldnum!)
-          , '!fieldname!' as !column!__name
           , count(!column! is not null) as !column!__nonnull
+          , '!fieldname!' as !column!__name
         """
           as anything
       )]) as template
