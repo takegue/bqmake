@@ -12,7 +12,7 @@ This tool supports following features.
     * Dynamic staleness check saves BigQuery query processed bytes and slots!
     * Supports partial partition update including complicated alignment i.e. week to day.
 - **Data Snapshot Utilities**:\
-  Table snapshot enable you to query with historical changes and saves your storage capacity.
+  Table snapshot enables you to query with historical changes and save your storage capacity.
 - **Update Metadata Utilities**:\
   Metadata utilties make you free to manage complex/irritated table information.
     * Intra-dataset data lineage embedding into dataset
