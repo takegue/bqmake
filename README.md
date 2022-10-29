@@ -1,30 +1,28 @@
-# bqmake
+bqmake
+===
 
-BigQuery Powered Data Build Tool like `make`.  
-`bqmake` provides some utilities for maintaining up-to-date tables.
-
-
-All utilties are provided by **BigQuery Routines (UDF or PROCEDER)**.
+BigQuery Powered Data Build Tool like `GNU make`.\
+`bqmake` provides data update utilities using **BigQuery Routines (UDF or PROCEDER)**.\
 You can use these routines out-of-the-box!
 
 This tool supports following features.
-- Supported **Partition Table** Data Update
-    * Routine to update partial partition with staleness check.
-        * Supports complicated partition alignment i.e. week to day.
-        * Dynamic staleness check saves BigQuery query processed bytes and slots!
-    * You can keep tables fresh even though they have various and complexed source tables.
-- Supported **Table Snapshot**
-    * Table snapshot enable you to query with historical changes and saves your storage capacity.
-- Supported metadata/table profiling utilities for data management
-    * BigQuery Labeling tools for partition tables
-    * SQL Generator for descriptive statistics
+
+- **Refresh (Partition) Data**:\
+  The routine `bqmake.v0.partition_table__update` automatically checks whether to update a target table, taking into account reference tables of query generating target's data.
+    * Dynamic staleness check saves BigQuery query processed bytes and slots!
+    * Supports partial partition update including complicated alignment i.e. week to day.
+- **Snapshot Data**:\
+  Table snapshot enable you to query with historical changes and saves your storage capacity.
+- **Metadata Update**:\
+  Supports metadata/table profiling utilities for data management
+  * BigQuery Labeling tools for partition tables
 
 Currently this is public beta and all routines are subject to change wihtout notice.
 Please send us your comments and suggestion via issue!
 
 ## Get Started
 
-### Partition Table
+### Refreshing Partition Table Data
 
 ```sql
 declare query string;
@@ -96,9 +94,9 @@ call `bqmake.v0.snapshot_table__update`(
 )
 ```
 
-### Metadata for partition tables
+### Metadata Updates
 
-### Labeling partition tables on Dataset
+#### Labeling partition tables on Dataset
 
 `v0.dataset__update_table_labels` set useful labels for partitions to tables and views in dataset.
 
@@ -108,4 +106,12 @@ call `bqmake.v0.snapshot_table__update`(
 
 ```sql
 call `v0.dataset__update_table_labels`(('your_project', 'your_dataset'))
+```
+
+#### Generating Intra-Dataset Lineage on Dataset
+
+`v0.dataset__update_description` generate dataset description with intra-dataset lineage in [marmaid.js](https://mermaid-js.github.io/mermaid/#/) representation.
+
+```sql
+call `v0.dataset__update_description`(('your_project', 'your_dataset'))
 ```
