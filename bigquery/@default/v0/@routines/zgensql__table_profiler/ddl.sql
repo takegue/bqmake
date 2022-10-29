@@ -22,7 +22,7 @@ begin
     create or replace temp table _tmp_table_columns
     as
       select
-        table_catalog, table_schema, table_name, column_name
+        table_catalog, table_schema, target_table as table_name, column_name
         , field_path
         , ordinal_position as position
         , depth
@@ -34,9 +34,11 @@ begin
       left join `%s.INFORMATION_SCHEMA.COLUMN_FIELD_PATHS` as path
         using(table_catalog, table_schema, table_name, column_name)
       left join unnest([struct(
+        "%s" as target_table
+      )])
+      left join unnest([struct(
         array_length(REGEXP_EXTRACT_ALL(field_path, r'\\.')) as depth
-        , contains_substr(table_name, '*') as has_wildcard
-        , "%s" as target_table
+        , contains_substr(target_table, '*') as has_wildcard
       )])
       left join unnest([struct(
         coalesce(
@@ -51,6 +53,9 @@ begin
           , starts_with(table_name, regexp_replace(target_table, r'\\*$', ''))
           , table_name = target_table
         )
+      qualify
+          1 = row_number() over (partition by table_schema, target_table, field_path order by table_name desc)
+      order by position, depth, subposition
   """
     , dataset_ref
     , dataset_ref
@@ -65,7 +70,7 @@ begin
         table_catalog, table_schema, table_name
         ,
         "  select\n"
-        || "   partition_key\n"
+        || format('%s as partition_key\n', ifnull(max(partition_column), 'null'))
         || ifnull(
           format(
             ", nullif(format('%%t', (%s)), '') as group_keys\n"
@@ -74,44 +79,41 @@ begin
           , ', null as group_keys\n')
         || '   , count(1) as count\n'
         || string_agg(
-            trim(replace(
+            trim(
               replace(
                 replace(
-                  replace(template_selected, '!column!', field_path)
-                  , '!column!', format('%s',field_path)
+                  replace(template_selected, '!column!', replace(field_path, '.', '___'))
+                  , '!fieldnum!', if(depth = 0, format('f%d',position), format('f%d_%d_%d', position, depth, subposition))
                 )
-                ,  '!fieldnum!', if(depth = 0, format('f%d',position), format('f%d_%d_%d', position, depth, subposition))
+                ,  '!fieldname!', field_path
               )
-              ,  '!fieldname!', field_path
-            ))
+            )
           , '\n' order by position, depth, subposition
         )
         || format("""
           from `%s.%s.%s`
-          left join unnest([%s]) partition_key
           group by partition_key, group_keys
         """
           , table_catalog, table_schema, table_name
-          , ifnull(max(partition_column), 'null')
         )
           as query
       from _tmp_table_columns
       left join unnest([struct(
         r"""
           -- !column! (!fieldnum!)
-          , count(!column! is not null) as !column!__nonnull
-          , approx_count_distinct(!column!) as !column!__unique
-          , hll_count.init(!column!) as !column!__hll
-          , sum(cast(!column! as bignumeric)) as !column!__sum
-          , avg(!column!) as !column!__avg
-          , min(!column!) as !column!__min
-          , max(!column!) as !column!__max
+          , count(!fieldname! is not null) as !column!__nonnull
+          , approx_count_distinct(!fieldname!) as !column!__unique
+          , hll_count.init(!fieldname!) as !column!__hll
+          , sum(cast(!fieldname! as bignumeric)) as !column!__sum
+          , avg(!fieldname!) as !column!__avg
+          , min(!fieldname!) as !column!__min
+          , max(!fieldname!) as !column!__max
         """
         || if(
           not option_materialized_view_mode
           , """
-            , approx_top_count(!column!, 5) as !column!__top_count
-            , approx_quantiles(!column!, 20) as !column!__20quantile
+            , approx_top_count(!fieldname!, 5) as !column!__top_count
+            , approx_quantiles(!fieldname!, 20) as !column!__20quantile
             , '!fieldname!' as !column!__name
           """
           , ''
@@ -119,17 +121,17 @@ begin
           as number
         , r"""
           -- !column! (!fieldnum!)
-          , count(!column! is not null) as !column!__nonnull
-          , sum(cast(!column! as bignumeric)) as !column!__sum
-          , avg(!column!) as !column!__avg
-          , min(!column!) as !column!__min
-          , max(!column!) as !column!__max
+          , count(!fieldname! is not null) as !column!__nonnull
+          , sum(cast(!fieldname! as bignumeric)) as !column!__sum
+          , avg(!fieldname!) as !column!__avg
+          , min(!fieldname!) as !column!__min
+          , max(!fieldname!) as !column!__max
         """
         || if(
           not option_materialized_view_mode
           , """
-            , approx_top_count(!column!, 5) as !column!__top_count
-            , approx_quantiles(!column!, 20) as !column!__20quantile
+            , approx_top_count(!fieldname!, 5) as !column!__top_count
+            , approx_quantiles(!fieldname!, 20) as !column!__20quantile
           , '!fieldname!' as !column!__name
           """
           , ''
@@ -137,17 +139,17 @@ begin
           as float
         , r"""
           -- !column! (!fieldnum!)
-          , count(!column! is not null) as !column!__nonnull
-          , approx_count_distinct(!column!) as !column!__unique
-          , hll_count.init(!column!) as !column!__hll
-          , avg(CHARACTER_LENGTH(!column!)) as !column!__avg_len
-          , min(CHARACTER_LENGTH(!column!)) as !column!__min_len
-          , max(CHARACTER_LENGTH(!column!)) as !column!__max_len
+          , count(!fieldname! is not null) as !column!__nonnull
+          , approx_count_distinct(!fieldname!) as !column!__unique
+          , hll_count.init(!fieldname!) as !column!__hll
+          , avg(CHARACTER_LENGTH(!fieldname!)) as !column!__avg_len
+          , min(CHARACTER_LENGTH(!fieldname!)) as !column!__min_len
+          , max(CHARACTER_LENGTH(!fieldname!)) as !column!__max_len
         """ || if(
           not option_materialized_view_mode
           , """
-            , approx_top_count(!column!, 20) as !column!__top_count
-            , approx_quantiles(!column!, 20) as !column!__20quantile
+            , approx_top_count(!fieldname!, 20) as !column!__top_count
+            , approx_quantiles(!fieldname!, 20) as !column!__20quantile
             , '!fieldname!' as !column!__name
           """
           , ''
@@ -155,15 +157,15 @@ begin
           as string
         , r"""
           -- !column! (!fieldnum!)
-          , count(!column! is not null) as !column!__nonnull
-          , hll_count.init(string(date(!column!))) as !column!__day_hll
-          , min(!column!) as !column!__min
-          , max(!column!) as !column!__max
+          , count(!fieldname! is not null) as !column!__nonnull
+          , hll_count.init(string(date(!fieldname!))) as !column!__day_hll
+          , min(!fieldname!) as !column!__min
+          , max(!fieldname!) as !column!__max
         """
           as timestamp
         , r"""
           -- !column! (!fieldnum!)
-          , count(!column! is not null) as !column!__nonnull
+          , count(!fieldname! is not null) as !column!__nonnull
           , '!fieldname!' as !column!__name
         """
           as anything
@@ -185,6 +187,7 @@ begin
       where
         -- Filter unsuported types
         not starts_with(data_type, 'STRUCT')
+        and not ifnull(is_under_array, false)
         and field_path not in unnest(group_keys)
 
       group by table_catalog, table_schema, table_name
