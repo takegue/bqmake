@@ -13,6 +13,7 @@ Arguments
     * max_update_partition_range: The interval to limit the range of partitions to update. This option is useful to avoid updating too many partitions at once. [Default: 1 month].
     * via_temp_table: Whether to update partitions via a temporary table. [Default: false].
     * force_expire_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
+    * bq_location: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: "region-us"]
 
 Examples
 ===
@@ -22,6 +23,7 @@ Examples
 ```
 begin
   declare query string;
+  declare _sources array<struct<project_id string, dataset_id string, table_id string>> default sources;
 
   set query = """
     select date(timestamp_micros(event_timestamp)) as event_date, event_name, count(1)
@@ -33,7 +35,7 @@ begin
   create schema if not exists `zsandbox`;
   create or replace table `zsandbox.ga4_count`(event_date date, event_name string, records int64)
   partition by event_date;
-  call `bqmake.v0.partition_table__update`(
+  call `bqmake.v0.partition_table__check_and_update`(
     (null, 'zsandbox', 'ga4_count')
     , [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')]
     , `bqmake.v0.alignment_day2day`('2021-01-01', '2021-01-01')
@@ -42,3 +44,4 @@ begin
   );
 end
 ```
+
