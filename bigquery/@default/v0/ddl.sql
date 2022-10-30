@@ -1,4 +1,4 @@
-CREATE SCHEMA IF NOT EXISTS `v0`
-OPTIONS(
+create schema if not exists `v0`
+options(
   location="us"
 );
