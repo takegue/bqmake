@@ -1,14 +1,13 @@
 bqmake
 ===
 
-BigQuery Powered Data Build Tool like `GNU make`.\
-`bqmake` provides data update utilities using **BigQuery Routines (UDF or PROCEDER)**.\
-You can use these routines out-of-the-box!
+BigQuery Powered Data Build Tool.
+The goal is to build derivative table wihtout workflow management system.
 
 This tool supports following features.
 
 - **Dynamic Data Refresh Utilities**:\
-  The routine `bqmake.v0.partition_table__update` automatically checks whether to update a target table, taking into account reference tables of query generating target's data.
+    * Like materialized view, `bqmake.v0.partition_table__update` automatically checks and update target table data, taking into account reference tables of query generating target's data.
     * Dynamic staleness check saves BigQuery query processed bytes and slots!
     * Supports partial partition update including complicated alignment i.e. week to day.
 - **Data Snapshot Utilities**:\
@@ -22,6 +21,8 @@ Currently this is public beta and all routines are subject to change wihtout not
 Please send us your comments and suggestion via issue!
 
 ## Get Started
+
+All utilities are **BigQuery Routines (UDF or PROCEDER)** and published at `bqmake.v0` dataset.
 
 ### Refreshing Partition Table Data
 
