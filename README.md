@@ -1,15 +1,18 @@
 bqmake
 ===
 
-BigQuery Powered Data Build Tool.
-The goal is to build derivative table wihtout workflow management system.
+BigQuery Powered Data Build Tool.\
+The goal is data modeling wihtout workflow management system.
 
 This tool supports following features.
 
 - **Dynamic Data Refresh Utilities**:\
-    * Like materialized view, `bqmake.v0.partition_table__update` automatically checks and update target table data, taking into account reference tables of query generating target's data.
-    * Dynamic staleness check saves BigQuery query processed bytes and slots!
-    * Supports partial partition update including complicated alignment i.e. week to day.
+    * Like materialized view, `bqmake.v0.partition_table__update` automatically checks and update target table data, taking into account reference tables' freshness. This is useful for summary table like BI dashboard 
+      * Comparing materialized view, you obtains
+        * No limiting query syntax. 
+        * Quick Preview on BigQuery GUI feature
+        * BI Engine supports 
+    * Dynamic staleness check saves BigQuery query processed bytes and slots!    
 - **Data Snapshot Utilities**:\
   Table snapshot enables you to query with historical changes and save your storage capacity.
 - **Update Metadata Utilities**:\
