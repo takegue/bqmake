@@ -1,9 +1,7 @@
-bqmake
+bqmake: BigQuery Script Powered Data Build Tool.
 ===
 
-BigQuery Powered Data Build Tool.\
 The goal is to enable data modeling wihtout workflow management system.
-
 This tool supports following features.
 
 - **Dynamic Data Refresh Utilities**:\
