@@ -101,7 +101,7 @@ call `bqmake.v0.snapshot_table__update`(
 
 #### Labeling partition tables on Dataset
 
-`v0.dataset__update_table_labels` set useful labels for partitions to tables and views in dataset.
+`v0.dataset__update_table_labels` set useful labels for partitions tables.
 
 - `partition-min`: Oldest partition_id
 - `partition-max`: Latest partition_id
