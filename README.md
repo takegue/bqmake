@@ -28,14 +28,13 @@ You can use them without any installation.
 
 ### Refreshing Partition Table Data
 
-Extract or Transform your data into tables.
-Dynamic staleness check saves BigQuery query processed bytes and slots.
+`bqmake.v0.partition_table__update` makes derived table fresh in specified partition range.
+It dynamically analyze partition whose derived table and its referenced tables and update data if needed.
 
 This procedure behaves like `call BQ.REFRESH_MATERIALIZED_VIEW()` of materialized view. 
 Comparing materialized view, you can get following advanteges:
 * No restricted query syntax.
 * You can get vanilla BigQuery Table that has useful features in BigQuery console such as Preview, BI Engine supports and so on.
-
 
 ```sql
 declare query string;
