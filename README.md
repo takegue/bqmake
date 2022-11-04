@@ -1,4 +1,4 @@
-bqmake: BigQuery Powered Data Build Suites.
+bqmake: BigQuery Powered Data Build Suite.
 ===
 
 `bqmake` provides BigQuery routines that help you to make typical data-modeling.\
