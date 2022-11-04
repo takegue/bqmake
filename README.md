@@ -1,6 +1,10 @@
 bqmake: BigQuery Powered Data Build Tool.
 ===
 
+`bqmake` provides BigQuery routines that help you to make typical data-modeling.\
+All routines are designed to be idempotent and have smart data update mechanism.
+This is free you to manage DAG workflow management. 
+
 The goal is to enable data modeling wihtout workflow management system.
 This tool supports following features.
 
