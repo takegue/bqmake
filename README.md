@@ -5,17 +5,14 @@ bqmake: BigQuery Powered Data Build Tool.
 All routines are designed to be idempotent and have smart data update mechanism.
 This let free you from awkward DAG workflow management.
 
-This tool supports following features.
+This tool gives following utilities.
 
-- **Dynamic Data Refresh Utilities**:\
-  Like materialized view, `bqmake.v0.partition_table__update` automatically checks and update target table data, taking into account reference tables' freshness. This is useful for summary table like BI dashboard 
-    * Comparing materialized view, you obtains
-        * No limiting query syntax. 
-        * Quick Preview on BigQuery GUI feature
-        * BI Engine supports 
-    * Dynamic staleness check saves BigQuery query processed bytes and slots!    
+- **Dynamic whole/partial Data Refresh for BigQuery Table**:\
+  Like materialized view, `bqmake.v0.partition_table__update` automatically checks freshness and updates data if needed.\
+  This is useful to build pre-computed tables that needs frequent or expensive queries.\
+  See [Refreshing Partition Table Data](#refreshing-partition-table-data) section for more details.
 - **Data Snapshot Utilities**:\
-  Table snapshot enables you to query with historical changes and save your storage capacity.
+  Table snapshot captures data changes and stores in Slowly Changing Dimension II format.
 - **Update Metadata Utilities**:\
   Metadata utilties make you free to manage complex/irritated table information.
     * Intra-dataset data lineage embedding into dataset
@@ -26,18 +23,29 @@ Please send us your comments and suggestion via issue!
 
 ## Get Started
 
-All utilities are **BigQuery Routines (UDF or PROCEDER)** and published at `bqmake.v0` dataset.
+All utilities are **BigQuery Routines (UDF or PROCEDER)** and published at `bqmake.v0` dataset.\
+You can use them without any installation.
 
 ### Refreshing Partition Table Data
+
+Extract or Transform your data into tables.
+Dynamic staleness check saves BigQuery query processed bytes and slots.
+
+This procedure behaves like `call BQ.REFRESH_MATERIALIZED_VIEW()` of materialized view. 
+Comparing materialized view, you can get following advanteges:
+* No restricted query syntax.
+* You can get vanilla BigQuery Table that has useful features in BigQuery console such as Preview, BI Engine supports and so on.
+
 
 ```sql
 declare query string;
 
--- Prepare dataset and tables
+-- Prepare dataset and table
 create schema if not exists `zsandbox`;
 create or replace table `zsandbox.ga4_count`(event_date date, event_name string, records int64)
 partition by event_date;
 
+-- Prepare data generation query parameterized by @begin and @end (DATE type)
 set query = """
   select date(timestamp_micros(event_timestamp)) as event_date, event_name, count(1)
   from `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`
@@ -45,6 +53,7 @@ set query = """
   group by event_date, event_name
 """;
 
+-- First call procedure to update data
 call `bqmake.v0.partition_table__update`(
   (null, 'zsandbox', 'ga4_count')
   , [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')]
@@ -54,7 +63,7 @@ call `bqmake.v0.partition_table__update`(
 );
 --> Affect 16 rows
 
--- If you re-call this routine, this avoid to update already updated partitions.
+-- Second call won't update partition data because 2022-01-01 partition is still freshed.
 call `bqmake.v0.partition_table__update`(
   (null, 'zsandbox', 'ga4_count')
   , [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')]
