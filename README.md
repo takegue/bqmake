@@ -16,7 +16,7 @@ This tool gives following utilities.
   You can recover table state at any timepoint you snapshoted.
   `bqmake.v0.snapshot__init` and `bqmake.v0.snapshot__update` are optimized for BigQuery functionality using partitioning/clustering feature 
   and save processing amount and slots.
-- **Update Metadata Utilities**:\
+- **Metadata Utilities**:\
   Preparing useful metadata for tables. 
     * Embedding intra-dataset data lineage into dataset description in mermaid.js format.
     * Labeling available partition information.
