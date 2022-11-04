@@ -9,7 +9,7 @@ This tool gives following utilities.
 
 - **Dynamic whole/partial Data Refresh for BigQuery Table**:\
   Like materialized view, `bqmake.v0.partition_table__update` automatically checks freshness and updates data if needed.\
-  This is useful to build pre-computed tables that needs frequent or expensive queries.\
+  This is useful to build pre-computed tables which conists of frequent or expensive query.\
   See [Refreshing Partition Table Data](#refreshing-partition-table-data) section for more details.
 - **Data Snapshot Utilities**:\
   Table snapshot captures data changes and stores in Slowly Changing Dimension II format.
