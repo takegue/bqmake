@@ -1,4 +1,4 @@
-bqmake: BigQuery Powered Data Build Tool.
+bqmake: BigQuery Powered Data Build Suites.
 ===
 
 `bqmake` provides BigQuery routines that help you to make typical data-modeling.\
@@ -8,15 +8,18 @@ This let free you from awkward DAG workflow management.
 This tool gives following utilities.
 
 - **Dynamic whole/partial Data Refresh for BigQuery Table**:\
-  Like materialized view, `bqmake.v0.partition_table__update` automatically checks freshness and updates data if needed.\
+  Like materialized view, `bqmake.v0.partition_table__update` automatically checks freshness and then updates data if needed.\
   This is useful to build pre-computed tables which conists of frequent or expensive query.\
   See [Refreshing Partition Table Data](#refreshing-partition-table-data) section for more details.
 - **Data Snapshot Utilities**:\
-  Table snapshot captures data changes and stores in Slowly Changing Dimension II format.
+  Table snapshot captures data changes and stores them in Slowly Changing Dimension II format.
+  You can recover table state at any timepoint you snapshoted.
+  `bqmake.v0.snapshot__init` and `bqmake.v0.snapshot__update` are optimized for BigQuery functionality using partitioning/clustering feature 
+  and save processing amount and slots.
 - **Update Metadata Utilities**:\
-  Metadata utilties make you free to manage complex/irritated table information.
-    * Intra-dataset data lineage embedding into dataset
-    * Partition table labeling
+  Preparing useful metadata for tables. 
+    * Embedding intra-dataset data lineage into dataset description in mermaid.js format.
+    * Labeling available partition information.
 
 Currently this is public beta and all routines are subject to change wihtout notice.
 Please send us your comments and suggestion via issue!
