@@ -1,4 +1,4 @@
-create or replace function `zsbx__prototyping.zfind_final_select`(sql string)
+create or replace function `bqtest.zfind_final_select`(sql string)
 returns int64
 language js
 as """
@@ -41,7 +41,7 @@ return find_final_select(sql);
 
 begin
   select
-    left(input, `zsbx__prototyping.zfind_final_select`(input))
+    left(input, `bqtest.zfind_final_select`(input))
   from unnest([
     struct(
       r"""

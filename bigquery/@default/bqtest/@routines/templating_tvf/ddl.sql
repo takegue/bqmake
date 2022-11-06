@@ -1,4 +1,4 @@
-create or replace procedure `zsbx__prototyping.templating_view` (
+create or replace procedure `bqtest.templating_tvf` (
   out generated_sql string
   , target struct<table_catalog string, table_schema string, table_name string>
   , placeholders array<struct<identifier string, new_identifier string>>
