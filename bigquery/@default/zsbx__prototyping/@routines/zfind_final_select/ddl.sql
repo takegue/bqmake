@@ -1,4 +1,4 @@
-create function `zsbx__prototyping.zfind_final_select`(sql string)
+create or replace function `zsbx__prototyping.zfind_final_select`(sql string)
 returns int64
 language js
 as """
@@ -68,4 +68,5 @@ begin
       as input
     )
   ])
+  ;
 end
