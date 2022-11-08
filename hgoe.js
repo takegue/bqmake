@@ -97,11 +97,12 @@ function replace_cte(sql, replacements) {
   for (let ix = 0; ix < sql.length; ix++) {
     const c = sql[ix];
     const p = buffer.length > 0 ? buffer[buffer.length - 1] : "";
+    const isNonLexical = !c.match(lex_characters);
 
     // token boundary check
     if (
-      (!c.match(lex_characters) ^ !p.match(lex_characters)) ||
-      (!c.match(lex_characters) && c !== p)
+      (isNonLexical ^ !p.match(lex_characters)) ||
+      (isNonLexical && c !== p)
     ) {
       const token = buffer.join("").replace(/\s+/, "");
       buffer.length = 0;
