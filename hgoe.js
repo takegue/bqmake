@@ -83,7 +83,7 @@ function find_cte(sql) {
   return ret;
 }
 
-function replace_cte(sql, replacements) {
+function replace_identifier(sql, replacements) {
   const left = ["(", "["];
   const right = [")", "]"];
   const unipairs = ["`", "'", '"'];
@@ -107,19 +107,42 @@ function replace_cte(sql, replacements) {
       const token = buffer.join("").replace(/\s+/, "");
       buffer.length = 0;
       if (token) {
-        tokens.push(["UNKNOWN", regionsStack.length, token]);
-
+        let poped = null;
         // Analyze tokens
         if (left.includes(token)) {
           regionsStack.push(c);
         } else if (right.includes(token)) {
-          regionsStack.pop();
+          poped = regionsStack.pop();
         } else if (unipairs.includes(token)) {
           if (regionsStack[regionsStack.length - 1] === token) {
-            regionsStack.pop();
+            poped = regionsStack.pop();
           } else {
             regionsStack.push(token);
           }
+        }
+
+        tokens.push([
+          "UNKNOWN",
+          regionsStack.length + (poped ? 1 : 0),
+          token,
+        ]);
+
+        if (unipairs.includes(poped)) {
+          tokens.pop();
+
+          const words = [poped];
+          let t = tokens.pop();
+          while (poped !== t[2]) {
+            words.push(t[2]);
+            t = tokens.pop();
+          }
+          words.push(t[2]);
+
+          tokens.push([
+            "IDENTIFIER",
+            regionsStack.length,
+            words.reverse().join(""),
+          ]);
         }
 
         if (tokens.length > 1) {
@@ -136,9 +159,9 @@ function replace_cte(sql, replacements) {
   return ret;
 }
 
-const input = `WITH cte1 AS (select 1 as \`fuga\` from hoge)
+const input = `WITH cte1 AS (select 1 as \`fuga-fuga-fuga\` from hoge)
 , cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge)
 select cte1
 `;
 
-console.log(replace_cte(input, ["cte1", "hoge1"]));
+console.log(replace_identifier(input, ["cte1", "hoge1"]));
