@@ -96,7 +96,7 @@ function replace_identifier(sql, replacements) {
 
   for (let ix = 0; ix < sql.length; ix++) {
     const c = sql[ix];
-    const p = buffer.length > 0 ? buffer[buffer.length - 1] : "";
+    const p = buffer.length > 0 ? buffer[buffer.length - 1][1] : "";
     const isNonLexical = !c.match(lex_characters);
 
     // token boundary check
@@ -104,7 +104,10 @@ function replace_identifier(sql, replacements) {
       (isNonLexical ^ !p.match(lex_characters)) ||
       (isNonLexical && c !== p)
     ) {
-      const token = buffer.join("").replace(/\s+/, "");
+      const token = buffer.map((t) => t[1]).join("").replace(/\s+/, "");
+      const posRange = buffer.length > 0
+        ? [buffer[0][0], buffer[buffer.length - 1][0]]
+        : null;
       buffer.length = 0;
       if (token) {
         let poped = null;
@@ -125,6 +128,7 @@ function replace_identifier(sql, replacements) {
           "UNKNOWN",
           regionsStack.length + (poped ? 1 : 0),
           token,
+          posRange,
         ]);
 
         if (unipairs.includes(poped)) {
@@ -132,16 +136,20 @@ function replace_identifier(sql, replacements) {
 
           const words = [poped];
           let t = tokens.pop();
+          const rightPos = t[3][0];
+
           while (poped !== t[2]) {
             words.push(t[2]);
             t = tokens.pop();
           }
           words.push(t[2]);
+          const leftPos = t[3][1];
 
           tokens.push([
             "IDENTIFIER",
             regionsStack.length,
             words.reverse().join(""),
+            [leftPos, rightPos],
           ]);
         }
 
@@ -151,7 +159,7 @@ function replace_identifier(sql, replacements) {
         }
       }
     }
-    buffer.push(c);
+    buffer.push([ix, c]);
   }
 
   console.log(tokens);
@@ -161,6 +169,7 @@ function replace_identifier(sql, replacements) {
 
 const input = `WITH cte1 AS (select 1 as \`fuga-fuga-fuga\` from hoge)
 , cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge)
+, cte3 as (select [1, 2, 3] from (select * from cte1) as hoge)
 select cte1
 `;
 
