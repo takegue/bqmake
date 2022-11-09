@@ -164,6 +164,17 @@ function replace_identifier(sql, replacements) {
 
   console.log(tokens);
 
+  let lastWrote = 0;
+  for (const [type, depth, surface, pos] of tokens) {
+    // console.error(pos, surface, sql.substr(pos[0], pos[1] - pos[0] + 1));
+    // process.stderr.write(pos);
+    process.stdout.write(sql.substr(lastWrote, pos[0] - lastWrote));
+    process.stdout.write(sql.substr(pos[0], pos[1] - pos[0]));
+    lastWrote = pos[1];
+    // if (surface.match(replacements[0])) {
+    // }
+  }
+
   return ret;
 }
 
