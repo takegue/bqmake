@@ -92,19 +92,53 @@ function replace_identifier(sql, replacements) {
   const tokens = [];
   const regionsStack = [];
   const ret = [];
-  const lex_characters = new RegExp("[@a-z0-9]", "i");
+  const lex_characters = new RegExp(/^[@a-z0-9]/, "ig");
+  const isNonLexical = (t) => !lex_characters.test(t) && t !== "\\";
+  const isEscape = (t) => t === "\\";
 
+  const boundaries = "()[]`\"'";
+
+  let c, p;
   for (let ix = 0; ix < sql.length; ix++) {
-    const c = sql[ix];
-    const p = buffer.length > 0 ? buffer[buffer.length - 1][1] : "";
-    const isNonLexical = !c.match(lex_characters);
+    p = c;
+    c = sql[ix];
 
-    // token boundary check
+    // Escaping
+    if (p == "\\") {
+      c = buffer.pop().char + c;
+    }
+    buffer.push({ char: c, left: ix - c.length + 1, right: ix });
+
+    // Lexical analysis
+    if (isNonLexical(c)) {
+      // If found lexical boundary then consume buffer
+      const bufferToken = buffer.map((t) => t[1]).join("").replace(/\s+/, "");
+      let gap = 0;
+      for (const [token, tix] of bufferToken.matchAll(lex_characters)) {
+        if (tix - gap > 0) {
+          bufferToken.substr(token, tix - gap);
+        }
+        tokens.push(token);
+        gap = tix;
+      }
+      buffer.length = 0;
+    }
+
+    // Syntax analysis
+  }
+  console.log(tokens);
+
+  // token boundary check
+  /*
     if (
-      (isNonLexical ^ !p.match(lex_characters)) ||
-      (isNonLexical && c !== p)
+      !isEscape(c) && (
+        (
+          isNonLexical(n) ^ isNonLexical(c)
+        ) ||
+        (isNonLexical(n) && n !== c)
+      )
     ) {
-      const token = buffer.map((t) => t[1]).join("").replace(/\s+/, "");
+      console.log("flush", token, buffer);
       const posRange = buffer.length > 0
         ? [buffer[0][0], buffer[buffer.length - 1][0]]
         : null;
@@ -113,7 +147,7 @@ function replace_identifier(sql, replacements) {
         let poped = null;
         // Analyze tokens
         if (left.includes(token)) {
-          regionsStack.push(c);
+          regionsStack.push(n);
         } else if (right.includes(token)) {
           poped = regionsStack.pop();
         } else if (unipairs.includes(token)) {
@@ -136,14 +170,14 @@ function replace_identifier(sql, replacements) {
 
           const words = [poped];
           let t = tokens.pop();
-          const rightPos = t[3][0];
+          const rightPos = t[3][1];
 
           while (poped !== t[2]) {
             words.push(t[2]);
             t = tokens.pop();
           }
           words.push(t[2]);
-          const leftPos = t[3][1];
+          const leftPos = t[3][0];
 
           tokens.push([
             "IDENTIFIER",
@@ -154,33 +188,50 @@ function replace_identifier(sql, replacements) {
         }
 
         if (tokens.length > 1) {
+          // from
           maybe_kw_from = tokens[tokens.length - 2];
           maybe_kw_identifier = tokens[tokens.length - 1];
+          if (
+            maybe_kw_from[2].match(new RegExp("^from$", "i")) &&
+            maybe_kw_from[1] === maybe_kw_identifier[1]
+          ) {
+            tokens[tokens.length - 1][0] = "TABLE_IDENTIFIER";
+          }
+
+          // join
+
+          // cross join (,)
         }
       }
     }
-    buffer.push([ix, c]);
+    buffer.push([ix, n]);
   }
 
   console.log(tokens);
 
   let lastWrote = 0;
   for (const [type, depth, surface, pos] of tokens) {
-    // console.error(pos, surface, sql.substr(pos[0], pos[1] - pos[0] + 1));
-    // process.stderr.write(pos);
-    process.stdout.write(sql.substr(lastWrote, pos[0] - lastWrote));
-    process.stdout.write(sql.substr(pos[0], pos[1] - pos[0]));
-    lastWrote = pos[1];
-    // if (surface.match(replacements[0])) {
-    // }
+    ret.push(sql.substr(lastWrote, pos[0] - lastWrote));
+    let text = sql.substr(pos[0], pos[1] - pos[0] + 1);
+    if (type === "TABLE_IDENTIFIER") {
+      console.log(text);
+      if (text.match(replacements[0])) {
+        text = text.replace(replacements[0], replacements[1]);
+      }
+    }
+    ret.push(text);
+    lastWrote = pos[1] + 1;
   }
+  ret.push(sql.substr(lastWrote, sql.length - lastWrote));
 
-  return ret;
+  return ret.join("");
+  */
 }
 
 const input = `WITH cte1 AS (select 1 as \`fuga-fuga-fuga\` from hoge)
 , cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge)
-, cte3 as (select [1, 2, 3] from (select * from cte1) as hoge)
+, cte3 as (select "cte1 \\"" from (select * from cte1) as hoge)
+, cte4 as (select [1, 2, 3] from (select * from cte1) as hoge)
 select cte1
 `;
 
