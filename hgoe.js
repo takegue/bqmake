@@ -92,8 +92,8 @@ function replace_identifier(sql, replacements) {
   const tokens = [];
   const regionsStack = [];
   const ret = [];
-  const lex_characters = new RegExp(/^[@a-z0-9]/, "ig");
-  const isNonLexical = (t) => !lex_characters.test(t) && t !== "\\";
+  const lex_characters = new RegExp(/^[@a-z0-9]+/, "i");
+  const isNonLexical = (t) => !lex_characters.test(t);
   const isEscape = (t) => t === "\\";
 
   const boundaries = "()[]`\"'";
@@ -104,7 +104,8 @@ function replace_identifier(sql, replacements) {
     c = sql[ix];
 
     // Escaping
-    if (p == "\\") {
+    console.log(c, p, p === "\\", buffer.length);
+    if (p === "\\" && buffer.length > 0) {
       c = buffer.pop().char + c;
     }
     buffer.push({ char: c, left: ix - c.length + 1, right: ix });
@@ -112,14 +113,23 @@ function replace_identifier(sql, replacements) {
     // Lexical analysis
     if (isNonLexical(c)) {
       // If found lexical boundary then consume buffer
-      const bufferToken = buffer.map((t) => t[1]).join("").replace(/\s+/, "");
+      const bufferToken = buffer
+        .map((t) => t.char).join("").replace(/\s+/g, "");
+
       let gap = 0;
-      for (const [token, tix] of bufferToken.matchAll(lex_characters)) {
+      for (const m of bufferToken.matchAll(/[@a-z0-9]+/gi)) {
+        const token = m[0];
+        const tix = m.index;
         if (tix - gap > 0) {
-          bufferToken.substr(token, tix - gap);
+          const b = bufferToken.substr(gap, tix - gap);
+          tokens.push(b);
         }
         tokens.push(token);
-        gap = tix;
+        gap = tix + token.length;
+      }
+      if (bufferToken.length - gap > 0) {
+        const b = bufferToken.substr(gap, bufferToken.length - gap);
+        tokens.push(b);
       }
       buffer.length = 0;
     }
