@@ -1,92 +1,11 @@
-function find_final_select(sql) {
-  const left = ["("];
-  const right = [")"];
-  let surroundCnt = 0;
-  let buffer = [];
-
-  const kw = "SELECT";
-  const kw_matcher = new RegExp(kw, "i");
-
-  for (let ix = 0; ix < sql.length; ix++) {
-    const c = sql[ix];
-    if (left.includes(c)) {
-      surroundCnt++;
-    } else if (right.includes(c)) {
-      surroundCnt--;
-    }
-
-    if (c.match(/[a-z0-9]/i)) {
-      buffer.push(c);
-    } else {
-      buffer.length = 0;
-    }
-
-    if (surroundCnt === 0 && buffer.join("").match(kw_matcher)) {
-      return ix - kw.length;
-    }
-  }
-}
-
-function find_cte(sql) {
-  const left = ["("];
-  const right = [")"];
-  let surroundCnt = 0;
-  let stackSELECT = [];
-  let buffer = [];
-
-  const tokens = [];
-  const ret = [];
-
-  for (let ix = 0; ix < sql.length; ix++) {
-    const c = sql[ix];
-    if (left.includes(c)) {
-      surroundCnt++;
-    } else if (right.includes(c)) {
-      surroundCnt--;
-
-      if (
-        stackSELECT.length &&
-        startedSELECT[stackSELECT.length - 1] < surroundCnt
-      ) {
-        stackSELECT.pop();
-      }
-    }
-
-    if (c.match(/[a-z0-9]/i)) {
-      buffer.push(c);
-    }
-
-    // Push token
-    if (c.trim() == "") {
-      const token = buffer.join("");
-      buffer.length = 0;
-      if (token) {
-        tokens.push(["UNKNOWN", surroundCnt, token]);
-      }
-
-      if (token.match(/SELECT/i)) {
-        startedSELECT = surroundCnt;
-      }
-
-      // Analyze Tokens
-      if (token.match(/AS/i)) {
-        _ = tokens[tokens.length - 1];
-        identifier_or_expression = tokens[tokens.length - 2][2];
-        if (surroundCnt == 0 && stackSELECT.length == 0) {
-          // CTE identifier
-          ret.push(identifier_or_expression);
-        }
-      }
-    }
-  }
-
-  return ret;
-}
-
+create or replace function `bqtest.zreplace_table_identifier`(sql string)
+returns int64
+language js
+as r"""
 function replace_identifier(sql, replacements) {
   const left = ["(", "["];
   const right = [")", "]"];
-  const unipairs = ["`", "'", '"', '"""'];
+  const unipairs = ["`", "'", '"'];
   let buffer = [];
 
   const tokens = [];
@@ -207,7 +126,6 @@ function replace_identifier(sql, replacements) {
     ) {
       tokens[ix].type = "TABLE_IDENTIFIER";
     }
-
     // cross join (,)
   }
 
@@ -231,25 +149,34 @@ function replace_identifier(sql, replacements) {
     return ret.join("");
   }
 }
+"""
+;
 
-/*
-const input = `WITH cte1 AS (select 1 as \`fuga-fuga-fuga\` from fuga)
-, cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge)
-, cte3 as (select "", "cte1 \\"" from (select * from cte1 as cte1) as hoge)
-, cte4 as (select [1, 2, 3] from (select * from cte1) as hoge)
-, cte5 as (
-  select 1
-  from
-    (select 1 from cte3)
-    , cte1 as hoge
-)
-, cte6 as (
-  select 1
-  from cte4
-  left join cte1 on true
-)
-select cte1
-`;
-
-console.log(replace_identifier(input, ["cte1", "hoge1"]));
-*/
+begin
+  select
+    `bqtest.zreplace_table_identifier`(input)
+  from unnest([
+    struct(
+      r"""
+      WITH cte1 AS (select 1 as \`fuga-fuga-fuga\` from fuga)
+      , cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge)
+      , cte3 as (select "", "cte1 \"" from (select * from cte1 as cte1) as hoge)
+      , cte4 as (select [1, 2, 3] from (select * from cte1) as hoge)
+      , cte5 as (
+        select 1
+        from
+          (select 1 from cte3)
+          , cte1 as hoge
+      )
+      , cte6 as (
+        select 1
+        from cte4
+        left join cte1 on true
+      )
+      select cte1
+      """
+      as input
+    )
+  ])
+  ;
+end
