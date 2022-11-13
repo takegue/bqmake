@@ -1,10 +1,10 @@
-create or replace table function `bqtest.zgensql__table_test`(
+create or replace function `bqtest.zgensql__table_test`(
   _table_identifier string
   , unique_columns array<string>
   , nonnull_columns array<string>
   , accepted_values_columns array<struct<column string, accepcted_values array<string>>>
 )
-as (
+as ((
   with _templates as (
     select
       *
@@ -164,13 +164,12 @@ as (
   )
     as report
   )]) as cte
-);
+));
 
 begin
   execute immediate
     (
-      select as value sql
-      from `bqtest.zgensql__table_test`(
+      `bqtest.zgensql__table_test`(
         "`bigquery-public-data.austin_311.311_service_requests`"
         , ["unique_key"]
         , ["status", "source"]
