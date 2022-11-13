@@ -1,6 +1,6 @@
 create or replace function `bqtest.zassert`(expected ANY TYPE, actual ANY TYPE)
 as (
-  if(expected = actual, null, error(format("Expected %T: %T", expected, actual)))
+  if(expected = actual, "PASSED", error(format("FAILED: Expected %T but actual is %T", expected, actual)))
 );
 
 begin
