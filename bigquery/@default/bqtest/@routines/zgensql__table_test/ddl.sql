@@ -1,4 +1,4 @@
-create or replace table function `zpreview_proto.zgensql_table_test`(
+create or replace table function `bqtest.zgensql__table_test`(
   _table_name string
   , unique_columns array<string>
   , nonnull_columns array<string>
@@ -168,7 +168,7 @@ begin
   execute immediate
     (
       select as value sql
-      from zpreview_proto.zgensql_table_test(
+      from `bqtest.zgensql__table_test`(
         "`bigquery-public-data.austin_311.311_service_requests`"
         , ["unique_key"]
         , ["status", "source"]
