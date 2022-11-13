@@ -86,17 +86,13 @@ function find_cte(sql) {
 function replace_identifier(sql, replacements) {
   const left = ["(", "["];
   const right = [")", "]"];
-  const unipairs = ["`", "'", '"'];
+  const unipairs = ["`", "'", '"', '"""'];
   let buffer = [];
 
   const tokens = [];
   const regionsStack = [];
-  const ret = [];
   const lex_characters = new RegExp(/^[@a-z0-9]+/, "i");
   const isNonLexical = (t) => !lex_characters.test(t);
-  const isEscape = (t) => t === "\\";
-
-  const boundaries = "()[]`\"'";
 
   let c, p;
   for (let ix = 0; ix < sql.length; ix++) {
@@ -104,9 +100,11 @@ function replace_identifier(sql, replacements) {
     c = sql[ix];
 
     // Escaping
-    console.log(c, p, p === "\\", buffer.length);
-    if (p === "\\" && buffer.length > 0) {
-      c = buffer.pop().char + c;
+    if (c === "\\") {
+      continue;
+    }
+    if (p === "\\") {
+      c = p + c;
     }
     buffer.push({ char: c, left: ix - c.length + 1, right: ix });
 
@@ -115,134 +113,143 @@ function replace_identifier(sql, replacements) {
       // If found lexical boundary then consume buffer
       const bufferToken = buffer
         .map((t) => t.char).join("").replace(/\s+/g, "");
+      const leftPos = buffer[0].left;
 
       let gap = 0;
+
+      // tokenize
       for (const m of bufferToken.matchAll(/[@a-z0-9]+/gi)) {
         const token = m[0];
         const tix = m.index;
         if (tix - gap > 0) {
           const b = bufferToken.substr(gap, tix - gap);
-          tokens.push(b);
+          tokens.push({
+            token: b,
+            left: leftPos + gap,
+            right: leftPos + tix - gap + 1,
+            type: "UNKNOWN",
+          });
         }
-        tokens.push(token);
+        tokens.push({
+          token: token,
+          left: leftPos + tix,
+          right: leftPos + token.length - 1,
+          type: "UNKNOWN",
+        });
         gap = tix + token.length;
       }
       if (bufferToken.length - gap > 0) {
         const b = bufferToken.substr(gap, bufferToken.length - gap);
-        tokens.push(b);
+        tokens.push({
+          token: b,
+          left: leftPos + gap,
+          right: leftPos + bufferToken.length - 1,
+          type: "UNKNOWN",
+        });
       }
       buffer.length = 0;
-    }
 
-    // Syntax analysis
-  }
-  console.log(tokens);
-
-  // token boundary check
-  /*
-    if (
-      !isEscape(c) && (
-        (
-          isNonLexical(n) ^ isNonLexical(c)
-        ) ||
-        (isNonLexical(n) && n !== c)
-      )
-    ) {
-      console.log("flush", token, buffer);
-      const posRange = buffer.length > 0
-        ? [buffer[0][0], buffer[buffer.length - 1][0]]
-        : null;
-      buffer.length = 0;
-      if (token) {
+      const lastToken = tokens[tokens.length - 1];
+      {
         let poped = null;
-        // Analyze tokens
-        if (left.includes(token)) {
-          regionsStack.push(n);
-        } else if (right.includes(token)) {
-          poped = regionsStack.pop();
-        } else if (unipairs.includes(token)) {
-          if (regionsStack[regionsStack.length - 1] === token) {
+        if (unipairs.includes(lastToken.token)) {
+          if (
+            regionsStack.length > 0 &&
+            regionsStack[regionsStack.length - 1].token === lastToken.token
+          ) {
             poped = regionsStack.pop();
           } else {
-            regionsStack.push(token);
+            regionsStack.push(lastToken);
           }
         }
 
-        tokens.push([
-          "UNKNOWN",
-          regionsStack.length + (poped ? 1 : 0),
-          token,
-          posRange,
-        ]);
-
-        if (unipairs.includes(poped)) {
+        if (poped && unipairs.includes(poped.token)) {
+          const rightPos = lastToken.right;
           tokens.pop();
 
-          const words = [poped];
+          const words = [lastToken.token];
           let t = tokens.pop();
-          const rightPos = t[3][1];
 
-          while (poped !== t[2]) {
-            words.push(t[2]);
+          while (lastToken.token !== t.token) {
+            words.push(t.token);
             t = tokens.pop();
           }
-          words.push(t[2]);
-          const leftPos = t[3][0];
+          words.push(t.token);
+          const leftPos = t.left;
 
-          tokens.push([
-            "IDENTIFIER",
-            regionsStack.length,
-            words.reverse().join(""),
-            [leftPos, rightPos],
-          ]);
-        }
-
-        if (tokens.length > 1) {
-          // from
-          maybe_kw_from = tokens[tokens.length - 2];
-          maybe_kw_identifier = tokens[tokens.length - 1];
-          if (
-            maybe_kw_from[2].match(new RegExp("^from$", "i")) &&
-            maybe_kw_from[1] === maybe_kw_identifier[1]
-          ) {
-            tokens[tokens.length - 1][0] = "TABLE_IDENTIFIER";
-          }
-
-          // join
-
-          // cross join (,)
+          tokens.push({
+            token: words.reverse().join(""),
+            left: leftPos,
+            right: rightPos,
+            type: "LITERAL",
+          });
         }
       }
     }
-    buffer.push([ix, n]);
   }
 
-  console.log(tokens);
-
-  let lastWrote = 0;
-  for (const [type, depth, surface, pos] of tokens) {
-    ret.push(sql.substr(lastWrote, pos[0] - lastWrote));
-    let text = sql.substr(pos[0], pos[1] - pos[0] + 1);
-    if (type === "TABLE_IDENTIFIER") {
-      console.log(text);
-      if (text.match(replacements[0])) {
-        text = text.replace(replacements[0], replacements[1]);
-      }
+  for (let ix = 0; ix < tokens.length; ix++) {
+    if (ix < 2) {
+      continue;
     }
-    ret.push(text);
-    lastWrote = pos[1] + 1;
-  }
-  ret.push(sql.substr(lastWrote, sql.length - lastWrote));
+    maybe_kw_from_or_join = tokens[ix - 1];
+    maybe_kw_identifier = tokens[ix];
+    if (
+      maybe_kw_from_or_join.token.match(new RegExp("^from$", "i")) &&
+      !left.includes(maybe_kw_identifier.token)
+    ) {
+      tokens[ix].type = "TABLE_IDENTIFIER";
+    }
+    // join
+    if (
+      maybe_kw_from_or_join.token.match(new RegExp("^join$", "i")) &&
+      !left.includes(maybe_kw_identifier.token)
+    ) {
+      tokens[ix].type = "TABLE_IDENTIFIER";
+    }
 
-  return ret.join("");
-  */
+    // cross join (,)
+  }
+
+  {
+    const ret = [];
+    let lastWrote = 0;
+    for (const { token, left, right, type } of tokens) {
+      ret.push(sql.substr(lastWrote, left - lastWrote));
+
+      let text = sql.substr(left, right - left + 1);
+      if (type === "TABLE_IDENTIFIER") {
+        if (text.match(replacements[0])) {
+          text = text.replace(replacements[0], replacements[1]);
+        }
+      }
+      ret.push(text);
+      lastWrote = right + 1;
+    }
+    ret.push(sql.substr(lastWrote + 1, sql.length - lastWrote + 1));
+
+    return ret.join("");
+  }
 }
 
-const input = `WITH cte1 AS (select 1 as \`fuga-fuga-fuga\` from hoge)
+/*
+const input = `WITH cte1 AS (select 1 as \`fuga-fuga-fuga\` from fuga)
 , cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge)
-, cte3 as (select "cte1 \\"" from (select * from cte1) as hoge)
+, cte3 as (select "", "cte1 \\"" from (select * from cte1 as cte1) as hoge)
 , cte4 as (select [1, 2, 3] from (select * from cte1) as hoge)
+, cte5 as (
+  select 1
+  from
+    (select 1 from cte3)
+    , cte1 as hoge
+)
+, cte6 as (
+  select 1
+  from cte4
+  left join cte1 on true
+)
 select cte1
 `;
 
 console.log(replace_identifier(input, ["cte1", "hoge1"]));
+*/
