@@ -27,7 +27,7 @@ function find_cte(sql) {
       }
     }
 
-    if (c.match(/[a-z0-9]/i)) {
+    if (c.match(/[@_a-z0-9]/i)) {
       buffer.push(c);
     }
 

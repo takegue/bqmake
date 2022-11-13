@@ -12,7 +12,7 @@ function replace_identifier(sql, replacements) {
 
   const tokens = [];
   const regionsStack = [];
-  const lex_characters = new RegExp(/^[@a-z0-9]+/, "i");
+  const lex_characters = new RegExp(/^[@_a-z0-9]+/, "i");
   const isNonLexical = (t) => !lex_characters.test(t);
 
   let c, p;
