@@ -3,7 +3,7 @@ returns struct<name string, init_sql string, defer_sql string>
 as ((
   select as struct
     name
-    , format("create schema if not exists `%s`", name)
+    , format("create schema if not exists `%s` options(default_table_expiration_days=0.5)", name)
     , format("drop schema if exists `%s` cascade", name)
   from unnest([
     'zztemp_' || replace(generate_uuid(), '-', '')
