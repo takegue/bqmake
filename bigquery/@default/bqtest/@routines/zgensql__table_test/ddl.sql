@@ -175,4 +175,5 @@ begin
         , [("status", ["CancelledTesting", "Closed -Incomplete", "Closed -Incomplete Information", "Closed", "Duplicate (closed)", "Duplicate (open)", "Incomplete", "New", "Open", "Resolved", "TO BE DELETED", "Transferred", "Work In Progress"])]
       )
     )
+  ;
 end
