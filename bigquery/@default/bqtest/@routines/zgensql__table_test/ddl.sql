@@ -1,5 +1,5 @@
 create or replace table function `bqtest.zgensql__table_test`(
-  _table_name string
+  _table_identifier string
   , unique_columns array<string>
   , nonnull_columns array<string>
   , accepted_values_columns array<struct<column string, accepcted_values array<string>>>
@@ -104,7 +104,7 @@ as (
   select
     array_to_string(
       [
-        format('with\ndatasource as (select * from %s)', _table_name)
+        format('with\ndatasource as (select * from %s)', _table_identifier)
         , format('%s as (\n%s\n)', sql_uniqueness_check.cte_name, cte.sql_uniquness)
         , format('%s as (\n%s\n)', sql_nonnull_check.cte_name, cte.sql_nonnull)
         , format('%s as (\n%s\n)', sql_accepted_values_check.cte_name, cte.sql_accepted_values)
@@ -132,16 +132,18 @@ as (
         select format(sql_accepted_values_check.column_template, c.column, c.accepcted_values, c.column) from unnest(accepted_values_columns) as c)
         , '\n, '), ''), 'NULL')
     )) as sql_accepted_values
-    , """ report as (
+    , format(
+      """report as (
       with all_testcases as (
-        select 'column_uniqueness_check' as group_name, name, format('%T', actual) as actual, format('%T', expected) as expected from column_uniqueness_check
+        select 'column_uniqueness_check' as group_name, name, format('%%T', actual) as actual, format('%%T', expected) as expected from column_uniqueness_check
         union all
-        select 'column_nonnull_check' as group_name, name, format('%T', actual) as actual, format('%T', expected) as expected from column_nonnull_check
+        select 'column_nonnull_check' as group_name, name, format('%%T', actual) as actual, format('%%T', expected) as expected from column_nonnull_check
         union all
-        select 'column_accepted_values_check' as group_name, name, format('%T', actual) as actual, format('%T', expected) as expected from column_accepted_values_check
+        select 'column_accepted_values_check' as group_name, name, format('%%T', actual) as actual, format('%%T', expected) as expected from column_accepted_values_check
       )
       select
-        group_name
+        %T as target_table
+        , group_name
         , count(1) as n_cases
         , countif(actual = expected) as n_cases_passed
         , countif(actual != expected) as n_cases_failed
@@ -149,7 +151,7 @@ as (
             if(
               actual = expected
               , null
-              , format('%s; Expected %t but actual is %t', name, expected, actual)
+              , format('%%s; Expected %%t but actual is %%t', name, expected, actual)
             )
             , if(actual = expected, null, 1)
             , 20
@@ -157,9 +159,10 @@ as (
       from all_testcases
       group by group_name
     )
-
     select * from report
     """
+    , _table_identifier
+  )
     as report
   )]) as cte
 );
