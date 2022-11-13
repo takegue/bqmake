@@ -100,7 +100,6 @@ as (
     )])
   )
 
-  -- select original, new_view_definition from switched
   select
     array_to_string(
       [
