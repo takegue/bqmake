@@ -1,10 +1,12 @@
-create or replace function `bqtest.zreplace_table_identifier`(sql string)
-returns int64
+create or replace function `bqtest.zreplace_table_identifier`(
+  sql string
+  , replacements array<struct<from_value string, to_value string>>
+)
+returns string
 language js
 as r"""
 function replace_identifier(sql, replacements) {
   const left = ["(", "["];
-  const right = [")", "]"];
   const unipairs = ["`", "'", '"'];
   let buffer = [];
 
@@ -71,7 +73,7 @@ function replace_identifier(sql, replacements) {
       const lastToken = tokens[tokens.length - 1];
       {
         let poped = null;
-        if (unipairs.includes(lastToken.token)) {
+        if (lastToken && unipairs.includes(lastToken.token)) {
           if (
             regionsStack.length > 0 &&
             regionsStack[regionsStack.length - 1].token === lastToken.token
@@ -132,7 +134,7 @@ function replace_identifier(sql, replacements) {
   {
     const ret = [];
     let lastWrote = 0;
-    for (const { token, left, right, type } of tokens) {
+    for (const { left, right, type } of tokens) {
       ret.push(sql.substr(lastWrote, left - lastWrote));
 
       let text = sql.substr(left, right - left + 1);
@@ -149,12 +151,17 @@ function replace_identifier(sql, replacements) {
     return ret.join("");
   }
 }
+
+return replace_identifier(
+  sql,
+  replacements.map(({from_value, to_value}) => [[from_value, to_value]])
+)
 """
 ;
 
 begin
   select
-    `bqtest.zreplace_table_identifier`(input)
+    `bqtest.zreplace_table_identifier`(input, [("cte1", "hoge")])
   from unnest([
     struct(
       r"""
