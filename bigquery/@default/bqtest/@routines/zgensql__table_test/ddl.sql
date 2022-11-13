@@ -60,24 +60,41 @@ as (
         , """
         with stats as (
           select
-            any_value(_uniqueness_target.spec) as spec
-            , approx_top_count(nullif(_uniqueness_target._value, 'NULL'), 100) as actual
+            any_value(_target.spec) as spec
+            , approx_top_count(nullif(_target._value, 'NULL'), 100) as actual
           from datasource
           left join unnest([
             struct(struct(string(null) as _key, cast(null as array<string>) as _expected) as spec, string(null) as _value)
             , %s
-          ]) as _uniqueness_target
-          group by format('%%t', _uniqueness_target.spec)
+          ]) as _target
+          group by format('%%t', _target.spec)
           having spec._key is not null
         )
         select
           format("Accepted column pattern check: %%s", spec._key) as name
-          , array(select value from unnest(stats.actual) order by value) as actual
-          , array(select format('%%T', value) from unnest(spec._expected) as value order by value) as expected
+          , diff as actual
+          , [("SURPLUS", []), ("MISSING", [])] as expected
         from stats
+        left join unnest([struct(
+          array(select value from unnest(stats.actual) order by value) as actual_values
+          , array(select value from unnest(spec._expected) as value order by value) as expected_values
+        )])
+        left join unnest([struct(
+          (
+            select as value
+              [
+                struct("SURPLUS" as type, ifnull(array_agg(distinct if(expected is null, actual, null) ignore nulls), []) as values)
+                ,("MISSING", ifnull(array_agg(if(actual is null, expected, null) ignore nulls), []))
+              ] as diffs
+            from unnest(actual_values || expected_values) as both
+            left join unnest(actual_values) as actual on both = actual
+            left join unnest(expected_values) as expected on both = expected
+            limit 1
+          ) as diff
+        )])
         """
           as body_template
-          , "((('%s', %T), format('%%T', %s)))"
+          , "((('%s', %T), format('%%t', %s)))"
         as column_template
       ) as sql_accepted_values_check
     )])
@@ -115,7 +132,7 @@ as (
         select format(sql_accepted_values_check.column_template, c.column, c.accepcted_values, c.column) from unnest(accepted_values_columns) as c)
         , '\n, '), ''), 'NULL')
     )) as sql_accepted_values
-    , """report as (
+    , """ report as (
       with all_testcases as (
         select 'column_uniqueness_check' as group_name, name, format('%T', actual) as actual, format('%T', expected) as expected from column_uniqueness_check
         union all
@@ -155,8 +172,7 @@ begin
         "`bigquery-public-data.austin_311.311_service_requests`"
         , ["unique_key"]
         , ["status", "source"]
-        , [("status", ["Closed"])]
+        , [("status", ["CancelledTesting", "Closed -Incomplete", "Closed -Incomplete Information", "Closed", "Duplicate (closed)", "Duplicate (open)", "Incomplete", "New", "Open", "Resolved", "TO BE DELETED", "Transferred", "Work In Progress"])]
       )
     )
-  ;
 end
