@@ -44,7 +44,7 @@ function find_cte(sql) {
       }
 
       // Analyze Tokens
-      if (token.match(/AS/i)) {
+      if (token.match(/^AS$/i)) {
         _ = tokens[tokens.length - 1];
         identifier_or_expression = tokens[tokens.length - 2][2];
         if (surroundCnt == 0 && stackSELECT.length == 0) {
