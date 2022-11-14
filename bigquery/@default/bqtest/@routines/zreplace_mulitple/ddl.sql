@@ -16,8 +16,9 @@ as """
 ;
 
 begin
-  select `bqtest.zassert`(
-    'c',
-    `bqtest.zreplace_mulitple`('a', [('a', 'b'), ('b', 'c')])
+  select `bqtest.assert`(
+    'c'
+    , `bqtest.zreplace_mulitple`('a', [('a', 'b'), ('b', 'c')])
+    , "Sequential replace check"
   );
 end

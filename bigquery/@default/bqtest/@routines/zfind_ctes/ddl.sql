@@ -63,7 +63,7 @@ return find_cte(sql ?? "");
 
 begin
   select
-    `bqtest.zassert`(format('%t', `bqtest.zfind_ctes`(input)), format('%t', expected))
+    `bqtest.assert`(format('%t', `bqtest.zfind_ctes`(input)), format('%t', expected), "Extract CTE test")
   from unnest([
     struct(
       r"""
