@@ -1,111 +1,85 @@
 create or replace function `bqtest.zreplace_table_identifier`(
   sql string
-  , replacements array<struct<from_value string, to_value string>>
+  , replacements struct<from_value string, to_value string>
 )
 returns string
 language js
 as r"""
 function replace_identifier(sql, replacements) {
   const left = ["(", "["];
-  const unipairs = ["`", "'", '"'];
+  const unipairs = ["`", "'", '"', '"""', "'''"];
   let buffer = [];
 
   const tokens = [];
   const regionsStack = [];
-  const lex_characters = new RegExp(/^[@_a-z0-9]+/, "i");
-  const isNonLexical = (t) => !lex_characters.test(t);
+  const lexChars = new RegExp(/^[@a-z0-9_.]+/, "i");
+  const isLexical = (t) => lexChars.test(t);
+  const isSpace = (t) => /\s+/gi.test(t);
 
   let c, p;
+  // tokenize
   for (let ix = 0; ix < sql.length; ix++) {
     p = c;
     c = sql[ix];
 
-    // Escaping
-    if (c === "\\") {
+    if (isLexical(c)) {
+      const m = sql.substr(ix, 255).match(lexChars);
+      if (!m) {
+        continue;
+      }
+      tokens.push({
+        token: m[0],
+        left: ix,
+        right: ix + m[0].length - 1,
+        type: "TOKEN",
+      });
+
+      ix += m[0].length - 1;
       continue;
-    }
-    if (p === "\\") {
-      c = p + c;
-    }
-    buffer.push({ char: c, left: ix - c.length + 1, right: ix });
-
-    // Lexical analysis
-    if (isNonLexical(c)) {
-      // If found lexical boundary then consume buffer
-      const bufferToken = buffer
-        .map((t) => t.char).join("").replace(/\s+/g, "");
-      const leftPos = buffer[0].left;
-
-      let gap = 0;
-
-      // tokenize
-      for (const m of bufferToken.matchAll(/[@a-z0-9]+/gi)) {
-        const token = m[0];
-        const tix = m.index;
-        if (tix - gap > 0) {
-          const b = bufferToken.substr(gap, tix - gap);
-          tokens.push({
-            token: b,
-            left: leftPos + gap,
-            right: leftPos + tix - gap + 1,
-            type: "UNKNOWN",
-          });
-        }
-        tokens.push({
-          token: token,
-          left: leftPos + tix,
-          right: leftPos + token.length - 1,
-          type: "UNKNOWN",
-        });
-        gap = tix + token.length;
+    } else if (unipairs.includes(c)) {
+      const maxLookahead = 3;
+      let regionStart = sql.substr(ix, maxLookahead + 1);
+      for (let s = maxLookahead; s >= 0; s--) {
+        regionStart = regionStart.substr(0, s);
+        if (unipairs.includes(regionStart)) break;
       }
-      if (bufferToken.length - gap > 0) {
-        const b = bufferToken.substr(gap, bufferToken.length - gap);
-        tokens.push({
-          token: b,
-          left: leftPos + gap,
-          right: leftPos + bufferToken.length - 1,
-          type: "UNKNOWN",
-        });
-      }
-      buffer.length = 0;
-
-      const lastToken = tokens[tokens.length - 1];
-      {
-        let poped = null;
-        if (lastToken && unipairs.includes(lastToken.token)) {
-          if (
-            regionsStack.length > 0 &&
-            regionsStack[regionsStack.length - 1].token === lastToken.token
-          ) {
-            poped = regionsStack.pop();
-          } else {
-            regionsStack.push(lastToken);
-          }
+      let endAhead = regionStart.length;
+      while (true) {
+        let ss = sql.substr(ix + endAhead);
+        endAhead += ss.search(regionStart);
+        if (endAhead < 0) {
+          throw Exception("not found");
         }
-
-        if (poped && unipairs.includes(poped.token)) {
-          const rightPos = lastToken.right;
-          tokens.pop();
-
-          const words = [lastToken.token];
-          let t = tokens.pop();
-
-          while (lastToken.token !== t.token) {
-            words.push(t.token);
-            t = tokens.pop();
-          }
-          words.push(t.token);
-          const leftPos = t.left;
-
-          tokens.push({
-            token: words.reverse().join(""),
-            left: leftPos,
-            right: rightPos,
-            type: "LITERAL",
-          });
+        if (ss[endAhead - 2] === "\\") {
+          endAhead += 2;
+          continue;
         }
+        break;
       }
+      endAhead += regionStart.length;
+
+      tokens.push({
+        token: sql.substr(ix, endAhead),
+        left: ix,
+        right: ix + endAhead - 1,
+        type: "REGION",
+      });
+
+      ix += endAhead - 1;
+      continue;
+    } else if (!isSpace(c)) {
+      const m = sql.substr(ix).search(/\s|[@a-z0-9_.'"`]/i);
+      if (m < 0) {
+        continue;
+      }
+      const token = sql.substr(ix, m);
+      tokens.push({
+        token: token,
+        left: ix,
+        right: ix + token.length - 1,
+        type: "SYMBOLS",
+      });
+      ix += token.length - 1;
     }
   }
 
@@ -134,14 +108,12 @@ function replace_identifier(sql, replacements) {
   {
     const ret = [];
     let lastWrote = 0;
-    for (const { left, right, type } of tokens) {
+    for (const { token, left, right, type } of tokens) {
       ret.push(sql.substr(lastWrote, left - lastWrote));
 
       let text = sql.substr(left, right - left + 1);
       if (type === "TABLE_IDENTIFIER") {
-        if (text.match(replacements[0])) {
-          text = text.replace(replacements[0], replacements[1]);
-        }
+        text = text.replace(replacements[0], replacements[1]);
       }
       ret.push(text);
       lastWrote = right + 1;
@@ -154,7 +126,7 @@ function replace_identifier(sql, replacements) {
 
 return replace_identifier(
   sql,
-  replacements.map(({from_value, to_value}) => [[from_value, to_value]])
+  [replacement.from_value, replacement.to_value]
 )
 """
 ;
