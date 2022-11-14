@@ -9,7 +9,7 @@ create or replace function `bqtest.zgensql__view_test`(
 ) as ((
 with views as (
   select view_definition
-  from `zpreview_proto.INFORMATION_SCHEMA.VIEWS`
+  from `bqtest.INFORMATION_SCHEMA.VIEWS`
   where
     table_name = _table_name
 )
@@ -57,9 +57,11 @@ select as value sql from switched
 ))
 ;
 
-select bqmake.bqtest.zgensql__view_test(
-  'derivative_view'
-  , [
-    ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
-  ]
-)
+begin
+  select bqmake.bqtest.zgensql__view_test(
+    'derivative_view'
+    , [
+      ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
+    ]
+  )
+end
