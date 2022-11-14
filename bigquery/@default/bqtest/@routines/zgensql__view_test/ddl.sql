@@ -58,6 +58,35 @@ select as value sql from switched
 ;
 
 begin
+  declare name, init_sql, defer_sql string;
+  set (name, init_sql, defer_sql) = `bqtest.zgensql__temporary_dataset`();
+  execute immediate init_sql;
+  begin
+    call `bqtest.bqtest__init`((null, name));
+    execute immediate format("""
+      create or replace views `%s.%s`
+      with datasource as (
+        select * from `bigquery-public-data.austin_311.311_service_requests`
+      )
+      select * from datasource
+      """
+      , name, "derivative_view"
+    );
+  exception when error then
+    call `bqmake.bqtest.log`(struct(@@error.message as message, @@error.formatted_stack_trace as formatted_stack_trace));
+  end;
+
+  execute immediate `bqmake.zztemp_1c41a5bc87284e8d864e53576b10b2df.zgensql__view_test`(
+    "derivative_view"
+    , [
+        ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
+      ]
+  );
+  exception when error then
+    execute immediate defer_sql;
+end
+
+begin
   select bqmake.bqtest.zgensql__view_test(
     'derivative_view'
     , [
