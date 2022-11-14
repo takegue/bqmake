@@ -25,5 +25,5 @@ begin
       fuga fuga
     from hogehoge
     """
-  )
+  );
 end

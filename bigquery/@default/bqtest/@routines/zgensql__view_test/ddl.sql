@@ -84,7 +84,7 @@ begin
   );
   exception when error then
     execute immediate defer_sql;
-end
+end;
 
 begin
   select bqmake.bqtest.zgensql__view_test(
@@ -92,5 +92,5 @@ begin
     , [
       ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
     ]
-  )
-end
+  );
+end;
