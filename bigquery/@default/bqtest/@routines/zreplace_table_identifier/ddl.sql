@@ -1,13 +1,13 @@
 create or replace function `bqtest.zreplace_table_identifier`(
   sql string
-  , replacements struct<from_value string, to_value string>
+  , replacement struct<from_value string, to_value string>
 )
 returns string
 language js
 as r"""
 function replace_identifier(sql, replacements) {
   const left = ["(", "["];
-  const unipairs = ["`", "'", '"', '"""', "'''"];
+  const unipairs = ["`", "'", '"', '\"\"\"', "'''"];
   let buffer = [];
 
   const tokens = [];
@@ -133,12 +133,12 @@ return replace_identifier(
 
 begin
   select
-    `bqtest.zreplace_table_identifier`(input, [("cte1", "hoge")])
+    `bqtest.zreplace_table_identifier`(input, ("cte1", "hoge"))
   from unnest([
     struct(
       r"""
-      WITH cte1 AS (select 1 as \`fuga-fuga-fuga\` from fuga)
-      , cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge)
+      WITH cte1 AS (select 1 as `fuga-fuga-fuga` from fuga)
+      , cte2 as (select [1, 2, 3] from (select * from `cte1`) as hoge)
       , cte3 as (select "", "cte1 \"" from (select * from cte1 as cte1) as hoge)
       , cte4 as (select [1, 2, 3] from (select * from cte1) as hoge)
       , cte5 as (
