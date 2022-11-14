@@ -11,29 +11,28 @@ as ((
     from unnest([struct(
       struct(
         "column_uniqueness_check" as cte_name
-        , """
+        , `bqtest.zdeindent`("""
         with unique_count as (
-        select any_value(_uniqueness_target) as tgt, count(1) as actual
-        from datasource
-        left join unnest([
-          struct(string(null) as _key, string(null) as _value)
-          , %s
-        ]) as _uniqueness_target
-        group by format('%%t', _uniqueness_target)
-        having tgt._key is not null
-      )
-      select
-        format("Uniqueness check: %%s=%%s", tgt._key, tgt._value) as name
-        , actual
-        , 1 as expected
-      from unique_count
-      """
-        as body_template
+          select any_value(_uniqueness_target) as tgt, count(1) as actual
+          from datasource
+          left join unnest([
+            struct(string(null) as _key, string(null) as _value)
+            , %s
+          ]) as _uniqueness_target
+          group by format('%%t', _uniqueness_target)
+          having tgt._key is not null
+        )
+        select
+          format("Uniqueness check: %%s=%%s", tgt._key, tgt._value) as name
+          , actual
+          , 1 as expected
+        from unique_count
+        """) as body_template
       , "('%s', format('%%t', %s))" as column_template
       ) as sql_uniqueness_check
       , struct(
         "column_nonnull_check" as cte_name
-        , """
+        , `bqtest.zdeindent`("""
         with nonnull_count as (
           select
             any_value(_uniqueness_target) as tgt
@@ -51,13 +50,13 @@ as ((
           , actual
           , 0 as expected
         from nonnull_count
-      """
+      """)
         as body_template
         , "('%s', format('%%t', %s))" as column_template
       ) as sql_nonnull_check
       , struct(
         "column_accepted_values_check" as cte_name
-        , """
+        , `bqtest.zdeindent`("""
         with stats as (
           select
             any_value(_target.spec) as spec
@@ -92,7 +91,7 @@ as ((
             limit 1
           ) as diff
         )])
-        """
+        """)
           as body_template
           , "((('%s', %T), format('%%t', %s)))"
         as column_template

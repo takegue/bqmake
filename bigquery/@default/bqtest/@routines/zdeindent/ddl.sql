@@ -1,4 +1,4 @@
-create temp function `bqtest.zdeindent`(str string)
+create or replace function `bqtest.zdeindent`(str string)
 as ((
   select
     string_agg(
@@ -10,7 +10,7 @@ as ((
     split(str, '\n') as lines
   )]) as v
   left join unnest([struct(
-    (select min(ifnull(char_length(regexp_extract(line, r'^\s+')), 0)) from v.lines as line) as max_deindent
+    (select min(ifnull(char_length(regexp_extract(line, r'^\s+')), 0)) from v.lines as line where char_length(trim(line)) > 0) as max_deindent
   )])
   left join unnest(lines) as line
 ));
