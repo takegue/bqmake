@@ -1,5 +1,5 @@
 create or replace function `bqtest.zgensql__table_profiler`(
-  destination struct<project string, dataset string, table string>
+  target_table_name string
   , group_keys array<string>
   , options_json json
 )
@@ -22,7 +22,7 @@ with
     left join `bqtest.INFORMATION_SCHEMA.COLUMN_FIELD_PATHS` as path
       using(table_catalog, table_schema, table_name, column_name)
     left join unnest([struct(
-      "sample_lineage" as target_table
+       target_table_name as target_table
     )])
     left join unnest([struct(
       array_length(REGEXP_EXTRACT_ALL(field_path, r'\.')) as depth
@@ -177,4 +177,5 @@ select any_value(ddl.query) from ddl
 ))
 ;
 
-execute immediate `bqtest.zgensql__table_profiler`((null, "bqtest", "sample_lineage"), null, null)
+execute immediate `bqtest.zgensql__table_profiler`("demo_sample_table", null, null);
+execute immediate `bqtest.zgensql__table_profiler`("demo_sample_view", null, null);
