@@ -45,7 +45,7 @@ begin
     , force_expire_at timestamp
   > default (
     ifnull(cast(safe.string(options_json.tolerate_staleness) as interval), interval 30 minute)
-    , safe.timestamp(string(options_json.force_expire_at))
+    , safe.timestamp(safe.string(options_json.force_expire_at))
   );
 
   -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
