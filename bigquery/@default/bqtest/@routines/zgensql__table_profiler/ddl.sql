@@ -1,4 +1,4 @@
-create function `bqtest.zgensql__table_profiler`(
+create or replace function `bqtest.zgensql__table_profiler`(
   destination struct<project string, dataset string, table string>
   , group_keys array<string>
   , options_json json
