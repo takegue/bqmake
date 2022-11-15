@@ -1,4 +1,4 @@
-create temp function `zgensql__table_profiler`(
+create function `bqtest.zgensql__table_profiler`(
   destination struct<project string, dataset string, table string>
   , group_keys array<string>
   , options_json json
@@ -177,4 +177,4 @@ select any_value(ddl.query) from ddl
 ))
 ;
 
-execute immediate `zgensql__table_profiler`(("project-id-7288898082930342315", "sandbox", "sample_lineage"), null, null)
+execute immediate `bqtest.zgensql__table_profiler`(("project-id-7288898082930342315", "sandbox", "sample_lineage"), null, null)
