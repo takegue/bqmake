@@ -43,7 +43,6 @@ return json_entries_recursive(json);
 """
 ;
 
-
 begin
   select `v0.zjson_entries_recursive`(to_json_string(struct('hoge' as a, [1,2,3] as hoge, struct(123.21 as a))));
 end

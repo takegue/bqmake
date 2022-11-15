@@ -75,6 +75,74 @@ as ((
       , header
       , destination_ref
     ) as profiler__entity
+    , format("""
+      # %s
+      with
+        reference as (
+          select * from `%s` where valid_to is null
+        )
+        , update_data as (
+          %s
+        )
+      /*
+      Create records for merge syntax.
+      There are three 4 of records for update:
+        1. New Record: The record is not in the reference table and exists only in update_data
+        2. Changed Record
+          2.1 New one
+          2.1 Old one
+        3. Deleted Records
+        4. Unchanged Records
+
+      This SQL will generate only 1., 2. and 3. records.
+      */
+      select
+        unique_key
+        , action
+        , R.revision_hash as base_revision
+        ,
+        if(
+          action in ('CHANGED')
+          , array(
+            select as struct
+              key, u.value as after, r.value as before
+            from unnest(R_entries) as r
+            left join unnest(U_entries) as u using(key)
+            where r.value is distinct from u.value
+          )
+          , []
+        ) as entity_changes
+        , if(R.unique_key is not null, [R.entity], [])
+        || if(U.unique_key is not null, [U.entity], [])
+        as entity_comparision
+      --  , diff
+      from reference as R
+      full join update_data as U using(unique_key)
+      left join unnest([struct(
+        format('%%t', R.entity) != format('%%t', U.entity) as will_update
+        , case
+          when U.unique_key is not null and R.unique_key is not null
+            then if(
+              format('%%t', R.entity) != format('%%t', U.entity)
+              , 'CHANGED'
+              , 'UNCHANGED'
+            )
+          when U.unique_key is not null and R.unique_key is null
+            then 'NEW'
+          when U.unique_key is null and R.unique_key is not null
+            then 'DELETE'
+          else error('UNKNOWN')
+        end as action
+        , `bqmake.v0.zjson_entries_recursive`(to_json_string(R.entity)) as R_entries
+        , `bqmake.v0.zjson_entries_recursive`(to_json_string(U.entity)) as U_entries
+      )])
+      where
+        action in ('CHANGED', 'NEW', 'DELETE')
+      """
+      , header
+      , destination_ref
+      , snapshot_query
+    ) as diff_query
     -- DML Query
     , format("""
       # %s
@@ -151,13 +219,13 @@ as ((
           then
             insert row
           """
-            , header
-            , destination_ref
-            , destination_ref
-            , snapshot_query
-          ) as update_dml
-          -- TVF DDL for Access
-    , format("""
+      , header
+      , destination_ref
+      , destination_ref
+      , snapshot_query
+    ) as update_dml
+    , -- TVF DDL for Access
+    format("""
         # %s
         create or replace table function `%s`(_at timestamp)
         as
