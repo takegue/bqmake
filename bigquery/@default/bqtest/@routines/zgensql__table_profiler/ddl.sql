@@ -18,8 +18,8 @@ with
       , row_number() over (partition by table_name, column_name, ordinal_position, depth) as subposition
       , path.data_type
       , starts_with(c.data_type, 'ARRAY') as is_under_array
-    from `sandbox.INFORMATION_SCHEMA.COLUMNS` c
-    left join `sandbox.INFORMATION_SCHEMA.COLUMN_FIELD_PATHS` as path
+    from `bqtest.INFORMATION_SCHEMA.COLUMNS` c
+    left join `bqtest.INFORMATION_SCHEMA.COLUMN_FIELD_PATHS` as path
       using(table_catalog, table_schema, table_name, column_name)
     left join unnest([struct(
       "sample_lineage" as target_table
@@ -177,4 +177,4 @@ select any_value(ddl.query) from ddl
 ))
 ;
 
-execute immediate `bqtest.zgensql__table_profiler`(("project-id-7288898082930342315", "sandbox", "sample_lineage"), null, null)
+execute immediate `bqtest.zgensql__table_profiler`((null, "bqtest", "sample_lineage"), null, null)
