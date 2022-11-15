@@ -14,10 +14,10 @@ This tool gives following utilities.
 - **Data Snapshot Utilities**:\
   Table snapshot captures data changes and stores them in Slowly Changing Dimension II format.
   You can recover table state at any timepoint you snapshoted.
-  `bqmake.v0.snapshot__init` and `bqmake.v0.snapshot__update` are optimized for BigQuery functionality using partitioning/clustering feature 
+  `bqmake.v0.snapshot__init` and `bqmake.v0.snapshot__update` are optimized for BigQuery functionality using partitioning/clustering feature
   and save processing amount and slots.
 - **Metadata Utilities**:\
-  Preparing useful metadata for tables. 
+  Preparing useful metadata for tables.
     * Embedding intra-dataset data lineage into dataset description in mermaid.js format.
     * Labeling available partition information.
 
@@ -34,7 +34,7 @@ You can use them without any installation.
 `bqmake.v0.partition_table__update` makes derived table fresh in specified partition range.
 It dynamically analyze partition whose derived table and its referenced tables and update data if needed.
 
-By using [Scheduling Query](https://cloud.google.com/bigquery/docs/scheduling-queries?hl=ja), the procedure is almost behaves like materialized view. 
+By using [Scheduling Query](https://cloud.google.com/bigquery/docs/scheduling-queries?hl=ja), the procedure is almost behaves like materialized view.
 But comparing materialized view, you can get extra advanteges:
 * No restricted query syntax.
 * You can get vanilla BigQuery Table that has useful features in BigQuery console such as Preview, BI Engine supports and so on.
@@ -80,7 +80,7 @@ call `bqmake.v0.partition_table__update`(
 
 ```sql
 declare query string;
-set query = "select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations` limit 0"
+set query = "select * from `bigquery-public-data.austin_bikeshare.bikeshare_stations`"
 
 -- Initialize Snapshot table
 call `bqmake.v0.snapshot_table__init`(
