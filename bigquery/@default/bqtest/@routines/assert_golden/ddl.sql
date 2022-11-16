@@ -1,7 +1,11 @@
-create or replace procedure `bqtest.snapshot_test`(
+create or replace procedure `bqtest.assert_golden`(
   snapshot_store_table struct<project_id string, dataset_id string, table_id string>
   , query string
   , is_update bool
+)
+options(
+  description="""
+  """
 )
 begin
   declare _is_update bool default ifnull(is_update, false);

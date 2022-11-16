@@ -1,4 +1,4 @@
-create or replace procedure `bqtest.initialize`(
+create or replace procedure `bqtest.bqtest_setup_dataset`(
   target_name struct<project_id string, dataset_id string>
 )
 begin
@@ -39,7 +39,7 @@ begin
   execute immediate init_sql;
   begin
     -- Provisioning for test
-    call `bqtest.initialize`((null, name));
+    call `bqtest.bqtest_setup_dataset`((null, name));
     execute immediate format("""
       create or replace view `%s.%s`
       as

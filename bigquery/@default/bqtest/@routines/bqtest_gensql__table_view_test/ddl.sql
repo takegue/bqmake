@@ -1,4 +1,4 @@
-create or replace function `bqtest.zgensql__view_test`(
+create or replace function `bqtest.bqtest_gensql__table_view_test`(
   _table_name string
   , test_configs array<struct<
     cte string
@@ -26,7 +26,7 @@ with views as (
           format(
             ', __test_%s as (\n%s\n)'
             , cte
-            , `bqtest.zgensql__table_test`(
+            , `bqtest.bqtest_gensql__table_test`(
               cte
               , config.unique_columns
               , config.nonnull_columns

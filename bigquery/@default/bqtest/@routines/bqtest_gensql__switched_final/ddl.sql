@@ -1,4 +1,4 @@
-create or replace procedure `bqtest.switching_final_view`(
+create or replace procedure `bqtest.bqtest_gensql__switched_final`(
   out generated_sql string
   , target struct<table_catalog string, table_schema string, table_name string>
   , new_final_target string
@@ -61,7 +61,7 @@ begin
   select * from datasource
   ;
 
-  call `bqtest.switching_final_view`(generated_sql, (null, 'zpreview_proto', 'derivative_view'), '__test_count');
+  call `bqtest.bqtest_gensql__switched_final`(generated_sql, (null, 'zpreview_proto', 'derivative_view'), '__test_count');
   execute immediate generated_sql;
 
   drop schema `zpreview_proto` cascade;
