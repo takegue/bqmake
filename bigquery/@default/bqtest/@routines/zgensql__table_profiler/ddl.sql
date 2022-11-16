@@ -85,7 +85,7 @@ select
       , approx_count_distinct(!fieldname!) as !column!__unique
       , hll_count.init(!fieldname!) as !column!__hll
       , sum(cast(!fieldname! as bignumeric)) as !column!__sum
-      , avg(!fieldname!) as !column!__avg
+      , round(avg(!fieldname!), 6) as !column!__avg
       , min(!fieldname!) as !column!__min
       , max(!fieldname!) as !column!__max
       """
@@ -97,59 +97,55 @@ select
         , '!fieldname!' as !column!__name
         """
         , ''
-        )
-        as number
-        , r"""
+      ) as number
+      , r"""
         -- !column! (!fieldnum!)
         , count(!fieldname! is not null) as !column!__nonnull
         , sum(cast(!fieldname! as bignumeric)) as !column!__sum
-        , avg(!fieldname!) as !column!__avg
+        , round(avg(!fieldname!), 6) as !column!__avg
         , min(!fieldname!) as !column!__min
         , max(!fieldname!) as !column!__max
-        """
-        || if(
+      """
+      || if(
           not option_materialized_view_mode
           , """
           , approx_top_count(!fieldname!, 5) as !column!__top_count
           , approx_quantiles(!fieldname!, 20) as !column!__20quantile
           , '!fieldname!' as !column!__name
-          """
-          , ''
-          )
-          as float
-          , r"""
-          -- !column! (!fieldnum!)
-          , count(!fieldname! is not null) as !column!__nonnull
-          , approx_count_distinct(!fieldname!) as !column!__unique
-          , hll_count.init(!fieldname!) as !column!__hll
-          , avg(CHARACTER_LENGTH(!fieldname!)) as !column!__avg_len
-          , min(CHARACTER_LENGTH(!fieldname!)) as !column!__min_len
-          , max(CHARACTER_LENGTH(!fieldname!)) as !column!__max_len
-          """ || if(
-            not option_materialized_view_mode
-            , """
-            , approx_top_count(!fieldname!, 20) as !column!__top_count
-            , approx_quantiles(!fieldname!, 20) as !column!__20quantile
-            , '!fieldname!' as !column!__name
-            """
-            , ''
-            )
-            as string
-            , r"""
-            -- !column! (!fieldnum!)
-            , count(!fieldname! is not null) as !column!__nonnull
-            , hll_count.init(string(date(!fieldname!))) as !column!__day_hll
-            , min(!fieldname!) as !column!__min
-            , max(!fieldname!) as !column!__max
-            """
-            as timestamp
-            , r"""
-            -- !column! (!fieldnum!)
-            , count(!fieldname! is not null) as !column!__nonnull
-            , '!fieldname!' as !column!__name
-            """
-            as anything
-        )]) as template
+        """
+        , ''
+      ) as float
+      , r"""
+      -- !column! (!fieldnum!)
+      , count(!fieldname! is not null) as !column!__nonnull
+      , approx_count_distinct(!fieldname!) as !column!__unique
+      , hll_count.init(!fieldname!) as !column!__hll
+      , round(avg(CHARACTER_LENGTH(!fieldname!)), 6) as !column!__avg_len
+      , min(CHARACTER_LENGTH(!fieldname!)) as !column!__min_len
+      , max(CHARACTER_LENGTH(!fieldname!)) as !column!__max_len
+      """
+      || if(
+        not option_materialized_view_mode
+        , """
+        , approx_top_count(!fieldname!, 20) as !column!__top_count
+        , approx_quantiles(!fieldname!, 20) as !column!__20quantile
+        , '!fieldname!' as !column!__name
+        """
+        , ''
+      ) as string
+      , r"""
+        -- !column! (!fieldnum!)
+        , count(!fieldname! is not null) as !column!__nonnull
+        , hll_count.init(string(date(!fieldname!))) as !column!__day_hll
+        , min(!fieldname!) as !column!__min
+        , max(!fieldname!) as !column!__max
+      """ as timestamp
+      , r"""
+        -- !column! (!fieldnum!)
+        , count(!fieldname! is not null) as !column!__nonnull
+        , '!fieldname!' as !column!__name
+      """ as anything
+      )]) as template
       left join unnest([struct(
           case
           when data_type in ('INT64', 'NUMERIC', 'BIGNUMERIC')
