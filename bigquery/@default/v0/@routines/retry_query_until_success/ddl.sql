@@ -14,7 +14,7 @@ begin
      exception when error then
     end;
 
-    if ifnull(timeout, interval 10 minute) > current_timestamp() - started_at then
+    if ifnull(timeout, interval 10 minute) < current_timestamp() - started_at then
       break;
     end if;
 
