@@ -6,7 +6,9 @@ create or replace function `bqtest.zgensql__table_profiler`(
 as ((
 with
   options as (
-    select ifnull(bool(options_json.materialized_view_mode), false) as option_materialized_view_mode
+    select
+      ifnull(bool(options_json.materialized_view_mode), false) as option_materialized_view_mode
+      , ifnull(int64(options_json.numeric_precision), 6) as option_numeric_precision
   )
   , table_columns as (
     select
@@ -79,17 +81,18 @@ select
   as query
   from table_columns, options
   left join unnest([struct(
-      r"""
+      format(r"""
       -- !column! (!fieldnum!)
       , count(!fieldname! is not null) as !column!__nonnull
       , approx_count_distinct(!fieldname!) as !column!__unique
       , hll_count.init(!fieldname!) as !column!__hll
       , sum(cast(!fieldname! as bignumeric)) as !column!__sum
-      , round(avg(!fieldname!), 6) as !column!__avg
+      , round(avg(!fieldname!), %d) as !column!__avg
       , min(!fieldname!) as !column!__min
       , max(!fieldname!) as !column!__max
       """
-      || if(
+      , option_numeric_precision
+    ) || if(
         not option_materialized_view_mode
         , """
         , approx_top_count(!fieldname!, 5) as !column!__top_count
@@ -98,15 +101,16 @@ select
         """
         , ''
       ) as number
-      , r"""
+      , format(r"""
         -- !column! (!fieldnum!)
         , count(!fieldname! is not null) as !column!__nonnull
         , sum(cast(!fieldname! as bignumeric)) as !column!__sum
-        , round(avg(!fieldname!), 6) as !column!__avg
+        , round(avg(!fieldname!), %d) as !column!__avg
         , min(!fieldname!) as !column!__min
         , max(!fieldname!) as !column!__max
       """
-      || if(
+      , option_numeric_precision
+    ) || if(
           not option_materialized_view_mode
           , """
           , approx_top_count(!fieldname!, 5) as !column!__top_count
@@ -115,16 +119,17 @@ select
         """
         , ''
       ) as float
-      , r"""
+    , format(r"""
       -- !column! (!fieldnum!)
       , count(!fieldname! is not null) as !column!__nonnull
       , approx_count_distinct(!fieldname!) as !column!__unique
       , hll_count.init(!fieldname!) as !column!__hll
-      , round(avg(CHARACTER_LENGTH(!fieldname!)), 6) as !column!__avg_len
+      , round(avg(CHARACTER_LENGTH(!fieldname!)), %d) as !column!__avg_len
       , min(CHARACTER_LENGTH(!fieldname!)) as !column!__min_len
       , max(CHARACTER_LENGTH(!fieldname!)) as !column!__max_len
       """
-      || if(
+      , option_numeric_precision
+    ) || if(
         not option_materialized_view_mode
         , """
         , approx_top_count(!fieldname!, 20) as !column!__top_count
