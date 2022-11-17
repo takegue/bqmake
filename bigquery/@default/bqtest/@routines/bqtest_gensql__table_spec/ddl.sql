@@ -1,4 +1,4 @@
-create or replace function `bqtest.bqtest_gensql__table_view_test`(
+create or replace function `bqtest.bqtest_gensql__table_spec`(
   _table_name string
   , test_configs array<struct<
     cte string
@@ -10,8 +10,18 @@ create or replace function `bqtest.bqtest_gensql__table_view_test`(
 with views as (
   select view_definition
   from `bqtest.INFORMATION_SCHEMA.VIEWS`
-  where
-    table_name = _table_name
+  where table_name = _table_name
+  union all
+  select format(ltrim(`bqtest.zdeindent`("""
+    # Auto-generated SQL by bqmake.bqtest
+    with datasource as (
+      select * from `%s.%s.%s`
+    )
+    select * from datasource
+    """))
+  , table_catalog, table_schema, table_name)
+  from `bqtest.INFORMATION_SCHEMA.TABLES`
+  where table_name = _table_name
 )
 , switched as (
   select
@@ -26,7 +36,7 @@ with views as (
           format(
             ', __test_%s as (\n%s\n)'
             , cte
-            , `bqtest.bqtest_gensql__table_test`(
+            , `bqtest.bqtest_gensql__table_tester`(
               cte
               , config.unique_columns
               , config.nonnull_columns
@@ -76,21 +86,14 @@ begin
     call `bqmake.bqtest.log`(struct(@@error.message as message, @@error.formatted_stack_trace as formatted_stack_trace));
   end;
 
-  execute immediate `bqmake.zztemp_1c41a5bc87284e8d864e53576b10b2df.zgensql__view_test`(
-    "derivative_view"
-    , [
-        ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
-      ]
-  );
+  execute immediate """
+    select `bqmake.bqtest.bqtest_gensql__table_spec`(
+      "derivative_view"
+      , [
+          ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
+        ]
+    );
+  """
   exception when error then
     execute immediate defer_sql;
-end;
-
-begin
-  select bqmake.bqtest.zgensql__view_test(
-    'derivative_view'
-    , [
-      ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
-    ]
-  );
 end;
