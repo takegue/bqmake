@@ -1,4 +1,4 @@
-create or replace function `bqtest.bqtest_gensql__table_spec`(
+create or replace function `bqtest._gensql__table_spec`(
   _table_name string
   , test_configs array<struct<
     cte string
@@ -83,7 +83,7 @@ begin
       , name, "derivative_view"
     );
   exception when error then
-    call `bqmake.bqtest.log`(struct(@@error.message as message, @@error.formatted_stack_trace as formatted_stack_trace));
+    call `v0.log`(struct(@@error.message as message, @@error.formatted_stack_trace as formatted_stack_trace));
   end;
 
   execute immediate """

@@ -21,7 +21,7 @@ begin
       , interval 0 minute
     );
     exception when error then
-      call `bqtest.log`(format("Create snapshot_store_table: %t", snapshot_store_table));
+      call `v0.log`(format("Create snapshot_store_table: %t", snapshot_store_table));
       call `v0.snapshot_table__init`(
         snapshot_store_table
         , (

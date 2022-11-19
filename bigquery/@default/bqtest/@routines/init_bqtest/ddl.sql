@@ -1,4 +1,4 @@
-create or replace procedure `bqtest.bqtest_setup_dataset`(
+create or replace procedure `bqtest.init_bqtest`(
   target_name struct<project_id string, dataset_id string>
 )
 begin
@@ -10,8 +10,8 @@ begin
         `bqtest.zreplace_table_identifier`(
           ddl
           , (
-            "zpreview_proto.INFORMATION_SCHEMA.VIEWS"
-            , format("%s.INFORMATION_SCHEMA.VIEWS", identifier)
+            "bqtest.INFORMATION_SCHEMA"
+            , format("%s.INFORMATION_SCHEMA", identifier)
           )
         )
         , "CREATE FUNCTION bqmake.bqtest"
@@ -27,7 +27,7 @@ begin
     begin
       execute immediate routine.ddl;
       exception when error then
-        call `bqmake.bqtest.log`(@@error.message);
+        call `v0.log`(@@error.message);
     end;
   end for;
 end
@@ -39,7 +39,7 @@ begin
   execute immediate init_sql;
   begin
     -- Provisioning for test
-    call `bqtest.bqtest_setup_dataset`((null, name));
+    call `bqtest.init_bqtest`((null, name));
     execute immediate format("""
       create or replace view `%s.%s`
       as
@@ -63,7 +63,7 @@ begin
       , name
     );
   exception when error then
-    call `bqmake.bqtest.log`(struct(@@error.message as message, @@error.formatted_stack_trace as formatted_stack_trace));
+    call `v0.log`(struct(@@error.message as message, @@error.formatted_stack_trace as formatted_stack_trace));
   end;
   -- Tear up for testing
   execute immediate defer_sql;

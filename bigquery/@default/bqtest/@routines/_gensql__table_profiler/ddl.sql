@@ -1,4 +1,4 @@
-create or replace function `bqtest.bqtest_gensql__table_profiler`(
+create or replace function `bqtest._gensql__table_profiler`(
   target_table_name string
   , group_keys array<string>
   , options_json json
@@ -178,5 +178,5 @@ select any_value(ddl.query) from ddl
 ))
 ;
 
-execute immediate `bqtest.bqtest_gensql__table_profiler`("demo_sample_table", null, null);
-execute immediate `bqtest.bqtest_gensql__table_profiler`("demo_sample_view", null, null);
+execute immediate `bqtest._gensql__table_profiler`("demo_sample_table", null, null);
+execute immediate `bqtest._gensql__table_profiler`("demo_sample_view", null, null);
