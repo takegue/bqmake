@@ -32,10 +32,12 @@ begin
   -- Options
   declare _options struct<
     dry_run bool
+    , enable_timetravel_tvf bool
     , enable_snapshot_monitor bool
     , enable_entity_monitor bool
     > default (
     ifnull(safe.bool(options.dry_run), false)
+    , ifnull(safe.bool(options.enable_timetravel_tvf), true)
     , ifnull(safe.bool(options.enable_snapshot_monitor), true)
     , ifnull(safe.bool(options.enable_entity_monitor), true)
   );
@@ -79,10 +81,11 @@ begin
     using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
   ;
 
-  execute immediate _tvf_ddl
-    using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
-  ;
-
+  if _options.enable_timetravel_tvf then
+    execute immediate _tvf_ddl
+      using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
+    ;
+  end if;
 
   if _options.enable_snapshot_monitor then
     execute immediate format(
