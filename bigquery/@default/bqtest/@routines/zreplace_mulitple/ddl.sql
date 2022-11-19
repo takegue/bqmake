@@ -16,7 +16,7 @@ as """
 ;
 
 begin
-  select `bqtest.assert`(
+  select `bqtest.error_eq`(
     'c'
     , `bqtest.zreplace_mulitple`('a', [('a', 'b'), ('b', 'c')])
     , "Sequential replace check"
