@@ -21,7 +21,10 @@ Arguments
   * snapshot_timestamp: The timestamp to use for the snapshot. If null is given, the procedure will use the current timestamp.
 
 - options: JSON value
-  * dry_run: Whether to run the update job as a dry run. [Default: false].
+  * dry_run: Whether to run the update job as a dry run or not. [Default: false].
+  * enable_timetravel_tvf: Wheter to create TVF for timetrval or not [Default: true].
+  * enable_entity_monitor: Whether to create monitor view for entity history [Default: true].
+  * enable_snapshot_monitor: Whether to create monitor view for snapshot job history or not [Default: true].
 
 """
 )
