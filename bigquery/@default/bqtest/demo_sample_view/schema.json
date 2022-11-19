@@ -1,5 +1,20 @@
 [
   {
+    "name": "dma_name",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "dma_id",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "term",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
     "name": "week",
     "type": "DATE",
     "mode": "NULLABLE"
@@ -17,21 +32,6 @@
   {
     "name": "refresh_date",
     "type": "DATE",
-    "mode": "NULLABLE"
-  },
-  {
-    "name": "dma_name",
-    "type": "STRING",
-    "mode": "NULLABLE"
-  },
-  {
-    "name": "dma_id",
-    "type": "INTEGER",
-    "mode": "NULLABLE"
-  },
-  {
-    "name": "term",
-    "type": "STRING",
     "mode": "NULLABLE"
   }
 ]

@@ -32,6 +32,7 @@ begin
         , to_json(struct(
           false as enable_snapshot_monitor
           , false as enable_entity_monitor
+          , false as enable_timetravel_tvf
         ))
       );
   end;
