@@ -37,5 +37,5 @@ as ((
 ;
 
 begin
-  execute immediate `bqtest._gensql__switch_final_select`(derivative_view, '__test_count');
+  execute immediate `bqtest._gensql__switch_final_select`('demo_sample_view', '__test_count');
 end

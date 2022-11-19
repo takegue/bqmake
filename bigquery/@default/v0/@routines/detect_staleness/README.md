@@ -15,6 +15,7 @@ Argument
 Stalenss and Stablity Margin Checks
 ===
 
+```
 Case 1: Partition staleness with tolerate_staleness option
                      past                              now
 Source Table        : |       |               |         |
@@ -28,3 +29,4 @@ Case 2: Partition staleness timeline with force_expire_at option
 Source Table        : | Fresh                           |
 Staleness Timeline  : | Fresh | Stale                   |
                               ^ force_expire_at
+```

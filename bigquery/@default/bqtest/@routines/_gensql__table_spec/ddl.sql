@@ -36,7 +36,7 @@ with views as (
           format(
             ', __test_%s as (\n%s\n)'
             , cte
-            , `bqtest.bqtest_gensql__table_tester`(
+            , `bqtest.zgensql__table_tester`(
               cte
               , config.unique_columns
               , config.nonnull_columns
@@ -72,7 +72,7 @@ begin
   set (name, init_sql, defer_sql) = `bqtest.zgensql__temporary_dataset`();
   execute immediate init_sql;
   begin
-    call `bqtest.bqtest__init`((null, name));
+    call `bqtest.init_bqtest`((null, name));
     execute immediate format("""
       create or replace views `%s.%s`
       with datasource as (
@@ -87,13 +87,14 @@ begin
   end;
 
   execute immediate """
-    select `bqmake.bqtest.bqtest_gensql__table_spec`(
+    select `bqmake.bqtest._gensql__table_spec`(
       "derivative_view"
       , [
           ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
         ]
     );
-  """
+  """;
+
   exception when error then
     execute immediate defer_sql;
 end;
