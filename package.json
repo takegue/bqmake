@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "bigquery-porter": "^0.1.0"
+    "bigquery-porter": "^0.1.3"
   },
   "scripts": {
     "push": "bqport push",
