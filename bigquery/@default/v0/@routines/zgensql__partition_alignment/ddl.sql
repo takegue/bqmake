@@ -9,14 +9,14 @@ as
     sql__information_schema as (
       select as value
           string_agg(
-            format("""
+            format(`v0.zdeindent`("""
               select
                 '%s' as label
                 , '%s' as argument
                 , *
               from `%s.INFORMATION_SCHEMA.PARTITIONS`
               where %s
-              """
+              """)
               , label
               , target.table_id
               , coalesce(
@@ -39,7 +39,7 @@ as
     )
     , ret as (
       select
-        format(r"""
+        format(`v0.zdeindent`(r"""
         with
           _partitions_temp as (
             %s
@@ -143,7 +143,7 @@ as
         )
         select * from detection
 
-        """
+        """)
         , sql__information_schema
         , partition_alignments
         , array_length(sources)

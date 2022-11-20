@@ -15,7 +15,7 @@ with views as (
   where table_name = _table_name
   union all
   select format(
-    ltrim(`bqtest.zdeindent`("""
+    ltrim(`v0.zdeindent`("""
       # Auto-generated SQL by bqmake.bqtest
       with __final__ as (
         select * from `%s.%s.%s`

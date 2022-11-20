@@ -11,7 +11,7 @@ as ((
     from unnest([struct(
       struct(
         "column_uniqueness_check" as cte_name
-        , `bqtest.zdeindent`("""
+        , `v0.zdeindent`("""
         with unique_count as (
           select any_value(_uniqueness_target) as tgt, count(1) as actual
           from datasource
@@ -32,7 +32,7 @@ as ((
       ) as sql_uniqueness_check
       , struct(
         "column_nonnull_check" as cte_name
-        , `bqtest.zdeindent`("""
+        , `v0.zdeindent`("""
         with nonnull_count as (
           select
             any_value(_uniqueness_target) as tgt
@@ -56,7 +56,7 @@ as ((
       ) as sql_nonnull_check
       , struct(
         "column_accepted_values_check" as cte_name
-        , `bqtest.zdeindent`("""
+        , `v0.zdeindent`("""
         with stats as (
           select
             any_value(_target.spec) as spec

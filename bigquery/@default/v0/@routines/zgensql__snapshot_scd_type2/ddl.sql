@@ -14,18 +14,18 @@ options(
 as ((
   select as struct
     -- DDL Query
-    format("""
+    format(`v0.zdeindent`("""
         # %s
         create table if not exists `%s`
         partition by DATE(valid_to)
         cluster by valid_from
         as %s
-      """
+      """)
       , header
       , destination_ref
       , snapshot_query
     ) as create_ddl
-    , format("""
+    , format(`v0.zdeindent`("""
         # %s
         with source as (
           select
@@ -41,11 +41,11 @@ as ((
           , if(countif(is_insane_valid_column) > 0, max(format('Contradict valid_from with previous valid_to at %%t, %%s', unique_key, revision_hash)), null) as validate_record_lifetime
         from source
         group by unique_key
-      """
+      """)
       , header
       , destination_ref
     ) as validate_query
-    , format("""
+    , format(`v0.zdeindent`("""
         # %s
         select
           revision_hash
@@ -58,11 +58,11 @@ as ((
         from `%s`
         group by revision_hash
         order by changed_at desc
-      """
+      """)
       , header
       , destination_ref
     ) as profiler__snapshot_job
-    , format("""
+    , format(`v0.zdeindent`("""
         # %s
         select
           unique_key
@@ -71,7 +71,7 @@ as ((
           , approx_count_distinct(revision_hash) as n_changed
         from `%s`
         group by unique_key
-      """
+      """)
       , header
       , destination_ref
     ) as profiler__entity
@@ -144,7 +144,7 @@ as ((
       , snapshot_query
     ) as diff_query
     -- DML Query
-    , format("""
+    , format(`v0.zdeindent`("""
       # %s
       merge `%s` T
       using
@@ -218,7 +218,7 @@ as ((
         when not matched by target
           then
             insert row
-          """
+        """)
       , header
       , destination_ref
       , destination_ref
@@ -242,7 +242,7 @@ as ((
       , destination_ref
       , destination_ref
     ) as access_tvf_ddl
-    , format("""
+    , format(`v0.zdeindent`("""
       # %s
       merge `%s` as T
       using (
@@ -284,7 +284,7 @@ as ((
         update set valid_to = S.valid_to
       when not matched by source then
         delete
-    """
+    """)
    , header
    , destination_ref
    , destination_ref
@@ -299,7 +299,7 @@ as ((
   )])
   left join unnest([struct(
     ifnull(
-      format("""
+      format(`v0.zdeindent`("""
         select
           %s as unique_key
           , revision_hash
@@ -309,7 +309,7 @@ as ((
         from
           (%s) as entity
           , (select as value generate_uuid()) as revision_hash
-        """
+        """)
         , exp_unique_key
         , snapshot_query
       )
