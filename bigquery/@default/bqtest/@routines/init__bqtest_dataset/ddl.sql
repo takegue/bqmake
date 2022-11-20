@@ -1,4 +1,4 @@
-create or replace procedure `bqtest.init_bqtest`(
+create or replace procedure `bqtest.init__bqtest_dataset`(
   target_name struct<project_id string, dataset_id string>
 )
 begin
@@ -19,9 +19,7 @@ begin
       ) as ddl
     from `bqtest.INFORMATION_SCHEMA.ROUTINES`
     where
-      routine_name in (
-        "zgensql__view_test"
-      )
+      starts_with(routine_name, '_gensql')
   )
   do
     begin
@@ -39,7 +37,7 @@ begin
   execute immediate init_sql;
   begin
     -- Provisioning for test
-    call `bqtest.init_bqtest`((null, name));
+    call `bqtest.init__bqtest_dataset`((null, name));
     execute immediate format("""
       create or replace view `%s.%s`
       as

@@ -1,4 +1,4 @@
-create or replace function `bqtest._gensql__switch_final_select`(
+create or replace function `bqtest.zbqt_gensql__switch_final_select`(
   _table_name string
   , new_final_target string
 )
@@ -37,5 +37,5 @@ as ((
 ;
 
 begin
-  execute immediate `bqtest._gensql__switch_final_select`('demo_sample_view', '__test_count');
+  execute immediate `bqtest.zbqt_gensql__switch_final_select`('demo_sample_view', '__test_count');
 end

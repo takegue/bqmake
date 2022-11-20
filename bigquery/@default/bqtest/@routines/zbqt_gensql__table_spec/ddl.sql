@@ -1,4 +1,4 @@
-create or replace function `bqtest._gensql__table_spec`(
+create or replace function `bqtest.zbqt_gensql__table_spec`(
   _table_name string
   , test_configs array<struct<
     cte string
