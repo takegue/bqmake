@@ -42,7 +42,7 @@ with views as (
           format(
             ', __test_%s as (\n%s\n)'
             , cte
-            , `bqtest.zgensql__table_tester`(
+            , `bqtest.zgensql__property_testing`(
               cte
               , config.unique_columns
               , config.nonnull_columns

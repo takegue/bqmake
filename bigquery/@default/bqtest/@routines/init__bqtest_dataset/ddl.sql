@@ -7,12 +7,12 @@ begin
     select
       ddl as _origin
       , replace(
-        `bqtest.zreplace_table_identifier`(
+        `bqtest.zreplace_table_identifiers`(
           ddl
-          , (
+          , [(
             "bqtest.INFORMATION_SCHEMA"
             , format("%s.INFORMATION_SCHEMA", identifier)
-          )
+          )]
         )
         , "CREATE FUNCTION bqmake.bqtest"
         , format("create or replace function %s", identifier)

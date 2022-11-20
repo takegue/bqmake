@@ -1,4 +1,4 @@
-create or replace function `bqtest.zgensql__table_tester`(
+create or replace function `bqtest.zgensql__property_testing`(
   _table_identifier string
   , unique_columns array<string>
   , nonnull_columns array<string>
@@ -168,7 +168,7 @@ as ((
 begin
   execute immediate
     (
-      `bqtest.zgensql__table_tester`(
+      `bqtest.zgensql__property_testing`(
         "`bigquery-public-data.austin_311.311_service_requests`"
         , ["unique_key"]
         , ["status", "source"]
