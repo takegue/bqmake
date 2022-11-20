@@ -1,3 +1,8 @@
+-- table existence check
+with Q as (
+  select * from bqtest.demo_sample_view
+)
+select 1;
 
 call `bqtest.assert_golden`(
   (null, "bqtest", "zsnapshot_profile__demo_sample_view")
@@ -9,8 +14,3 @@ call `bqtest.assert_golden`(
   )
   , false
 );
-
-with Q as (
-  select * from bqtest.zsnapshot_profile__demo_sample_view
-)
-select 1;
