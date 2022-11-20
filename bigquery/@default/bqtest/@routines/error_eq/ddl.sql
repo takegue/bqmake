@@ -3,7 +3,7 @@ as (
   if(
     ifnull(expected = actual, expected is null and actual is null)
     , null
-    , error(format("ASSERT: %s (%T != %T)", msg, expected, actual))
+    , error(format("Assertion failed: %s (left: %T, right: %T)", msg, expected, actual))
   )
 );
 

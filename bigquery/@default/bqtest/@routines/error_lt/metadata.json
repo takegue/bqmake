@@ -1,0 +1,20 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "lhs",
+      "argumentKind": "ANY_TYPE"
+    },
+    {
+      "name": "rhs",
+      "argumentKind": "ANY_TYPE"
+    },
+    {
+      "name": "msg",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    }
+  ]
+}
