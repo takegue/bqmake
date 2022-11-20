@@ -6,7 +6,9 @@ create or replace function `bqtest.zbqt_gensql__table_spec`(
     , nonnull_columns array<string>
     , accepted_values_columns array<struct<column string, accepcted_values array<string>>>
   >>
-) as ((
+)
+returns string
+as ((
 with views as (
   select view_definition
   from `bqtest.INFORMATION_SCHEMA.VIEWS`
@@ -21,7 +23,9 @@ with views as (
     """))
   , table_catalog, table_schema, table_name)
   from `bqtest.INFORMATION_SCHEMA.TABLES`
-  where table_name = _table_name
+  where
+    table_name = _table_name
+    and table_type = 'BASE TABLE'
 )
 , switched as (
   select
@@ -63,38 +67,15 @@ with views as (
   from views
 )
 
-select as value sql from switched
+select as value sql from switched limit 1
 ))
 ;
 
 begin
-  declare name, init_sql, defer_sql string;
-  set (name, init_sql, defer_sql) = `bqtest.zgensql__temporary_dataset`();
-  execute immediate init_sql;
-  begin
-    call `bqtest.init_bqtest`((null, name));
-    execute immediate format("""
-      create or replace views `%s.%s`
-      with datasource as (
-        select * from `bigquery-public-data.austin_311.311_service_requests`
-      )
-      select * from datasource
-      """
-      , name, "derivative_view"
-    );
-  exception when error then
-    call `v0.log`(struct(@@error.message as message, @@error.formatted_stack_trace as formatted_stack_trace));
-  end;
-
-  execute immediate """
-    select `bqmake.bqtest._gensql__table_spec`(
-      "derivative_view"
-      , [
-          ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
-        ]
-    );
-  """;
-
-  exception when error then
-    execute immediate defer_sql;
+  execute immediate `bqtest.zbqt_gensql__table_spec`(
+    "demo_sample_table"
+    , [
+        ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
+      ]
+  );
 end;
