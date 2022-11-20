@@ -47,7 +47,7 @@ begin
 
   -- Assert invalid options
   select logical_and(if(
-    key in ('dry_run', 'enable_snapshot_monitor', 'enable_entity_monitor')
+    key in ('dry_run', 'enable_snapshot_monitor', 'enable_entity_monitor', 'enable_timetravel_tvf')
     , true
     , error(format("Invalid Option: name=%t in %t'", key, `options`))
   ))
