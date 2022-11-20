@@ -1,5 +1,15 @@
 [
   {
+    "name": "rank",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "refresh_date",
+    "type": "DATE",
+    "mode": "NULLABLE"
+  },
+  {
     "name": "dma_name",
     "type": "STRING",
     "mode": "NULLABLE"
@@ -22,16 +32,6 @@
   {
     "name": "score",
     "type": "INTEGER",
-    "mode": "NULLABLE"
-  },
-  {
-    "name": "rank",
-    "type": "INTEGER",
-    "mode": "NULLABLE"
-  },
-  {
-    "name": "refresh_date",
-    "type": "DATE",
     "mode": "NULLABLE"
   }
 ]
