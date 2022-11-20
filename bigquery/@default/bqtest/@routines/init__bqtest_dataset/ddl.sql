@@ -19,7 +19,7 @@ begin
       ) as ddl
     from `bqtest.INFORMATION_SCHEMA.ROUTINES`
     where
-      starts_with(routine_name, '_gensql')
+      starts_with(routine_name, 'zbqt')
   )
   do
     begin

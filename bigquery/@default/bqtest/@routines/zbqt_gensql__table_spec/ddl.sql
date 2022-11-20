@@ -14,14 +14,16 @@ with views as (
   from `bqtest.INFORMATION_SCHEMA.VIEWS`
   where table_name = _table_name
   union all
-  select format(ltrim(`bqtest.zdeindent`("""
-    # Auto-generated SQL by bqmake.bqtest
-    with datasource as (
-      select * from `%s.%s.%s`
-    )
-    select * from datasource
+  select format(
+    ltrim(`bqtest.zdeindent`("""
+      # Auto-generated SQL by bqmake.bqtest
+      with __final__ as (
+        select * from `%s.%s.%s`
+      )
+      select * from __final__
     """))
-  , table_catalog, table_schema, table_name)
+    , table_catalog, table_schema, table_name
+  )
   from `bqtest.INFORMATION_SCHEMA.TABLES`
   where
     table_name = _table_name
@@ -55,16 +57,24 @@ with views as (
     )
     -- final select
     || '\n'
-    || array_to_string(array(
-        select
-          format('select * from __test_%s', cte)
-        from unnest(`bqtest.zfind_ctes`(view_definition)) as cte
-        left join unnest(test_configs) as config using(cte)
-        where config.cte is not null
-      )
-      , '\nunion all\n'
-    ) as sql
+    || array_to_string(if(
+        array_length(
+          final_selects) > 0
+          , final_selects
+          , error(format('Not Found CTE: %T', test_configs))
+        )
+        , '\nunion all\n'
+      ) as sql
   from views
+  left join unnest([struct(
+    array(
+      select
+        format('select * from __test_%s', cte)
+      from unnest(`bqtest.zfind_ctes`(view_definition)) as cte
+      left join unnest(test_configs) as config using(cte)
+      where config.cte is not null
+    ) as final_selects
+  )])
 )
 
 select as value sql from switched limit 1
@@ -75,7 +85,7 @@ begin
   execute immediate `bqtest.zbqt_gensql__table_spec`(
     "demo_sample_table"
     , [
-        ("datasource", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
+        ("__final__", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
       ]
   );
 end;
