@@ -1,0 +1,10 @@
+{
+  "routineType": "PROCEDURE",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "obj",
+      "argumentKind": "ANY_TYPE"
+    }
+  ]
+}

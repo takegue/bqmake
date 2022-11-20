@@ -1,0 +1,20 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "expected",
+      "argumentKind": "ANY_TYPE"
+    },
+    {
+      "name": "actual",
+      "argumentKind": "ANY_TYPE"
+    },
+    {
+      "name": "msg",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+[
+  {
+    "name": "unique_key",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "The service request tracking number."
+  },
+  {
+    "name": "complaint_description",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Service request type"
+  },
+  {
+    "name": "source",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Contact method Service request was received from. Mass entry requests are submitted by dept. in groups after work is completed."
+  },
+  {
+    "name": "status",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Service request status. Duplicate statuses indicate that issue had previously been reported recently."
+  },
+  {
+    "name": "status_change_date",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Date of last Service request status change. Status changes occur when service request moves from one status to another. I.E. new to open, open to closed."
+  },
+  {
+    "name": "created_date",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Date Service request was created."
+  },
+  {
+    "name": "last_update_date",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Date Service request was updated. Last date Service request received updates. Updates may include creation, status changes, or changes to data in Service request."
+  },
+  {
+    "name": "close_date",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "Date Service request was closed."
+  },
+  {
+    "name": "incident_address",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Service location of Service request."
+  },
+  {
+    "name": "street_number",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Parsed location information. Street number."
+  },
+  {
+    "name": "street_name",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Parsed location information. Street name."
+  },
+  {
+    "name": "city",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Parsed location information. City."
+  },
+  {
+    "name": "incident_zip",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Parsed location information. Zip code."
+  },
+  {
+    "name": "county",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Parsed location information. County."
+  },
+  {
+    "name": "state_plane_x_coordinate",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "State plane X coordinate."
+  },
+  {
+    "name": "state_plane_y_coordinate",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "State plane Y coordinate."
+  },
+  {
+    "name": "latitude",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Service request location latitude coordinate."
+  },
+  {
+    "name": "longitude",
+    "type": "FLOAT",
+    "mode": "NULLABLE",
+    "description": "Service request location longitude coordinate."
+  },
+  {
+    "name": "location",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Service request location latitude and longitude coordinates."
+  },
+  {
+    "name": "council_district_code",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Council district corresponding to Service request location. Locations outside of the City of Austin jurisdiction will not have a council district."
+  },
+  {
+    "name": "map_page",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Service request location corresponding map page."
+  },
+  {
+    "name": "map_tile",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "Service request location corresponding map tile."
+  }
+]

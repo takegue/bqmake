@@ -1,0 +1,46 @@
+{
+  "routineType": "PROCEDURE",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "snapshot_store_table",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "project_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "dataset_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "table_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "query",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "is_update",
+      "dataType": {
+        "typeKind": "BOOL"
+      }
+    }
+  ]
+}

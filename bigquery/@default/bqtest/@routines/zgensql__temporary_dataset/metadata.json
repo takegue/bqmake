@@ -1,0 +1,29 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "returnType": {
+    "typeKind": "STRUCT",
+    "structType": {
+      "fields": [
+        {
+          "name": "name",
+          "type": {
+            "typeKind": "STRING"
+          }
+        },
+        {
+          "name": "init_sql",
+          "type": {
+            "typeKind": "STRING"
+          }
+        },
+        {
+          "name": "defer_sql",
+          "type": {
+            "typeKind": "STRING"
+          }
+        }
+      ]
+    }
+  }
+}
