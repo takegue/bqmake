@@ -69,6 +69,53 @@ select
     )
     , table_catalog, table_schema, table_name
   )
+  -- for materialized table
+  || format(
+    """
+    , restricted_view as (
+      select
+        partition_key
+        , group_keys
+        , count(1) as count
+        %s
+      from datasource
+      group by partition_key, group_keys
+    )
+    """
+    , string_agg(
+      replace(replace(replace(
+        template_selected.restricted
+        ,    '!column!', replace(field_path, '.', '___'))
+        ,  '!fieldnum!', if(depth = 0, format('f%d',position), format('f%d_%d_%d', position, depth, subposition)))
+        , '!fieldname!', field_path
+      )
+      , '\n' order by position, depth, subposition
+    )
+  )
+  || if(
+    any_value(option_materialized_view_mode)
+    , ""
+    , format("""
+      , advanced_parts as (
+        select
+          partition_key
+          , group_keys
+          %s
+        from datasource
+        group by partition_key, group_keys
+      )
+      """
+      , string_agg(
+        replace(replace(replace(
+          template_selected.advanced
+          ,    '!column!', replace(field_path, '.', '___'))
+          ,  '!fieldnum!', if(depth = 0, format('f%d',position), format('f%d_%d_%d', position, depth, subposition)))
+          , '!fieldname!', field_path
+        )
+        , '\n' order by position, depth, subposition
+      )
+    )
+  )
   || ifnull(string_agg(
     replace(format("""
     , %s__subprofiler as (
@@ -85,7 +132,8 @@ select
       )
       , agg as (
           select
-            partition_key, group_keys
+            datasource.partition_key
+            , datasource.group_keys
             , bucket_ix
             , struct(
               struct(
@@ -97,15 +145,9 @@ select
             ) as agg_item
           from
             datasource
-            join unnest([struct(
-              (
-                select as value struct(count, max, min, qtile)
-                from total
-                where
-                  total.partition_key is not distinct from datasource.partition_key
-                  and total.group_keys is not distinct from datasource.group_keys
-              ) as Q
-            )])
+            join total as Q
+              on Q.partition_key is not distinct from datasource.partition_key
+                and Q.group_keys is not distinct from datasource.group_keys
             left join unnest([struct(
               Q.qtile[offset(3)] - Q.qtile[offset(1)] as iqr
             )])
@@ -136,117 +178,117 @@ select
     )
     , '\n'
   ), "")
-  || """
-    select
-      partition_key
-      , group_keys
-      , count(1) as count
-  """
-  || string_agg(
-    replace(
-      replace(
-        replace(template_selected, '!column!', replace(field_path, '.', '___'))
-        , '!fieldnum!', if(depth = 0, format('f%d',position), format('f%d_%d_%d', position, depth, subposition))
+  || if(
+    any_value(option_materialized_view_mode)
+    , "select * from restricted_view"
+    , rtrim(format("""
+      select
+        core.partition_key
+        , core.group_keys
+        %s
+      from restricted_view as core
+      left join advanced_parts
+        on advanced_parts.partition_key is not distinct from core.partition_key
+          and advanced_parts.group_keys is not distinct from core.group_keys
+      %s
+      """
+      , string_agg(
+        replace(replace(replace(
+          regexp_replace(
+            template_selected.restricted || template_selected.advanced
+            , r",.+\bas\b"
+            , ", "
+          )
+          ,    '!column!', replace(field_path, '.', '___'))
+          ,  '!fieldnum!', if(depth = 0, format('f%d',position), format('f%d_%d_%d', position, depth, subposition)))
+          , '!fieldname!', field_path
+        )
+        , '\n' order by position, depth, subposition
       )
-      ,  '!fieldname!', field_path
-    )
-    , '\n' order by position, depth, subposition
+      , string_agg(
+        replace(replace(replace(
+          if(
+            data_type in ('INT64', 'NUMERIC', 'BIGNUMERIC', 'FLOAT64')
+            , """
+              left join !column!__subprofiler
+                on !column!__subprofiler.partition_key is not distinct from core.partition_key
+                  and !column!__subprofiler.group_keys is not distinct from core.group_keys
+            """
+            , null
+          )
+          ,    '!column!', replace(field_path, '.', '___'))
+          ,  '!fieldnum!', if(depth = 0, format('f%d',position), format('f%d_%d_%d', position, depth, subposition)))
+          , '!fieldname!', field_path
+        )
+        , '\n' order by position, depth, subposition
+      )
+    ))
   )
-  || """
-    from datasource
-    group by partition_key, group_keys
-  """
   as query
   from table_columns, options
   left join unnest([struct(
-    format(r"""
-      -- !column! (!fieldnum!)
-      , countif(!fieldname! is not null) as !column!__nonnull
-      , approx_count_distinct(!fieldname!) as !column!__unique
-      , hll_count.init(!fieldname!) as !column!__hll
-      , sum(cast(!fieldname! as bignumeric)) as !column!__sum
-      , avg(!fieldname!) as !column!__avg
-      , min(!fieldname!) as !column!__min
-      , max(!fieldname!) as !column!__max
+    struct(
       """
-      -- , option_numeric_precision
-    ) || if(
-      not option_materialized_view_mode
+        -- !column! (!fieldnum!)
+        , countif(!fieldname! is not null) as !column!__nonnull
+        , approx_count_distinct(!fieldname!) as !column!__unique
+        , hll_count.init(!fieldname!) as !column!__hll
+        , sum(cast(!fieldname! as bignumeric)) as !column!__sum
+        , sum(cast(!fieldname! as bignumeric) * cast(!fieldname! as bignumeric)) as !column!__sum2
+        , avg(!fieldname!) as !column!__avg
+        , min(!fieldname!) as !column!__min
+        , max(!fieldname!) as !column!__max
+      """ as restricted
       , """
         , approx_top_count(!fieldname!, 5) as !column!__top_count
         , approx_quantiles(!fieldname!, 20) as !column!__20quantile
-        , any_value((
-          select as value value
-          from !fieldname!__subprofiler as sub
-          where
-            sub.partition_key is not distinct from datasource.partition_key
-            and sub.group_keys is not distinct from datasource.group_keys
-        )) as !column!__histogram
-        , '!fieldname!' as !column!__name
-        """
-      , ""
-    )
-      as number
-    , format(r"""
-      -- !column! (!fieldnum!)
-      , countif(!fieldname! is not null) as !column!__nonnull
-      , sum(cast(!fieldname! as bignumeric)) as !column!__sum
-      , avg(!fieldname!) as !column!__avg
-      , min(!fieldname!) as !column!__min
-      , max(!fieldname!) as !column!__max
+      """ as advanced
+    ) as number
+    , struct(
       """
-      -- , option_numeric_precision
-    ) || if(
-      not option_materialized_view_mode
-      , format("""
+        -- !column! (!fieldnum!)
+        , countif(!fieldname! is not null) as !column!__nonnull
+        , sum(cast(!fieldname! as bignumeric)) as !column!__sum
+        , avg(!fieldname!) as !column!__avg
+        , min(!fieldname!) as !column!__min
+        , max(!fieldname!) as !column!__max
+      """ as restricted
+      , """
         , approx_top_count(!fieldname!, 5) as !column!__top_count
         , approx_quantiles(!fieldname!, 20) as !column!__20quantile
-        , any_value((
-          select as value
-            value
-          from !fieldname!__subprofiler as sub
-          where
-            sub.partition_key is not distinct from datasource.partition_key
-            and sub.group_keys is not distinct from datasource.group_keys
-        )) as !column!__histogram
-        , '!fieldname!' as !column!__name
-        """
-      )
-      , ''
-    )
-      as float
-    , format(r"""
-      -- !column! (!fieldnum!)
-      , countif(!fieldname! is not null) as !column!__nonnull
-      , approx_count_distinct(!fieldname!) as !column!__unique
-      , hll_count.init(!fieldname!) as !column!__hll
-      , avg(CHARACTER_LENGTH(!fieldname!)) as !column!__avg_len
-      , min(CHARACTER_LENGTH(!fieldname!)) as !column!__min_len
-      , max(CHARACTER_LENGTH(!fieldname!)) as !column!__max_len
-      """
-      -- , option_numeric_precision
-    ) || if(
-      not option_materialized_view_mode
+      """ as advanced
+    ) as float
+    , struct(
+      r"""
+        -- !column! (!fieldnum!)
+        , countif(!fieldname! is not null) as !column!__nonnull
+        , approx_count_distinct(!fieldname!) as !column!__unique
+        , hll_count.init(!fieldname!) as !column!__hll
+        , avg(CHARACTER_LENGTH(!fieldname!)) as !column!__avg_len
+        , min(CHARACTER_LENGTH(!fieldname!)) as !column!__min_len
+        , max(CHARACTER_LENGTH(!fieldname!)) as !column!__max_len
+      """ as restricted
       , """
-      , approx_top_count(!fieldname!, 20) as !column!__top_count
-      , approx_quantiles(!fieldname!, 20) as !column!__20quantile
-      , '!fieldname!' as !column!__name
-      """
-      , ''
-    )
-      as string
-    , r"""
-      -- !column! (!fieldnum!)
-      , countif(!fieldname! is not null) as !column!__nonnull
-      , hll_count.init(string(date(!fieldname!))) as !column!__day_hll
-      , min(!fieldname!) as !column!__min
-      , max(!fieldname!) as !column!__max
-    """ as timestamp
-    , r"""
-      -- !column! (!fieldnum!)
-      , countif(!fieldname! is not null) as !column!__nonnull
-      , '!fieldname!' as !column!__name
-    """ as anything
+        , approx_top_count(!fieldname!, 20) as !column!__top_count
+        , approx_quantiles(!fieldname!, 20) as !column!__20quantile
+      """ as advanced
+    ) as string
+    , struct(
+      r"""
+        , countif(!fieldname! is not null) as !column!__nonnull
+        , hll_count.init(string(date(!fieldname!))) as !column!__day_hll
+        , min(!fieldname!) as !column!__min
+        , max(!fieldname!) as !column!__max
+      """ as restricted
+      , "" as advanced
+    ) as timestamp
+    , struct(
+      r"""
+        -- !column! (!fieldnum!)
+        , countif(!fieldname! is not null) as !column!__nonnull
+      """ as restricted
+      , "" as advanced
+    ) as anything
   )]) as template
   left join unnest([struct(
       case
@@ -294,5 +336,14 @@ execute immediate 'create materialized view `bqtest.mateview` options(enable_ref
     , to_json(struct(true as materialized_view_mode))
   );
 drop materialized view if exists `bqtest.mateview`;
+
+execute immediate format("with validateSQL as (%s) select 1", `bqtest.zbqt_gensql__table_profiler`("demo_sample_partition_table", null, null));
+execute immediate 'create materialized view `bqtest.mateview1` options(enable_refresh = false) as \n'
+  || `bqtest.zbqt_gensql__table_profiler`(
+    "demo_sample_partition_table"
+    , null
+    , to_json(struct(true as materialized_view_mode))
+  );
+drop materialized view if exists `bqtest.mateview1`;
 
 execute immediate format("with validateSQL as (%s) select 1", `bqtest.zbqt_gensql__table_profiler`("demo_sample_view", [], null));
