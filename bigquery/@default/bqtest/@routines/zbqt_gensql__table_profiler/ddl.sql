@@ -161,7 +161,7 @@ select
   left join unnest([struct(
     format(r"""
       -- !column! (!fieldnum!)
-      , count(!fieldname! is not null) as !column!__nonnull
+      , countif(!fieldname! is not null) as !column!__nonnull
       , approx_count_distinct(!fieldname!) as !column!__unique
       , hll_count.init(!fieldname!) as !column!__hll
       , sum(cast(!fieldname! as bignumeric)) as !column!__sum
@@ -189,7 +189,7 @@ select
       as number
     , format(r"""
       -- !column! (!fieldnum!)
-      , count(!fieldname! is not null) as !column!__nonnull
+      , countif(!fieldname! is not null) as !column!__nonnull
       , sum(cast(!fieldname! as bignumeric)) as !column!__sum
       , avg(!fieldname!) as !column!__avg
       , min(!fieldname!) as !column!__min
@@ -217,7 +217,7 @@ select
       as float
     , format(r"""
       -- !column! (!fieldnum!)
-      , count(!fieldname! is not null) as !column!__nonnull
+      , countif(!fieldname! is not null) as !column!__nonnull
       , approx_count_distinct(!fieldname!) as !column!__unique
       , hll_count.init(!fieldname!) as !column!__hll
       , avg(CHARACTER_LENGTH(!fieldname!)) as !column!__avg_len
@@ -237,14 +237,14 @@ select
       as string
     , r"""
       -- !column! (!fieldnum!)
-      , count(!fieldname! is not null) as !column!__nonnull
+      , countif(!fieldname! is not null) as !column!__nonnull
       , hll_count.init(string(date(!fieldname!))) as !column!__day_hll
       , min(!fieldname!) as !column!__min
       , max(!fieldname!) as !column!__max
     """ as timestamp
     , r"""
       -- !column! (!fieldnum!)
-      , count(!fieldname! is not null) as !column!__nonnull
+      , countif(!fieldname! is not null) as !column!__nonnull
       , '!fieldname!' as !column!__name
     """ as anything
   )]) as template
