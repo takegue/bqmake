@@ -97,7 +97,7 @@ select
             ) as agg_item
           from
             datasource
-            left join unnest([struct(
+            join unnest([struct(
               (
                 select as value struct(count, max, min, qtile)
                 from total
