@@ -70,16 +70,16 @@ select
     , table_catalog, table_schema, table_name
   )
   || ifnull(string_agg(
-    format("""
+    replace(format("""
     , %s__subprofiler as (
       with total as (
         select
           partition_key
           , group_keys
           , count(1) as count
-          , max(council_district_code) as max
-          , min(council_district_code) as min
-          , approx_quantiles(council_district_code, 4) as qtile
+          , max(!fieldname!) as max
+          , min(!fieldname!) as min
+          , approx_quantiles(!fieldname!, 4) as qtile
         from datasource
         group by partition_key, group_keys
       )
@@ -89,8 +89,8 @@ select
             , bucket_ix
             , struct(
               struct(
-                if(bucket_ix = 0, cast('-inf' as float64), round(min(council_district_code), %d))  as min
-                , if(bucket_ix = array_length(any_value(buckets)), cast('+inf' as float64), round(max(council_district_code), %d)) as max
+                if(bucket_ix = 0, cast('-inf' as float64), round(min(!fieldname!), %d))  as min
+                , if(bucket_ix = array_length(any_value(buckets)), cast('+inf' as float64), round(max(!fieldname!), %d)) as max
               ) as bucket
               , count(1) as count
               , round(safe_divide(count(1), any_value(Q.count)), 4) as ratio
@@ -113,7 +113,7 @@ select
               generate_array(Q.qtile[offset(1)] - 1.5 * iqr, Q.qtile[offset(3)] + 1.5 * iqr, iqr * 4 / 20) as buckets
             )])
             left join unnest([struct(
-              range_bucket(council_district_code, buckets) as bucket_ix
+              range_bucket(!fieldname!, buckets) as bucket_ix
             )])
           group by partition_key, group_keys, bucket_ix
           order by bucket_ix
@@ -131,6 +131,8 @@ select
       )
       , option_numeric_precision
       , option_numeric_precision
+    )
+    , '!fieldname!', field_path
     )
     , '\n'
   ), "")
@@ -170,18 +172,18 @@ select
       -- , option_numeric_precision
     ) || if(
       not option_materialized_view_mode
-      , trim("""
-      , approx_top_count(!fieldname!, 5) as !column!__top_count
-      , approx_quantiles(!fieldname!, 20) as !column!__20quantile
-      , any_value((
-        select as value value
-        from !fieldname!__subprofiler as sub
-        where
-          sub.partition_key is not distinct from datasource.partition_key
-          and sub.group_keys is not distinct from datasource.group_keys
-      )) as !column!__histogram
-      , '!fieldname!' as !column!__name
-    """)
+      , """
+        , approx_top_count(!fieldname!, 5) as !column!__top_count
+        , approx_quantiles(!fieldname!, 20) as !column!__20quantile
+        , any_value((
+          select as value value
+          from !fieldname!__subprofiler as sub
+          where
+            sub.partition_key is not distinct from datasource.partition_key
+            and sub.group_keys is not distinct from datasource.group_keys
+        )) as !column!__histogram
+        , '!fieldname!' as !column!__name
+        """
       , ""
     )
       as number
@@ -196,7 +198,7 @@ select
       -- , option_numeric_precision
     ) || if(
       not option_materialized_view_mode
-      , trim(format("""
+      , format("""
         , approx_top_count(!fieldname!, 5) as !column!__top_count
         , approx_quantiles(!fieldname!, 20) as !column!__20quantile
         , any_value((
@@ -209,7 +211,7 @@ select
         )) as !column!__histogram
         , '!fieldname!' as !column!__name
         """
-      ))
+      )
       , ''
     )
       as float
@@ -225,11 +227,11 @@ select
       -- , option_numeric_precision
     ) || if(
       not option_materialized_view_mode
-      , trim("""
+      , """
       , approx_top_count(!fieldname!, 20) as !column!__top_count
       , approx_quantiles(!fieldname!, 20) as !column!__20quantile
       , '!fieldname!' as !column!__name
-      """)
+      """
       , ''
     )
       as string
@@ -266,10 +268,11 @@ select
     and not ifnull(is_under_array, false)
     and field_path not in unnest(group_keys)
 
-    group by table_catalog, table_schema, table_name
-  )
+  group by table_catalog, table_schema, table_name
+)
 
 select any_value(`bqmake.v0.zdeindent`(ddl.query)) from ddl
+where table_name = target_table_name
 ))
 ;
 
@@ -291,3 +294,5 @@ execute immediate 'create materialized view `bqtest.mateview` options(enable_ref
     , to_json(struct(true as materialized_view_mode))
   );
 drop materialized view if exists `bqtest.mateview`;
+
+execute immediate format("with validateSQL as (%s) select 1", `bqtest.zbqt_gensql__table_profiler`("demo_sample_view", [], null));
