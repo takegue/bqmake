@@ -35,14 +35,14 @@ as ((
         , `v0.zdeindent`("""
         with nonnull_count as (
           select
-            any_value(_uniqueness_target) as tgt
-            , countif(nullif(_uniqueness_target._value, 'NULL') is null) as actual
+            any_value(nonnull_tgt) as tgt
+            , countif(nullif(nonnull_tgt._value, 'NULL') is null) as actual
           from datasource
           left join unnest([
             struct(string(null) as _key, string(null) as _value)
             , %s
-          ]) as _uniqueness_target
-          group by _uniqueness_target._key
+          ]) as nonnull_tgt
+          group by nonnull_tgt._key
           having tgt._key is not null
         )
         select
