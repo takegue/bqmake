@@ -23,6 +23,7 @@ with
     from `bqtest.INFORMATION_SCHEMA.COLUMNS` c
     left join `bqtest.INFORMATION_SCHEMA.COLUMN_FIELD_PATHS` as path
       using(table_catalog, table_schema, table_name, column_name)
+    -- For expanding views
     left join unnest([struct(
        target_table_name as target_table
     )])
@@ -56,7 +57,7 @@ select
         %s as partition_key
         , %s as group_keys
         , *
-      from `%s.%s.%s`
+      from %s
     )
     """
     , ifnull(max(partition_column), 'date(null)')
@@ -67,9 +68,14 @@ select
       )
       , 'null'
     )
-    , table_catalog, table_schema, table_name
+    , if(
+      any_value(option_materialized_view_mode and view_definition is not null)
+      -- View expansion
+      , format("(%s)", any_value(view_definition))
+      , format('`%s.%s.%s.`', table_catalog, table_schema, table_name)
+    )
   )
-  -- for materialized table
+  -- For materialized table
   || format(
     """
     , restricted_view as (
@@ -226,6 +232,8 @@ select
   )
   as query
   from table_columns, options
+  left join `bqtest.INFORMATION_SCHEMA.VIEWS` as path
+    using(table_catalog, table_schema, table_name)
   left join unnest([struct(
     struct(
       """
@@ -347,3 +355,10 @@ execute immediate 'create materialized view `bqtest.mateview1` options(enable_re
 drop materialized view if exists `bqtest.mateview1`;
 
 execute immediate format("with validateSQL as (%s) select 1", `bqtest.zbqt_gensql__table_profiler`("demo_sample_view", [], null));
+execute immediate 'create materialized view `bqtest.mateview1` options(enable_refresh = false) as \n'
+  || `bqtest.zbqt_gensql__table_profiler`(
+    "demo_sample_view"
+    , null
+    , to_json(struct(true as materialized_view_mode))
+  );
+drop materialized view if exists `bqtest.mateview1`;
