@@ -9,7 +9,11 @@ begin
   execute immediate format("""
     create or replace temp table `tmp_partitions`
     as
-      select * from `%s.INFORMATION_SCHEMA.PARTITIONS`
+    select * from `%s.INFORMATION_SCHEMA.PARTITIONS`
+    where
+      -- To avoid INFORMATION_SCHEMA restriction to get up to 1,000 tables,
+      -- filter out sharding tables
+      parse_date('%Y%m%d', regexp_extract(table_name, r'\d+$')) is not null;
   """
     , dst_ref
   );
@@ -26,6 +30,10 @@ begin
         , ifnull(`bqmake.v0.zget_bqlabel_from_option`(option_value), []) as labels
       from `%s.INFORMATION_SCHEMA.TABLES`
       left join labels using(table_catalog, table_schema, table_name)
+      where
+        -- To avoid INFORMATION_SCHEMA restriction to get up to 1,000 tables,
+        -- filter out sharding tables
+        parse_date('%Y%m%d', regexp_extract(table_name, r'\d+$')) is not null;
     """
     , dst_ref
     , dst_ref
