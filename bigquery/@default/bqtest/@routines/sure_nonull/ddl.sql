@@ -3,7 +3,7 @@ as (
   if(
     value is not null
     , value
-    , error(format("Assertion failed: %s", errmsg))
+    , error("bqmake.bqtest.sure_nonull: Value must be nonull")
   )
 );
 
