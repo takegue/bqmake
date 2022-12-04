@@ -50,11 +50,13 @@ with views as (
           format(
             ', __test_%s as (\n%s\n)'
             , ifnull(cte, "__default_final__")
-            , `bqtest.zgensql__property_testing`(
-              ifnull(cte, "__default_final__")
-              , config.unique_columns
-              , config.nonnull_columns
-              , config.accepted_values_columns
+            , `bqmake.v0.reindent`(`bqtest.zgensql__property_testing`(
+                ifnull(cte, "__default_final__")
+                , config.unique_columns
+                , config.nonnull_columns
+                , config.accepted_values_columns
+              )
+              , 2
             )
           )
         from unnest(test_configs) as config
