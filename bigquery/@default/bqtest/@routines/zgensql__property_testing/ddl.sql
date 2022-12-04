@@ -1,3 +1,4 @@
+
 create or replace function `bqtest.zgensql__property_testing`(
   _table_identifier string
   , unique_columns array<string>
@@ -11,7 +12,7 @@ as ((
     from unnest([struct(
       struct(
         "column_uniqueness_check" as cte_name
-        ,`bqmake.v0.zreindent`("""
+        ,"""
           with unique_count as (
             select any_value(_uniqueness_target) as tgt, count(1) as actual
             from datasource
@@ -29,14 +30,13 @@ as ((
           , 1 as expected
           from unique_count
           """
-          , 2
-        ) as body_template
+        as body_template
         , "('%s', format('%%t', %s))" as column_template_arg1
         , string(null) as column_template_arg2
       ) as sql_uniqueness_check
       , struct(
         "column_nonnull_check" as cte_name
-        , `v0.zreindent`("""
+        , """
             with nonnull_count as (
               select
                 count(1) as actual__records
@@ -54,14 +54,13 @@ as ((
             ]) as tgt
             where tgt._key is not null
           """
-          , 2
-        ) as body_template
+        as body_template
         , "count(1) - countif(%s is not null) as %s" as column_template_arg1
         , "(%T, %s)" as column_template_arg2
       ) as sql_nonnull_check
       , struct(
         "column_accepted_values_check" as cte_name
-        , `v0.zreindent`("""
+        , """
           with stats as (
             select
               any_value(_target.spec) as spec
@@ -96,9 +95,8 @@ as ((
               limit 1
             ) as diff
           )])
-          """
-          , 2
-        ) as body_template
+        """
+          as body_template
         , "((('%s', %T), format('%%t', %s)))" as column_template_arg1
         , string(null) as column_template_arg2
       ) as sql_accepted_values_check
@@ -112,35 +110,35 @@ as ((
         , format('%s as (\n%s\n)', sql_uniqueness_check.cte_name, `v0.zreindent`(cte.sql_uniquness, 2))
         , format('%s as (\n%s\n)', sql_nonnull_check.cte_name, `v0.zreindent`(cte.sql_nonnull, 2))
         , format('%s as (\n%s\n)', sql_accepted_values_check.cte_name, `v0.zreindent`(cte.sql_accepted_values, 2))
-        , cte.report
+        , ltrim(cte.report)
       ]
       , '\n, '
     ) as sql
   from _templates
   left join unnest([struct(
-    rtrim(format(
-      sql_uniqueness_check.body_template
+    format(
+      `bqmake.v0.zreindent`(sql_uniqueness_check.body_template, 0)
       , ifnull(nullif(array_to_string(array(
         select format(sql_uniqueness_check.column_template_arg1, c, c) from unnest(unique_columns) as c)
         , '\n, '), ''), 'NULL')
-    )) as sql_uniquness
-    , rtrim(format(
-      sql_nonnull_check.body_template
+    ) as sql_uniquness
+    , format(
+      `bqmake.v0.zreindent`(sql_nonnull_check.body_template, 0)
       , ifnull(nullif(array_to_string(array(
         select format(sql_nonnull_check.column_template_arg1, c, c) from unnest(nonnull_columns) as c)
         , '\n, '), ''), 'NULL')
       , ifnull(nullif(array_to_string(array(
         select format(sql_nonnull_check.column_template_arg2, c, c) from unnest(nonnull_columns) as c)
         , '\n, '), ''), 'NULL')
-    )) as sql_nonnull
-    , rtrim(format(
-      sql_accepted_values_check.body_template
+    ) as sql_nonnull
+    , format(
+      `bqmake.v0.zreindent`(sql_accepted_values_check.body_template, 0)
       , ifnull(nullif(array_to_string(array(
         select format(sql_accepted_values_check.column_template_arg1, c.column, c.accepcted_values, c.column) from unnest(accepted_values_columns) as c)
         , '\n, '), ''), 'NULL')
-    )) as sql_accepted_values
-    , ltrim(`v0.zdeindent`(format(
-      """
+    ) as sql_accepted_values
+    , format(
+      `v0.zreindent`("""
       report as (
         with all_testcases as (
           select 'column_uniqueness_check' as group_name, name, format('%%T', actual) as actual, format('%%T', expected) as expected from column_uniqueness_check
@@ -166,11 +164,12 @@ as ((
           ) as errors
         from all_testcases
         group by group_name
-    )
-    select * from report
+      )
+      select * from report
     """
+    , 0)
     , _table_identifier
-  )))
+  )
     as report
   )]) as cte
 ));
