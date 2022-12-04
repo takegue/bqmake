@@ -1,12 +1,14 @@
 create or replace function `bqtest.sure_values`(
   value ANY TYPE
   , acceptable_value_array ANY TYPE
-  , allow_null BOOLEAN
+  , allow_NULL BOOLEAN
 )
 as (
   if(
-    value in unnest(acceptable_value_array)
-    or ifnull(allow_null, true) and value is null
+    ifnull(
+      value in unnest(acceptable_value_array)
+      , allow_NULL
+    )
     , value
     , error(format("bqmake.bqtest.sure_values: Value %T is not allowed. %T", value, acceptable_value_array))
   )

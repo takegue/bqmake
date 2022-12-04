@@ -1,0 +1,10 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "value",
+      "argumentKind": "ANY_TYPE"
+    }
+  ]
+}
