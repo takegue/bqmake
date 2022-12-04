@@ -15,16 +15,28 @@ call `bqmake.bqtest.init__bqtest_dataset`(("<your_project>", "<your_dataset>"));
 execute immediate `bqtest.zbqt_gensql__table_spec`(
 "demo_sample_table"
 , [
-    ("__final__", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
-    ]
+    (null,
+    -- unique keys 
+    ["unique_key"]
+    -- non-null columns
+    , if(false, [''], [])
+    -- Check column value
+    , if(false, [('', [''])], []))
+  ]
 );
 
 -- In your dataset
 execute immediate `<your_project>.<your_dataset>.zbqt_gensql__table_spec`(
 "demo_sample_table"
 , [
-    ("__final__", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
-    ]
+    (null,
+    -- unique keys 
+    ["unique_key"]
+    -- non-null columns
+    , if(false, [''], [])
+    -- Check column value
+    , if(false, [('', [''])], []))
+  ]
 );
 ```
 
@@ -65,7 +77,6 @@ call `bqtest.assert_golden`(
 graph LR
 subgraph bqmake.bqtest
 	1+1w(demo_sample_table)
-	xksx(monitor__zsnapshot_profile__demo_sample_table__entity)
 	Gtda(zsnapshot_profile__demo_sample_table)
 	lhos(monitor__zsnapshot_profile__demo_sample_table__snapshot_job)
 	leEX(monitor__zsnapshot_profile__demo_sample_view__entity)
@@ -79,7 +90,6 @@ subgraph bigquery-public-data.google_trends
 	1imV(top_terms)
 end
 CNg3 --> 1+1w
-Gtda --> xksx
 1+1w --> Gtda
 Gtda --> lhos
 TIeN --> leEX
