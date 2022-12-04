@@ -17,10 +17,7 @@ with views as (
   select format(
     ltrim(`v0.zdeindent`("""
       # Auto-generated SQL by bqmake.bqtest
-      with __final__ as (
-        select * from `%s.%s.%s`
-      )
-      select * from __final__
+      select * from `%s.%s.%s`
     """))
     , table_catalog, table_schema, table_name
   )
@@ -32,26 +29,38 @@ with views as (
 , switched as (
   select
     view_definition
-    , rtrim(left(
-        view_definition
-        , `bqtest.zfind_final_select`(view_definition)
+    , coalesce(
+      if(
+        contains_substr(cte_parts, 'with')
+        , cte_parts || '\n, '
+        , null
+      )
+      , 'with '
+    )
+    || `bqmake.v0.zdeindent`(format("""
+      __default_final__ as (
+        %s
+      )
+      """
+      , trim(substr(view_definition, `bqtest.zfind_final_select`(view_definition) + 1))
     ))
     -- test case CTEs
     || array_to_string(array(
         select
           format(
             ', __test_%s as (\n%s\n)'
-            , cte
+            , ifnull(cte, "__default_final__")
             , `bqtest.zgensql__property_testing`(
-              cte
+              ifnull(cte, "__default_final__")
               , config.unique_columns
               , config.nonnull_columns
               , config.accepted_values_columns
             )
           )
-        from unnest(`bqtest.zfind_ctes`(view_definition)) as cte
-        left join unnest(test_configs) as config using(cte)
-        where config.cte is not null
+        from unnest(test_configs) as config
+        left join unnest(`bqtest.zfind_ctes`(view_definition) || [string(null)]) as cte
+           on config.cte is not distinct from cte
+
       )
       , '\n'
     )
@@ -67,14 +76,18 @@ with views as (
       ) as sql
   from views
   left join unnest([struct(
-    array(
+    trim(left(
+      view_definition, `bqtest.zfind_final_select`(view_definition)
+    )) as cte_parts
+    , array(
       select
-        format('select * from __test_%s', cte)
-      from unnest(`bqtest.zfind_ctes`(view_definition)) as cte
-      left join unnest(test_configs) as config using(cte)
-      where config.cte is not null
+        format('select * from __test_%s', ifnull(cte, '__default_final__'))
+      from unnest(test_configs) as config
+      left join unnest(`bqtest.zfind_ctes`(view_definition) || [string(null)]) as cte
+          on config.cte is not distinct from cte
     ) as final_selects
   )])
+
 )
 
 select as value sql from switched limit 1
@@ -85,7 +98,13 @@ begin
   execute immediate `bqtest.zbqt_gensql__table_spec`(
     "demo_sample_table"
     , [
-        ("__final__", ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
+        (string(null), ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
+      ]
+  );
+  execute immediate `bqtest.zbqt_gensql__table_spec`(
+    "demo_sample_view"
+    , [
+        (string(null), ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
       ]
   );
 end;
