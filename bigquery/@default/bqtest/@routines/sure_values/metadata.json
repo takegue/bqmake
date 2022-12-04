@@ -1,0 +1,14 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "value",
+      "argumentKind": "ANY_TYPE"
+    },
+    {
+      "name": "acceptable_value_array",
+      "argumentKind": "ANY_TYPE"
+    }
+  ]
+}

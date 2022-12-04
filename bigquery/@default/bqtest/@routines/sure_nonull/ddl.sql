@@ -8,6 +8,6 @@ as (
 );
 
 begin
-  select `bqtest.sure_nonull`('hoge', true, "sure string");
-  select `bqtest.sure_nonull`(1, true, "sure int64");
+  select `bqtest.sure_nonull`('hoge');
+  select `bqtest.sure_nonull`(1);
 end
