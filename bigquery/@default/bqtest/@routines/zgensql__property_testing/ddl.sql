@@ -28,31 +28,32 @@ as ((
           , 1 as expected
         from unique_count
         """) as body_template
-      , "('%s', format('%%t', %s))" as column_template
+        , "('%s', format('%%t', %s))" as column_template_arg1
+        , string(null) as column_template_arg2
       ) as sql_uniqueness_check
       , struct(
         "column_nonnull_check" as cte_name
         , `v0.zdeindent`("""
-        with nonnull_count as (
+          with nonnull_count as (
+            select
+              count(1) as actual__records
+              , %s
+            from datasource
+          )
           select
-            any_value(nonnull_tgt) as tgt
-            , countif(nullif(nonnull_tgt._value, 'NULL') is null) as actual
-          from datasource
+            format("Non-null check: %%s [%%4.1f%%%%]", tgt._key, tgt.actual / actual__records) as name
+            , actual
+            , 0 as expected
+          from nonnull_count
           left join unnest([
-            struct(string(null) as _key, string(null) as _value)
+            struct(string(null) as _key, null as actual)
             , %s
-          ]) as nonnull_tgt
-          group by nonnull_tgt._key
-          having tgt._key is not null
-        )
-        select
-          format("Non-null check: %%s", tgt._key) as name
-          , actual
-          , 0 as expected
-        from nonnull_count
+          ]) as tgt
+          where tgt._key is not null
       """)
         as body_template
-        , "('%s', format('%%t', %s))" as column_template
+        , "count(1) - countif(%s is not null) as %s" as column_template_arg1
+        , "(%T, %s)" as column_template_arg2
       ) as sql_nonnull_check
       , struct(
         "column_accepted_values_check" as cte_name
@@ -92,9 +93,9 @@ as ((
           ) as diff
         )])
         """)
-          as body_template
-          , "((('%s', %T), format('%%t', %s)))"
-        as column_template
+        as body_template
+        , "((('%s', %T), format('%%t', %s)))" as column_template_arg1
+        , string(null) as column_template_arg2
       ) as sql_accepted_values_check
     )])
   )
@@ -115,19 +116,22 @@ as ((
     ltrim(format(
       sql_uniqueness_check.body_template
       , ifnull(nullif(array_to_string(array(
-        select format(sql_uniqueness_check.column_template, c, c) from unnest(unique_columns) as c)
+        select format(sql_uniqueness_check.column_template_arg1, c, c) from unnest(unique_columns) as c)
         , '\n, '), ''), 'NULL')
     )) as sql_uniquness
     , ltrim(format(
       sql_nonnull_check.body_template
       , ifnull(nullif(array_to_string(array(
-        select format(sql_nonnull_check.column_template, c, c) from unnest(nonnull_columns) as c)
+        select format(sql_nonnull_check.column_template_arg1, c, c) from unnest(nonnull_columns) as c)
+        , '\n, '), ''), 'NULL')
+      , ifnull(nullif(array_to_string(array(
+        select format(sql_nonnull_check.column_template_arg2, c, c) from unnest(nonnull_columns) as c)
         , '\n, '), ''), 'NULL')
     )) as sql_nonnull
     , ltrim(format(
       sql_accepted_values_check.body_template
       , ifnull(nullif(array_to_string(array(
-        select format(sql_accepted_values_check.column_template, c.column, c.accepcted_values, c.column) from unnest(accepted_values_columns) as c)
+        select format(sql_accepted_values_check.column_template_arg1, c.column, c.accepcted_values, c.column) from unnest(accepted_values_columns) as c)
         , '\n, '), ''), 'NULL')
     )) as sql_accepted_values
     , format(
