@@ -113,13 +113,13 @@ as ((
     ) as sql
   from _templates
   left join unnest([struct(
-    ltrim(format(
+    rtrim(format(
       sql_uniqueness_check.body_template
       , ifnull(nullif(array_to_string(array(
         select format(sql_uniqueness_check.column_template_arg1, c, c) from unnest(unique_columns) as c)
         , '\n, '), ''), 'NULL')
     )) as sql_uniquness
-    , ltrim(format(
+    , rtrim(format(
       sql_nonnull_check.body_template
       , ifnull(nullif(array_to_string(array(
         select format(sql_nonnull_check.column_template_arg1, c, c) from unnest(nonnull_columns) as c)
@@ -128,43 +128,44 @@ as ((
         select format(sql_nonnull_check.column_template_arg2, c, c) from unnest(nonnull_columns) as c)
         , '\n, '), ''), 'NULL')
     )) as sql_nonnull
-    , ltrim(format(
+    , rtrim(format(
       sql_accepted_values_check.body_template
       , ifnull(nullif(array_to_string(array(
         select format(sql_accepted_values_check.column_template_arg1, c.column, c.accepcted_values, c.column) from unnest(accepted_values_columns) as c)
         , '\n, '), ''), 'NULL')
     )) as sql_accepted_values
-    , format(
-      """report as (
-      with all_testcases as (
-        select 'column_uniqueness_check' as group_name, name, format('%%T', actual) as actual, format('%%T', expected) as expected from column_uniqueness_check
-        union all
-        select 'column_nonnull_check' as group_name, name, format('%%T', actual) as actual, format('%%T', expected) as expected from column_nonnull_check
-        union all
-        select 'column_accepted_values_check' as group_name, name, format('%%T', actual) as actual, format('%%T', expected) as expected from column_accepted_values_check
-      )
-      select
-        %T as target_table
-        , group_name
-        , count(1) as n_cases
-        , countif(actual = expected) as n_cases_passed
-        , countif(actual != expected) as n_cases_failed
-        , approx_top_sum(
-            if(
-              actual = expected
-              , null
-              , format('%%s; Expected %%t but actual is %%t', name, expected, actual)
-            )
-            , if(actual = expected, null, 1)
-            , 20
-        ) as errors
-      from all_testcases
-      group by group_name
+    , ltrim(`v0.zdeindent`(format(
+      """
+      report as (
+        with all_testcases as (
+          select 'column_uniqueness_check' as group_name, name, format('%%T', actual) as actual, format('%%T', expected) as expected from column_uniqueness_check
+          union all
+          select 'column_nonnull_check' as group_name, name, format('%%T', actual) as actual, format('%%T', expected) as expected from column_nonnull_check
+          union all
+          select 'column_accepted_values_check' as group_name, name, format('%%T', actual) as actual, format('%%T', expected) as expected from column_accepted_values_check
+        )
+        select
+          %T as target_table
+          , group_name
+          , count(1) as n_cases
+          , countif(actual = expected) as n_cases_passed
+          , countif(actual != expected) as n_cases_failed
+          , approx_top_sum(
+              if(
+                actual = expected
+                , null
+                , format('%%s; Expected %%t but actual is %%t', name, expected, actual)
+              )
+              , if(actual = expected, null, 1)
+              , 20
+          ) as errors
+        from all_testcases
+        group by group_name
     )
     select * from report
     """
     , _table_identifier
-  )
+  )))
     as report
   )]) as cte
 ));
