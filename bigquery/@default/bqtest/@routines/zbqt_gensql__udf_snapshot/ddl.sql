@@ -24,20 +24,23 @@ create or replace function `bqtest.zbqt_gensql__udf_snapshot`(
         signature is not null
     """
     , 0)
-    , ltrim(`bqmake.v0.zreindent`(array_to_string(array(
-      select
-        format("(%t, format('%%T', %s))", format("%T", s), s)
-      from unnest(signature) as s
-      )
-      , '\n, '
-    ), 6))
+    , ifnull(
+      ltrim(`bqmake.v0.zreindent`(array_to_string(array(
+        select
+          format("(%t, format('%%T', %s))", format("%T", s), s)
+        from unnest(signature) as s
+        )
+        , '\n, '
+      ), 6))
+      , 'NULL'
+    )
     , ifnull(format(
-      `v0.zreindent`("""
-        right join (%s) as S using(signature)
+      ltrim(`v0.zreindent`("""
+        full join (%s) as S using(signature)
         left join unnest([coalesce(R.signature, S.signature)]) as signature
         left join unnest([coalesce(R.ret, S.ret)]) as ret
       """
-      , 2)
+      , 4))
       , (select as value * from base_table limit 1)
     ), '')
   )
@@ -54,17 +57,6 @@ begin
       , 0
     )
     ]
-  , "zsnapshot_routines_all"
-  );
-
-  -- For explicit dependency;
-  select `bqtest.sure_eq`('hoge', 'hoge', 'string');
-
-  execute immediate `bqtest.zbqt_gensql__udf_snapshot`([
-    "`bqtest.sure_eq`('hoge', 'hoge', 'string')"
-    , "`bqtest.sure_eq`(('a', 'b'), ('a', 'b'), 'struct')"
-    , "`bqtest.sure_eq`(1, 1, 'integer')"
-  ]
   , "zsnapshot_routines_all"
   );
 end;

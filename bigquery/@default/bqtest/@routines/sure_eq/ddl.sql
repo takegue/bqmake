@@ -8,10 +8,21 @@ as (
 );
 
 begin
-  select `bqtest.sure_eq`('hoge', 'hoge', "string");
-  select `bqtest.sure_eq`(('a', 'b'), ('a', 'b'), "struct");
-  select `bqtest.sure_eq`(format('%t', ['a', 'b']), format('%t', ['a', 'b']), "array");
-  select `bqtest.sure_eq`(null, null, "null");
+  call `bqtest.assert_golden`(
+    (null, "bqtest", "zsnapshot_routines_all")
+    , -- Profiling query
+    `bqtest.zbqt_gensql__udf_snapshot`([
+        "`bqtest.sure_eq`('hoge', 'hoge', 'string')"
+        , "`bqtest.sure_eq`(('a', 'b'), ('a', 'b'), 'struct')"
+        , "`bqtest.sure_eq`(format('%t', ['a', 'b']), format('%t', ['a', 'b']), 'array')"
+        , "`bqtest.sure_eq`(null, null, 'null')"
+      ]
+      , "zsnapshot_routines_all"
+    )
+    , 'signature'
+    , true
+  );
+
   call `bqtest.should_error`("""
     select `bqtest.sure_eq`('hoge', 'fuga', "string")"""
   );

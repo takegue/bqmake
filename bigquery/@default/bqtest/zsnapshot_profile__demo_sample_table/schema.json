@@ -21,7 +21,7 @@
     "fields": [
       {
         "name": "partition_key",
-        "type": "INTEGER"
+        "type": "DATE"
       },
       {
         "name": "group_keys",
@@ -304,6 +304,10 @@
         "type": "BIGNUMERIC"
       },
       {
+        "name": "incident_zip__sum2",
+        "type": "BIGNUMERIC"
+      },
+      {
         "name": "incident_zip__avg",
         "type": "FLOAT"
       },
@@ -461,6 +465,10 @@
       },
       {
         "name": "council_district_code__sum",
+        "type": "BIGNUMERIC"
+      },
+      {
+        "name": "council_district_code__sum2",
         "type": "BIGNUMERIC"
       },
       {
