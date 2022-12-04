@@ -1,0 +1,18 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "str",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "indent",
+      "dataType": {
+        "typeKind": "INT64"
+      }
+    }
+  ]
+}

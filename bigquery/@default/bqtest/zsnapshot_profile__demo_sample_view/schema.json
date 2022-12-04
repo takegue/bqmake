@@ -32,50 +32,6 @@
         "type": "INTEGER"
       },
       {
-        "name": "week__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "week__day_hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "week__min",
-        "type": "DATE"
-      },
-      {
-        "name": "week__max",
-        "type": "DATE"
-      },
-      {
-        "name": "score__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "score__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "score__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "score__sum",
-        "type": "BIGNUMERIC"
-      },
-      {
-        "name": "score__avg",
-        "type": "FLOAT"
-      },
-      {
-        "name": "score__min",
-        "type": "INTEGER"
-      },
-      {
-        "name": "score__max",
-        "type": "INTEGER"
-      },
-      {
         "name": "rank__nonnull",
         "type": "INTEGER"
       },
@@ -193,6 +149,50 @@
       },
       {
         "name": "term__max_len",
+        "type": "INTEGER"
+      },
+      {
+        "name": "week__nonnull",
+        "type": "INTEGER"
+      },
+      {
+        "name": "week__day_hll",
+        "type": "BYTES"
+      },
+      {
+        "name": "week__min",
+        "type": "DATE"
+      },
+      {
+        "name": "week__max",
+        "type": "DATE"
+      },
+      {
+        "name": "score__nonnull",
+        "type": "INTEGER"
+      },
+      {
+        "name": "score__unique",
+        "type": "INTEGER"
+      },
+      {
+        "name": "score__hll",
+        "type": "BYTES"
+      },
+      {
+        "name": "score__sum",
+        "type": "BIGNUMERIC"
+      },
+      {
+        "name": "score__avg",
+        "type": "FLOAT"
+      },
+      {
+        "name": "score__min",
+        "type": "INTEGER"
+      },
+      {
+        "name": "score__max",
         "type": "INTEGER"
       }
     ]

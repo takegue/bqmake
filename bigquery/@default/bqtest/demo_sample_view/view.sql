@@ -1,8 +1,8 @@
 with datasource as (
-  select * from `bigquery-public-data.google_trends.top_terms`
+  select * from `bqtest.demo_sample_table`
 )
 , datasource_sampled as (
-  select * from `bigquery-public-data.google_trends.top_terms`
+  select * from `bqtest.demo_sample_table`
   TABLESAMPLE SYSTEM (5 percent)
 )
 , __test_count as (

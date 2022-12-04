@@ -1,0 +1,7 @@
+{
+  "type": "TABLE",
+  "timePartitioning": {
+    "type": "DAY",
+    "field": "week"
+  }
+}

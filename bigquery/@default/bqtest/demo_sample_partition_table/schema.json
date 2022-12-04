@@ -1,0 +1,34 @@
+[
+  {
+    "name": "dma_name",
+    "type": "STRING"
+  },
+  {
+    "name": "dma_id",
+    "type": "INTEGER"
+  },
+  {
+    "name": "term",
+    "type": "STRING"
+  },
+  {
+    "name": "week",
+    "type": "DATE"
+  },
+  {
+    "name": "score",
+    "type": "INTEGER"
+  },
+  {
+    "name": "rank",
+    "type": "INTEGER"
+  },
+  {
+    "name": "percent_gain",
+    "type": "INTEGER"
+  },
+  {
+    "name": "refresh_date",
+    "type": "DATE"
+  }
+]
