@@ -12,4 +12,10 @@ begin
   select `bqtest.sure_eq`(('a', 'b'), ('a', 'b'), "struct");
   select `bqtest.sure_eq`(format('%t', ['a', 'b']), format('%t', ['a', 'b']), "array");
   select `bqtest.sure_eq`(null, null, "null");
+  call `bqtest.should_error`("""
+    select `bqtest.sure_eq`('hoge', 'fuga', "string")"""
+  );
+  call `bqtest.should_error`("""
+    select `bqtest.sure_eq`(null, 'fuga', "string")"""
+  );
 end

@@ -1,4 +1,3 @@
-
 -- table existence check;
 with Q as (
   select * from bqtest.demo_sample_table
@@ -13,5 +12,6 @@ call `bqtest.assert_golden`(
     , null
     , to_json(struct(true as materialized_view_mode))
   )
+  , 'format("%t", (partition_key, group_keys))'
   , false
 );

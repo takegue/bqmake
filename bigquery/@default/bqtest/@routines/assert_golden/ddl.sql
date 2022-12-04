@@ -1,6 +1,7 @@
 create or replace procedure `bqtest.assert_golden`(
   snapshot_store_table struct<project_id string, dataset_id string, table_id string>
   , query string
+  , query_unique_key string
   , is_update bool
 )
 options(
@@ -25,7 +26,7 @@ begin
       call `v0.snapshot_table__init`(
         snapshot_store_table
         , (
-          "format('%t', (partition_key, group_keys))"
+          query_unique_key
           , query
           , null
         )
@@ -42,7 +43,7 @@ begin
     execute immediate format("create or replace temp table `snapshot_comparision_result` as %s"
       , `bqmake.v0.zgensql__snapshot_scd_type2`(
       snapshot_store_table
-      , query, "format('%t', (partition_key, group_keys))"
+      , query, query_unique_key
       ).diff_query
     )
     using current_timestamp() as timestamp;
@@ -53,7 +54,7 @@ begin
       snapshot_store_table
       , null
       , (
-        "format('%t', (partition_key, group_keys))"
+        query_unique_key
         , query
         , null
       )
