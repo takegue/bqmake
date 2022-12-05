@@ -47,6 +47,22 @@ begin
   )
   select 1;
 
+  call `bqtest.assert_golden`(
+    (null, "bqtest", "zsnapshot_routines_all")
+    , -- Profiling query
+    `bqtest.zbqt_gensql__udf_snapshot`([
+      `bqmake.v0.zreindent`("""
+        `bqtest.zbqt_gensql__remake_view`(
+          'demo_sample_view', '__test_count', [('datasource', 'datasource_sampled')]
+        )
+      """, 0)
+      ]
+      , "zsnapshot_routines_all"
+    )
+    , 'signature'
+    , false
+  );
+
   execute immediate `bqtest.zbqt_gensql__remake_view`(
     'demo_sample_view', '__test_count', [('datasource', 'datasource_sampled')]
   );
