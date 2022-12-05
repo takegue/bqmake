@@ -187,7 +187,7 @@ select
   || if(
     any_value(option_materialized_view_mode)
     , "select * from restricted_view"
-    , rtrim(format("""
+    , rtrim(format(`bqmake.v0.zreindent`("""
       select
         core.partition_key
         , core.group_keys
@@ -197,7 +197,7 @@ select
         on advanced_parts.partition_key is not distinct from core.partition_key
           and advanced_parts.group_keys is not distinct from core.group_keys
       %s
-      """
+      """, 0)
       , string_agg(
         replace(replace(replace(
           regexp_replace(
@@ -205,21 +205,23 @@ select
             , r",.+\bas\b"
             , ", "
           )
+          || template_selected.subprofile
           ,    '!column!', replace(field_path, '.', '___'))
           ,  '!fieldnum!', if(depth = 0, format('f%d',position), format('f%d_%d_%d', position, depth, subposition)))
           , '!fieldname!', field_path
         )
         , '\n' order by position, depth, subposition
       )
+      -- subprofiler parts: JOINS
       , string_agg(
         replace(replace(replace(
           if(
             data_type in ('INT64', 'NUMERIC', 'BIGNUMERIC', 'FLOAT64')
-            , """
+            , `bqmake.v0.zreindent`("""
               left join !column!__subprofiler
                 on !column!__subprofiler.partition_key is not distinct from core.partition_key
                   and !column!__subprofiler.group_keys is not distinct from core.group_keys
-            """
+            """, 0)
             , null
           )
           ,    '!column!', replace(field_path, '.', '___'))
@@ -251,6 +253,9 @@ select
         , approx_top_count(!fieldname!, 5) as !column!__top_count
         , approx_quantiles(!fieldname!, 20) as !column!__20quantile
       """ as advanced
+      , """
+        , !column!__subprofiler.value as !column!__histogram
+      """ as subprofile
     ) as number
     , struct(
       """
@@ -265,6 +270,9 @@ select
         , approx_top_count(!fieldname!, 5) as !column!__top_count
         , approx_quantiles(!fieldname!, 20) as !column!__20quantile
       """ as advanced
+      , """
+        , !column!__subprofiler.value as !column!__histogram
+      """ as subprofile
     ) as float
     , struct(
       r"""
@@ -280,6 +288,7 @@ select
         , approx_top_count(!fieldname!, 20) as !column!__top_count
         , approx_quantiles(!fieldname!, 20) as !column!__20quantile
       """ as advanced
+      , "" as subprofile
     ) as string
     , struct(
       r"""
@@ -289,6 +298,7 @@ select
         , max(!fieldname!) as !column!__max
       """ as restricted
       , "" as advanced
+      , "" as subprofile
     ) as timestamp
     , struct(
       r"""
@@ -296,6 +306,7 @@ select
         , countif(!fieldname! is not null) as !column!__nonnull
       """ as restricted
       , "" as advanced
+      , "" as subprofile
     ) as anything
   )]) as template
   left join unnest([struct(
