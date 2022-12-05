@@ -58,7 +58,9 @@ begin
         , query
         , null
       )
-      , null
+      , to_json(struct(
+        current_timestamp() as force_expire_at
+      ))
     );
   end if;
 end
