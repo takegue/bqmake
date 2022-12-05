@@ -140,4 +140,24 @@ assert ret[safe_offset(0)] = '__NULL__'
   as "Stale non-partitioned table under non-partitioned source: dest_no_partition > ref_no_partition"
 ;
 
+
+call `v0.detect_staleness`(
+  ret
+  , (null, "zpreview_test", "dest_no_partition")
+  , [
+    (string(null), "zpreview_test", "ref_no_partition")
+    , (string(null), "zpreview_test", "INFORMATION_SCHEMA.VIEWS")
+    , (string(null), "zpreview_test", "INFORMATION_SCHEMA.PARTITIONS")
+    , (string(null), "zpreview_test", "INFORMATION_SCHEMA.TABLES")
+  ]
+  , [('__NULL__', ["__NULL__"])]
+  , to_json(struct(interval 0 hour as tolerate_staleness))
+);
+
+assert ret[safe_offset(0)] = '__NULL__'
+  as "Stale non-partitioned table under non-partitioned source: dest_no_partition > ref_no_partition"
+;
+
+
+
 drop schema if exists `zpreview_test` CASCADE;

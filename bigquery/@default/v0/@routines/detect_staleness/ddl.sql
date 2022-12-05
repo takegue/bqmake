@@ -142,8 +142,9 @@ begin
           , destination.alignment_paylod.last_modified_time
         ) as destination
         , source.alignment_paylod as source
-        , -- # of source kind * # of source partition
-          array_length(sources) * n_sources
+        , -- Check fully partition alignment for destination and sources.
+          -- It means that # of Records = (# of source kind) * *(# of partition)
+          (select count(1) from unnest(sources) s where not starts_with(s.table_id, 'INFORMATION_SCHEMA')) * n_sources
             = countif(source.partition_id is not null) over (partition by _v.partition_id)
           as is_ready_every_sources
       from
