@@ -1,19 +1,16 @@
 create or replace function `bqtest.sure_values`(
   value ANY TYPE
   , acceptable_value_array ANY TYPE
-  , allow_NULL BOOLEAN
 )
 as (
   if(
-    ifnull(
-      value in unnest(acceptable_value_array)
-      , allow_NULL
-    )
-    , value
+    value not in unnest(acceptable_value_array)
     , error(format("bqmake.bqtest.sure_values: Value %T is not allowed. %T", value, acceptable_value_array))
+    , value
   )
 );
 
 begin
-  select `bqtest.sure_values`("hoge", ["hoge", "fuga"], false);
+  select `bqtest.sure_values`("hoge", ["hoge", "fuga"]) = "hoge";
+  assert `bqtest.sure_values`( NULL, ["hoge", "fuga"]) is null;
 end

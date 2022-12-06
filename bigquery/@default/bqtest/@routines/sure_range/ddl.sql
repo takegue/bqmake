@@ -2,13 +2,11 @@ create or replace function `bqtest.sure_range`(
   value ANY TYPE
   , lower_bound ANY TYPE
   , upper_bound ANY TYPE
-  , allow_NULL BOOLEAN
 )
 as (
   if(
-    ifnull(
       value
-        between
+        not between
           case
             when lower_bound is not null then lower_bound
             else
@@ -32,14 +30,12 @@ as (
                 else error(format("Unsupported default value: type=%t", `bqutil.fn.typeof`(value)))
               end
             end
-      , ifnull(allow_NULL, true)
-    )
-
-    , value
     , error(format("bqmake.bqtest.sure_range: Value %T must be included in [%T, %T]", value, lower_bound, upper_bound))
+    -- value is paseed or NULL
+    , value
   )
 );
 
 begin
-  select `bqtest.sure_range`(1, 1, 10, true);
+  select `bqtest.sure_range`(1, 1, 10);
 end
