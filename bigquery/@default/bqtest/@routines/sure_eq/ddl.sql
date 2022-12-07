@@ -20,7 +20,7 @@ begin
       , "zsnapshot_routines_all"
     )
     , 'signature'
-    , true
+    , false
   );
 
   call `bqtest.should_error`("""

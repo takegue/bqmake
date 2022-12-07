@@ -11,6 +11,6 @@ as (
 );
 
 begin
-  select `bqtest.sure_values`("hoge", ["hoge", "fuga"]) = "hoge";
-  assert `bqtest.sure_values`( NULL, ["hoge", "fuga"]) is null;
+  select `bqtest.sure_values`(      "hoge", ["hoge", "fuga"]) = "hoge";
+  assert `bqtest.sure_values`(string(NULL), ["hoge", "fuga"]) is null;
 end
