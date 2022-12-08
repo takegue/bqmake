@@ -23,6 +23,7 @@ Arguments
 - options: JSON value
   * dry_run: Whether to run the update job as a dry run or not. [Default: false].
   * enable_timetravel_tvf: Wheter to create TVF for timetrval or not [Default: true].
+  * enable_history_tvf: Wheter to create TVF for timetrval or not [Default: true].
   * enable_entity_monitor: Whether to create monitor view for entity history [Default: true].
   * enable_snapshot_monitor: Whether to create monitor view for snapshot job history or not [Default: true].
 
@@ -30,33 +31,35 @@ Arguments
 )
 begin
   declare _stale_partitions array<string>;
-  declare _table_ddl, _tvf_ddl, _snapshot_history, _entity_stats string;
+  declare _table_ddl, _tvf_ddl, _snapshot_history, _entity_stats, _history_tvf_ddl string;
 
   -- Options
   declare _options struct<
     dry_run bool
     , enable_timetravel_tvf bool
+    , enable_history_tvf bool
     , enable_snapshot_monitor bool
     , enable_entity_monitor bool
     > default (
     ifnull(safe.bool(options.dry_run), false)
     , ifnull(safe.bool(options.enable_timetravel_tvf), true)
+    , ifnull(safe.bool(options.enable_history_tvf), true)
     , ifnull(safe.bool(options.enable_snapshot_monitor), true)
     , ifnull(safe.bool(options.enable_entity_monitor), true)
   );
 
   -- Assert invalid options
   select logical_and(if(
-    key in ('dry_run', 'enable_snapshot_monitor', 'enable_entity_monitor', 'enable_timetravel_tvf')
+    key in ('dry_run', 'enable_snapshot_monitor', 'enable_entity_monitor', 'enable_timetravel_tvf', 'enable_history_tvf')
     , true
     , error(format("Invalid Option: name=%t in %t'", key, `options`))
   ))
   from unnest(if(`options` is not null, `bqutil.fn.json_extract_keys`(to_json_string(`options`)), [])) as key
   ;
 
-  set (_table_ddl, _tvf_ddl, _snapshot_history, _entity_stats) = (
+  set (_table_ddl, _tvf_ddl, _history_tvf_ddl, _snapshot_history, _entity_stats) = (
     select as struct
-      t.create_ddl, t.access_tvf_ddl, t.profiler__snapshot_job, t.profiler__entity
+      t.create_ddl, t.access_tvf_ddl, t.history_tvf_ddl, t.profiler__snapshot_job, t.profiler__entity
     from unnest([`v0.zgensql__snapshot_scd_type2`(
       (ifnull(destination.project_id, @@project_id), destination.dataset_id, destination.table_id)
       , update_job.query, update_job.unique_key
@@ -83,6 +86,12 @@ begin
   execute immediate _table_ddl
     using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
   ;
+
+  if _options.enable_history_tvf then
+    execute immediate _tvf_ddl
+      using ifnull(update_job.snapshot_timestamp, current_timestamp()) as timestamp
+    ;
+  end if;
 
   if _options.enable_timetravel_tvf then
     execute immediate _tvf_ddl

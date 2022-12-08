@@ -242,6 +242,31 @@ as ((
       , destination_ref
       , destination_ref
     ) as access_tvf_ddl
+    , -- TVF DDL for Create asdf
+      format("""
+        # %s
+        create or replace `%s__history`(expected_timeline_history array<timestamp>)
+        as
+        select
+          _at
+          , entity.*
+        from `%s`
+        left join unnest(exepcted_timeline) as _at
+        where
+          (
+            -- when _at is null, use latest revision
+            (`_at` is null and valid_to is null)
+            or (
+              _at is not null
+              and (valid_from <= `_at` and ifnull(`_at` < valid_to, true))
+            )
+          )
+      """
+      , header
+      , destination_ref
+      , destination_ref
+    ) as history_tvf_ddl
+
     , format(`v0.zdeindent`("""
       # %s
       merge `%s` as T
