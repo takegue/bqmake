@@ -13,8 +13,10 @@ options(
 )
 as ((
   select as struct
+    -- snapshot query
+    snapshot_query
     -- DDL Query
-    format(`v0.zdeindent`("""
+    , format(`v0.zdeindent`("""
         # %s
         create table if not exists `%s`
         partition by DATE(valid_to)
@@ -75,7 +77,7 @@ as ((
       , header
       , destination_ref
     ) as profiler__entity
-    , format("""
+    , format(v0.zreindent("""
       # %s
       with
         reference as (
@@ -138,10 +140,10 @@ as ((
       )])
       where
         action in ('CHANGED', 'NEW', 'DELETE')
-      """
+      """, 0)
       , header
       , destination_ref
-      , snapshot_query
+      , `v0.zreindent`(snapshot_query, 6)
     ) as diff_query
     -- DML Query
     , format(`v0.zdeindent`("""
@@ -222,7 +224,7 @@ as ((
       , header
       , destination_ref
       , destination_ref
-      , snapshot_query
+      , `v0.zreindent`(snapshot_query, 6)
     ) as update_dml
     , -- TVF DDL for Access
     format("""

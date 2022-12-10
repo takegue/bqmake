@@ -1,0 +1,46 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "snapshot_repository",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "project_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "dataset_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "table_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "snapshot_query",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "exp_unique_key",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    }
+  ]
+}
