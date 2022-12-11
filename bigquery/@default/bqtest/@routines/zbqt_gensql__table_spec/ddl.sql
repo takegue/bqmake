@@ -50,7 +50,7 @@ with views as (
           format(
             ', __test_%s as (\n%s\n)'
             , ifnull(cte, "__default_final__")
-            , `bqmake.v0.reindent`(`bqtest.zgensql__property_testing`(
+            , `bqmake.v0.zreindent`(`bqtest.zgensql__property_testing`(
                 ifnull(cte, "__default_final__")
                 , config.unique_columns
                 , config.nonnull_columns

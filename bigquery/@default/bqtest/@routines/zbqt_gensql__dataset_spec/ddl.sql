@@ -9,7 +9,7 @@ create or replace function `bqtest.zbqt_gensql__dataset_spec`(
 )
 returns string
 as ((
-  select as value format(`bqmake.v0.reindent`("""
+  select as value format(`bqmake.v0.zreindent`(r"""
     with datasource as (
       select
       normalized_table_name as table_name
@@ -59,7 +59,7 @@ as ((
     select * from spec__freshness
 """, 0)
     , "Asia/Tokyo"
-))
+)))
 ;
 
 begin
