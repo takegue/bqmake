@@ -59,7 +59,7 @@ begin
         , null
       )
       , to_json(struct(
-        current_timestamp() as force_expire_at
+        current_timestamp() as force_expired_at
       ))
     );
   end if;

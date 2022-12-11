@@ -50,11 +50,11 @@ call `v0.detect_staleness`(
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref1")]
   , [("20060102", ["20060102"])]
-  , to_json(struct(interval 0 hour as tolerate_staleness, current_timestamp() as force_expire_at))
+  , to_json(struct(interval 0 hour as tolerate_staleness, current_timestamp() as force_expired_at))
 );
 
 assert ret[safe_offset(0)] = '20060102'
-  as "Stale partition: force_expire_at option"
+  as "Stale partition: force_expired_at option"
 ;
 
 call `v0.detect_staleness`(

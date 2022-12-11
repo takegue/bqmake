@@ -19,7 +19,7 @@ Arguments
     * tolerate_delay: The delay to tolerate before updating partitions. If newer source partitions are found but its timestamp is within this delay, the procedure will not update partitions. [Default: 0 minutes].
     * max_update_partition_range: The interval to limit the range of partitions to update. This option is useful to avoid updating too many partitions at once. [Default: 1 month].
     * via_temp_table: Whether to update partitions via a temporary table. [Default: false].
-    * force_expire_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
+    * force_expired_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
     * bq_location: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: "region-us"]
 
 Examples

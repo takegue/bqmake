@@ -17,7 +17,7 @@ Argument
 - partition_alignments : partition alignments
 - options              : option values in json format
   * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)
-  *    force_expire_at : The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: NULL].
+  *    force_expired_at : The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: NULL].
 
 
 Stalenss and Stablity Margin Checks
@@ -31,21 +31,21 @@ Staleness Timeline  : | Fresh | Ignore(Fresh) |  Stale  |
                       +-----------------------^ tolerate staleness
 
 
-Case 2: Partition staleness timeline with force_expire_at option
+Case 2: Partition staleness timeline with force_expired_at option
                      past                              now
 Source Table        : | Fresh                           |
 Staleness Timeline  : | Fresh | Stale                   |
-                              ^ force_expire_at
+                              ^ force_expired_at
 """)
 begin
   declare null_value string default '__NULL__';
   declare any_value string default '__ANY__';
   declare options struct<
     tolerate_staleness interval
-    , force_expire_at timestamp
+    , force_expired_at timestamp
   > default (
     ifnull(cast(safe.string(options_json.tolerate_staleness) as interval), interval 30 minute)
-    , safe.timestamp(safe.string(options_json.force_expire_at))
+    , safe.timestamp(safe.string(options_json.force_expired_at))
   );
 
   -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
@@ -169,8 +169,8 @@ begin
       and (
         -- Staled if destination partition does not exist
         destination.last_modified_time is null
-        -- Staled if partition is older than force_expire_at timestamp. If force_expire_at is null, the condition is ignored.
-        or ifnull(destination.last_modified_time <= options.force_expire_at, false)
+        -- Staled if partition is older than force_expired_at timestamp. If force_expired_at is null, the condition is ignored.
+        or ifnull(destination.last_modified_time <= options.force_expired_at, false)
         -- Staled destination partition only if source partition is enough stable and old
         or (
           source.last_modified_time - destination.last_modified_time >= options.tolerate_staleness

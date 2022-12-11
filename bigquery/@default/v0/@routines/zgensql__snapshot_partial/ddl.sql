@@ -25,7 +25,7 @@ as (
     )
     select
       entity.*
-    from source as S
+    from repository as S
     full join partial as R using(unique_key)
     left join unnest([coalesce(R.entity, S.entity)]) as entity
   """, 0)
@@ -37,9 +37,9 @@ as (
   )
   , `v0.zreindent`(
     `v0.zgensql__snapshot_scd_type2`(
-        null
-        , snapshot_query
-        , exp_unique_key
+      snapshot_repository
+      , snapshot_query
+      , exp_unique_key
     ).snapshot_query
     , 0
   )

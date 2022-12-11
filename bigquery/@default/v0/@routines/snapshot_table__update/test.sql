@@ -51,7 +51,7 @@ do
     , null
     , (unique_key, t.query, t.ts)
     , to_json(struct(
-      current_timestamp() as force_expire_at
+      current_timestamp() as force_expired_at
     ))
   )
   ;
