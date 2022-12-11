@@ -1,4 +1,4 @@
-create or replace function `bqmake.v0.alignment_day2day_tz`(`from` DATE, `to` DATE)
+create or replace function `v0.alignment_day2day_tz`(`from` DATE, `to` DATE)
 as
 (
  array(
@@ -11,7 +11,7 @@ as
 ;
 
 begin
-  assert array_length(`bqmake.v0.alignment_day2day_tz`('2022-01-01', '2022-01-31')) = 31
+  assert array_length(`v0.alignment_day2day_tz`('2022-01-01', '2022-01-31')) = 31
     as "v0.alignment_day2day_tz('2022-01-01', '2022-01-01') should return 31 rows"
   ;
 end;

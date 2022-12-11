@@ -1,4 +1,4 @@
-create or replace function `v0.zgensql__partial_snapshot_scd_type2`(
+create or replace function `v0.zgensql__snapshot_partial`(
   snapshot_repository struct<
     project_id string
     , dataset_id string
