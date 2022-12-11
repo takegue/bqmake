@@ -48,7 +48,7 @@ begin
   select 1;
 
   call `bqtest.assert_golden`(
-    (null, "bqtest", "zsnapshot_routines_all")
+    (null, "bqtest", "snapshot_routines_all")
     , -- Profiling query
     `bqtest.zbqt_gensql__udf_snapshot`([
       `bqmake.v0.zreindent`("""
@@ -57,7 +57,7 @@ begin
         )
       """, 0)
       ]
-      , "zsnapshot_routines_all"
+      , "zzsrepo__snapshot_routines_all"
     )
     , 'signature'
     , false

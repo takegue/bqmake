@@ -10,12 +10,11 @@ options(
 )
 begin
   declare _is_update bool default ifnull(is_update, false);
-
   begin
     call `v0.retry_query_until_success`(
       format(
         "select * from `%s.%s.%s`"
-        , coalesce(snapshot_store_table.project_id, @@project_id)
+        , snapshot_store_table.project_id
         , snapshot_store_table.dataset_id
         , snapshot_store_table.table_id
       )
@@ -42,8 +41,8 @@ begin
     -- Show Changes
     execute immediate format("create or replace temp table `snapshot_comparision_result` as %s"
       , `bqmake.v0.zgensql__snapshot_scd_type2`(
-      snapshot_store_table
-      , query, query_unique_key
+        snapshot_store_table
+        , query, query_unique_key
       ).diff_query
     )
     using current_timestamp() as timestamp;
@@ -64,3 +63,20 @@ begin
     );
   end if;
 end
+;
+
+call `bqtest.assert_golden`(
+  (null, "bqtest", "snapshot_routines_all")
+  , -- Profiling query
+  `bqtest.zbqt_gensql__udf_snapshot`([
+    `bqmake.v0.zreindent`("""
+      `bqtest.zbqt_gensql__remake_view`(
+        'demo_sample_view', '__test_count', [('datasource', 'datasource_sampled')]
+      )
+    """, 0)
+    ]
+    , "zzsrepo__snapshot_routines_all"
+  )
+  , 'signature'
+  , false
+);
