@@ -13,35 +13,35 @@ options(
 )
 as (
   format(v0.zreindent("""
-      with repository as (
-        select unique_key, entity from `%s`
-        where valid_to is null
-      )
-      , partial as (
-        with snapshot as (
-          %s
-        )
-        select unique_key, entity from snapshot
-      )
-      select
-        entity.*
-      from source as S
-      full join partial as R using(unique_key)
-      left join unnest([coalesce(R.entity, S.entity)]) as entity
-    """, 0)
-    , format(
-      '%s.%s.%s'
-      , snapshot_repository.project_id
-      , snapshot_repository.dataset_id
-      , snapshot_repository.table_id
+    with repository as (
+      select unique_key, entity from `%s`
+      where valid_to is null
     )
-    , `v0.zreindent`(
-      `v0.zgensql__snapshot_scd_type2`(
-          null
-          , snapshot_query
-          , exp_unique_key
-      ).snapshot_query
-      , 0
+    , partial as (
+      with snapshot as (
+        %s
+      )
+      select unique_key, entity from snapshot
     )
+    select
+      entity.*
+    from source as S
+    full join partial as R using(unique_key)
+    left join unnest([coalesce(R.entity, S.entity)]) as entity
+  """, 0)
+  , format(
+    '%s.%s.%s'
+    , snapshot_repository.project_id
+    , snapshot_repository.dataset_id
+    , snapshot_repository.table_id
   )
+  , `v0.zreindent`(
+    `v0.zgensql__snapshot_scd_type2`(
+        null
+        , snapshot_query
+        , exp_unique_key
+    ).snapshot_query
+    , 0
+  )
+)
 );
