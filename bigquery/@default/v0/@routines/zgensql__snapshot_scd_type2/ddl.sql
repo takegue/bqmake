@@ -31,7 +31,7 @@ as ((
         # %s
         create view if not exists `%s`
         as
-        select * from `%s`
+        select entity.* from `%s`
         where valid_to is NULL
       """)
       , header
@@ -256,7 +256,7 @@ as ((
       , repository_ref
     ) as access_tvf_ddl
     , -- TVF DDL for Create asdf
-      format("""
+      format(`v0.zreindent`("""
         # %s
         create or replace table function `%s__timeline`(expected_timeline array<timestamp>)
         as
@@ -274,9 +274,9 @@ as ((
               and (valid_from <= `_at` and ifnull(`_at` < valid_to, true))
             )
           )
-      """
+      """, 0)
       , header
-      , repository_ref
+      , destination_ref
       , repository_ref
     ) as timeline_tvf_ddl
 
