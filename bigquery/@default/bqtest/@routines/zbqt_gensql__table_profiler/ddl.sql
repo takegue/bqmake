@@ -251,7 +251,11 @@ select
       """ as restricted
       , """
         , approx_top_count(!fieldname!, 5) as !column!__top_count
-        , approx_quantiles(!fieldname!, 20) as !column!__20quantile
+        , `bqmake.v0.zformat_quantiles`(
+          approx_quantiles(!fieldname!, 1000)
+          , [0, 10, 100, 250, 500, 750, 900, 990, 1000]
+          , options.option_numeric_precision
+        ) as !column!__quantiles
       """ as advanced
       , """
         , !column!__subprofiler.value as !column!__histogram
@@ -268,7 +272,11 @@ select
       """ as restricted
       , """
         , approx_top_count(!fieldname!, 5) as !column!__top_count
-        , approx_quantiles(!fieldname!, 20) as !column!__20quantile
+        , `bqmake.v0.zformat_quantiles`(
+          approx_quantiles(!fieldname!, 1000)
+          , [0, 10, 100, 250, 500, 750, 900, 990, 1000]
+          , options.option_numeric_precision
+        ) as !column!__quantiles
       """ as advanced
       , """
         , !column!__subprofiler.value as !column!__histogram
@@ -286,7 +294,6 @@ select
       """ as restricted
       , """
         , approx_top_count(!fieldname!, 20) as !column!__top_count
-        , approx_quantiles(!fieldname!, 20) as !column!__20quantile
       """ as advanced
       , "" as subprofile
     ) as string
