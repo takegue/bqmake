@@ -14,7 +14,7 @@ begin
     call `v0.retry_query_until_success`(
       format(
         "select * from `%s.%s.%s`"
-        , snapshot_store_table.project_id
+        , coalesce(snapshot_store_table.project_id, @@project_id)
         , snapshot_store_table.dataset_id
         , snapshot_store_table.table_id
       )
