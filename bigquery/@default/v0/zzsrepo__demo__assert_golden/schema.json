@@ -1,0 +1,32 @@
+[
+  {
+    "name": "unique_key",
+    "type": "INTEGER"
+  },
+  {
+    "name": "revision_hash",
+    "type": "STRING"
+  },
+  {
+    "name": "valid_from",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "valid_to",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "entity",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "unique_key",
+        "type": "INTEGER"
+      },
+      {
+        "name": "c",
+        "type": "STRING"
+      }
+    ]
+  }
+]
