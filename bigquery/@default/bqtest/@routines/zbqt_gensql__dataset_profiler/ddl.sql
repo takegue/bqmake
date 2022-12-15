@@ -1,6 +1,4 @@
-create or replace function `bqtest.zbqt_gensql__dataset_profiler`(
-  timezone
-)
+create or replace function `bqtest.zbqt_gensql__dataset_profiler`()
 returns string
 as ((
   select as value `bqmake.v0.zreindent`(
@@ -44,16 +42,15 @@ as ((
 ;
 
 begin
-  execute immediate `bqtest.zbqt_gensql__table_spec`(
-    "demo_sample_table"
-    , [
-        (string(null), ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
+  call `bqmake.v0.assert_golden`(
+    (null, "bqtest", "zgolden_routines")
+    , -- Profiling query
+    `bqtest.zbqt_gensql__udf_snapshot`([
+        "`bqtest.zbqt_gensql__dataset_profiler`()"
       ]
+      , "zgolden_routines"
+    )
+    , 'signature'
+    , @update_golden > 0
   );
-  execute immediate `bqtest.zbqt_gensql__table_spec`(
-    "demo_sample_view"
-    , [
-        (string(null), ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
-      ]
-  );
-end;
+end

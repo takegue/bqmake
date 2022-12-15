@@ -4,7 +4,7 @@ create or replace function `bqtest.zbqt_gensql__udf_snapshot`(
 ) as ((
   with base_table as (
     select as value
-      format("select entity.* from `%s.%s.%s` where valid_to is null", table_catalog, table_schema, table_name)
+      format("select * from `%s.%s.%s`", table_catalog, table_schema, table_name)
     from `bqtest.INFORMATION_SCHEMA.TABLES`
     where table_name = repository_table
   )
@@ -57,6 +57,6 @@ begin
       , 0
     )
     ]
-  , "zsnapshot_routines_all"
+  , "zgolden_routines"
   );
 end;

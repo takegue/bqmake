@@ -17,7 +17,7 @@ begin
         , "`bqtest.sure_eq`(format('%t', ['a', 'b']), format('%t', ['a', 'b']), 'array')"
         , "`bqtest.sure_eq`(null, null, 'null')"
       ]
-      , "zgolden_routines"
+      , "zzsrepo__zgolden_routines"
     )
     , 'signature'
     , @update_golden > 0

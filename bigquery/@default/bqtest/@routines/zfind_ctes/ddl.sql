@@ -69,7 +69,7 @@ begin
     `bqtest.zbqt_gensql__udf_snapshot`([
         "`bqtest.zfind_ctes`(r'WITH cte1 AS (select 1), cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge) select cte1')"
       ]
-      , "zgolden_routines"
+      , "zzsrepo__zgolden_routines"
     )
     , 'signature'
     , @update_golden > 0
