@@ -8,8 +8,8 @@ as (
 );
 
 begin
-  call `bqtest.assert_golden`(
-    (null, "bqtest", "zsnapshot_routines_all")
+  call `bqmake.v0.assert_golden`(
+    (null, "bqtest", "zgolden_routines")
     , -- Profiling query
     `bqtest.zbqt_gensql__udf_snapshot`([
         "`bqtest.sure_eq`('hoge', 'hoge', 'string')"
@@ -17,7 +17,7 @@ begin
         , "`bqtest.sure_eq`(format('%t', ['a', 'b']), format('%t', ['a', 'b']), 'array')"
         , "`bqtest.sure_eq`(null, null, 'null')"
       ]
-      , "zsnapshot_routines_all"
+      , "zgolden_routines"
     )
     , 'signature'
     , @update_golden > 0

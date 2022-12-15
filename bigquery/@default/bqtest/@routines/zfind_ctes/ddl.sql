@@ -61,19 +61,17 @@ return find_cte(sql ?? "");
 """
 ;
 
+
 begin
-  select
-    `bqtest.error_eq`(format('%t', `bqtest.zfind_ctes`(input)), format('%t', expected), "Extract CTE test")
-  from unnest([
-    struct(
-      r"""
-      WITH cte1 AS (select 1 as \`fuga-fuga-fuga\` from fuga)
-      , cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge)
-      select cte1
-      """
-      as input
-      , ['cte1', 'cte2'] as expected
+  call `bqmake.v0.assert_golden`(
+    (null, "bqtest", "zgolden_routines")
+    , -- Profiling query
+    `bqtest.zbqt_gensql__udf_snapshot`([
+        "`bqtest.zfind_ctes`(r'WITH cte1 AS (select 1), cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge) select cte1')"
+      ]
+      , "zgolden_routines"
     )
-  ])
-  ;
+    , 'signature'
+    , @update_golden > 0
+  );
 end
