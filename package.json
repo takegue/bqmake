@@ -4,6 +4,7 @@
   },
   "scripts": {
     "push": "bqport push",
-    "pull": "bqport pull"
+    "pull": "bqport pull",
+    "dryrun": "bqport push --dry-run"
   }
 }
