@@ -1,4 +1,4 @@
-name: learn-github-actions
+name: dry-run
 run-name: CI for bqmake
 on: [push]
 jobs:
