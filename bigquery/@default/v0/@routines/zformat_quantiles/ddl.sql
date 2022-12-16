@@ -1,4 +1,4 @@
-create  function `v0.zformat_quantiles`(
+create or replace function `v0.zformat_quantiles`(
   approx_array any type, picks array<int64>, round_scale int64
 )
 as (

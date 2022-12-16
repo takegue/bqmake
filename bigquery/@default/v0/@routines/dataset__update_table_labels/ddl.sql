@@ -6,19 +6,19 @@ begin
   declare _deps array<struct<table_catalog string, table_schema string, table_name string>>;
   declare _labels array<struct<key string, value string>>;
 
-  execute immediate format("""
+  execute immediate format(r"""
     create or replace temp table `tmp_partitions`
     as
     select * from `%s.INFORMATION_SCHEMA.PARTITIONS`
     where
       -- To avoid INFORMATION_SCHEMA restriction to get up to 1,000 tables,
       -- filter out sharding tables
-      parse_date('%Y%m%d', regexp_extract(table_name, r'\d+$')) is null;
+      parse_date('%%Y%%m%%d', regexp_extract(table_name, r'\d+$')) is null;
   """
     , dst_ref
   );
 
-  execute immediate format("""
+  execute immediate format(r"""
     create or replace temp table `tmp_table_options`
     as
       with labels as (
@@ -33,7 +33,7 @@ begin
       where
         -- To avoid INFORMATION_SCHEMA restriction to get up to 1,000 tables,
         -- filter out sharding tables
-        parse_date('%Y%m%d', regexp_extract(table_name, r'\d+$')) is null;
+        parse_date('%%Y%%m%%d', regexp_extract(table_name, r'\d+$')) is null;
     """
     , dst_ref
     , dst_ref
