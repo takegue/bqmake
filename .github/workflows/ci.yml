@@ -11,5 +11,12 @@ jobs:
           node-version: 18
           cache: 'npm'
           cache-dependency-path: package-lock.json
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        workload_identity_provider: 'projects/1069005224497/locations/global/workloadIdentityPools/github-action/providers/github-action'
+        service_account: 'github-action@bqmake.iam.gserviceaccount.com'
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v0'
       - run: npm ci
       - run: npm run dryrun
