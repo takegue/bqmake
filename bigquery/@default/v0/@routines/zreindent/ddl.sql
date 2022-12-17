@@ -5,25 +5,16 @@ as (
 ;
 
 begin
-  select
-    bqtest.error_eq(
-      trim(
-        `v0.zreindent`(
+  assert trim(`v0.zreindent`(
 """
   --SQL template
   select '\\n'
   hoge
+""", 4))
+    = trim(
 """
-        , 4
-      )
-    )
-    ,
-trim("""
     --SQL template
     select '\\n'
     hoge
-""")
-  , "v0.zindent"
-  );
-
+""");
 end
