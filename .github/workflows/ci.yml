@@ -5,7 +5,7 @@ jobs:
   dry-run:
     permissions:
       contents: 'read'
-      id-token: 'write'
+      id-token: 'read'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -21,6 +21,6 @@ jobs:
           service_account: 'github-action@bqmake.iam.gserviceaccount.com'
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v0'
-
       - run: npm ci
+      - run: ls
       - run: npm run dryrun
