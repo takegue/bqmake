@@ -3,6 +3,9 @@ run-name: CI for bqmake
 on: [push]
 jobs:
   dry-run:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -11,7 +14,7 @@ jobs:
           node-version: 18
           cache: 'npm'
           cache-dependency-path: package-lock.json
-      - uses: 'google-github-actions/auth@v0'
+      - uses: 'google-github-actions/auth@v1'
         id: 'auth'
         with:
           workload_identity_provider: 'projects/1069005224497/locations/global/workloadIdentityPools/github-action/providers/github-action'
