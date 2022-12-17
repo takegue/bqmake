@@ -1,0 +1,44 @@
+name: Sync upstream meatadata
+on:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '*'
+  schedule:
+    # Every Tuesday 10:00 in JST
+    - cron: '00 1 * * 1'
+  workflow_dispatch:
+
+jobs:
+  bqport-pull:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - uses: 'google-github-actions/auth@v1'
+        id: 'auth'
+        with:
+          workload_identity_provider: 'projects/1069005224497/locations/global/workloadIdentityPools/github-action/providers/github-action'
+          service_account: 'github-action@bqmake.iam.gserviceaccount.com'
+      - run: npm ci
+      - run: npm run pull
+      - uses: peter-evans/create-pull-request@v3
+        with:
+          branch: 'ci/${{ github.run_id }}'
+          commit-message: 'update generated files by `bqport pull` on CI'
+          committer: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
+          author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
+          title: 'Update metadata files by CI'
+          body: |
+            This PR updates some generated files to the latest by running `bqport pull`.
+            This PR was created by [this workflow run](https://github.com/rhysd/actionlint/actions/runs/${{ github.run_id }}) automatically.
+          assignees: takegue
