@@ -13,12 +13,6 @@
     {
       "name": "upper_bound",
       "argumentKind": "ANY_TYPE"
-    },
-    {
-      "name": "allow_NULL",
-      "dataType": {
-        "typeKind": "BOOL"
-      }
     }
   ]
 }

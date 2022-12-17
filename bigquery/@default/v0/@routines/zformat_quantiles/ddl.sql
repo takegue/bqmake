@@ -17,6 +17,6 @@ as (
 
 begin
   select
-    format_quantiles(approx_quantiles(latitude, 4), [])
+    `v0.zformat_quantiles`(approx_quantiles(latitude, 4), [])
   from `bqmake.bqtest.demo_sample_table`;
 end;

@@ -13,7 +13,7 @@ begin
     where
       -- To avoid INFORMATION_SCHEMA restriction to get up to 1,000 tables,
       -- filter out sharding tables
-      parse_date('%%Y%%m%%d', regexp_extract(table_name, r'\d+$')) is null;
+      safe.parse_date('%%Y%%m%%d', regexp_extract(table_name, r'\d+$')) is null;
   """
     , dst_ref
   );
@@ -33,7 +33,7 @@ begin
       where
         -- To avoid INFORMATION_SCHEMA restriction to get up to 1,000 tables,
         -- filter out sharding tables
-        parse_date('%%Y%%m%%d', regexp_extract(table_name, r'\d+$')) is null;
+        safe.parse_date('%%Y%%m%%d', regexp_extract(table_name, r'\d+$')) is null;
     """
     , dst_ref
     , dst_ref
