@@ -4,7 +4,7 @@ with Q as (
 )
 select 1;
 
-call `bqtest.assert_golden`(
+call `bqmake.v0.assert_golden`(
   (null, "bqtest", "zsnapshot_profile__demo_sample_table")
   , -- Profiling query
   `bqmake.bqtest.zbqt_gensql__table_profiler`(
