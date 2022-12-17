@@ -40,5 +40,5 @@ jobs:
           title: 'Update metadata files by CI'
           body: |
             This PR updates some generated files to the latest by running `bqport pull`.
-            This PR was created by [this workflow run](https://github.com/rhysd/actionlint/actions/runs/${{ github.run_id }}) automatically.
+            This PR was created by [this workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) automatically.
           assignees: takegue
