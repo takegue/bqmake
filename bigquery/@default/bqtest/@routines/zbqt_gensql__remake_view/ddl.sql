@@ -60,7 +60,7 @@ begin
       , "zgolden_routines"
     )
     , 'signature'
-    , @update_golden > 0
+    , @update_golden
   );
 
   execute immediate `bqtest.zbqt_gensql__remake_view`(

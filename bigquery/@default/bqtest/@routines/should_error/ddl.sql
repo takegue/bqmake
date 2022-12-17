@@ -12,11 +12,11 @@ begin
       , @@error.formatted_stack_trace
       , @@error.stack_trace
     ;
-    if query = @@error.statement_text then
+    if trim(query) != @@error.statement_text then
        raise using message = format('Query: %T must throw exception', query);
     else
        select "bqtest.should_errro", query, @@error.message as error_message;
     end if;
 end;
 
-call `bqtest.should_error`("select `bqtest.sure_range`(1, 1, 10, true)");
+call `bqtest.should_error`("select error('error')");

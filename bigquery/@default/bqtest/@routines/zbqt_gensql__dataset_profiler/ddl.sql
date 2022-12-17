@@ -51,6 +51,6 @@ begin
       , "zgolden_routines"
     )
     , 'signature'
-    , @update_golden > 0
+    , @update_golden
   );
 end
