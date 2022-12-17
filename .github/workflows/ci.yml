@@ -1,6 +1,6 @@
 name: dry-run
 run-name: CI for bqmake
-on: [push]
+on: [push, workflow_dispatch]
 jobs:
   dry-run:
     permissions:
