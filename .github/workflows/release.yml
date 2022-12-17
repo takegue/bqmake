@@ -1,0 +1,25 @@
+name: Release
+on:
+  push:
+      tags:
+        - "v*.*.*"
+jobs:
+  deploy:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - uses: 'google-github-actions/auth@v1'
+        id: 'auth'
+        with:
+          workload_identity_provider: 'projects/1069005224497/locations/global/workloadIdentityPools/github-action/providers/github-action'
+          service_account: 'github-action@bqmake.iam.gserviceaccount.com'
+      - run: npm ci
+      - run: find ./bigquery -type f | npx bqport push --format=json --force --label "github:release" --parameter update_golden:bool:true | tee ret.json
