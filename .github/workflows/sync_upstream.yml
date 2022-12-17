@@ -34,7 +34,7 @@ jobs:
       - uses: peter-evans/create-pull-request@v3
         with:
           branch: 'ci/${{ github.run_id }}'
-          commit-message: 'update generated files by `bqport pull` on CI'
+          commit-message: 'Update metadata files by `bqport pull` on CI'
           committer: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
           author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
           title: 'Update metadata files by CI'
