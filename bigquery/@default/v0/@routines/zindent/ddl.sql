@@ -13,9 +13,8 @@ as (
 );
 
 begin
-  select
-    bqtest.error_eq(
-      trim(
+  assert
+  trim(
         `v0.zindent`(
 """
 --SQL template
@@ -25,13 +24,11 @@ hoge
         , 4
       )
     )
-    ,
+    =
 trim("""
     --SQL template
     select '\\n'
     hoge
-""")
-  , "v0.zindent"
-  );
+""");
 
 end
