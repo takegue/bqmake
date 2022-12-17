@@ -13,6 +13,7 @@ begin
       , null
       , to_json(struct(true as materialized_view_mode))
     )
+    , 'format("%t", (partition_key, group_keys))'
     , false
   );
 exception when error then
