@@ -10,6 +10,12 @@
           "typeKind": "STRING"
         }
       }
+    },
+    {
+      "name": "repository_table",
+      "dataType": {
+        "typeKind": "STRING"
+      }
     }
   ]
 }

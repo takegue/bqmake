@@ -9,24 +9,27 @@
       }
     },
     {
-      "name": "replacement",
+      "name": "replacements",
       "dataType": {
-        "typeKind": "STRUCT",
-        "structType": {
-          "fields": [
-            {
-              "name": "from_value",
-              "type": {
-                "typeKind": "STRING"
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "from_value",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "to_value",
+                "type": {
+                  "typeKind": "STRING"
+                }
               }
-            },
-            {
-              "name": "to_value",
-              "type": {
-                "typeKind": "STRING"
-              }
-            }
-          ]
+            ]
+          }
         }
       }
     }

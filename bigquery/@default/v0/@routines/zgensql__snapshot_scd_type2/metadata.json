@@ -1,5 +1,5 @@
 {
-  "routineType": "TABLE_VALUED_FUNCTION",
+  "routineType": "SCALAR_FUNCTION",
   "language": "SQL",
   "arguments": [
     {
