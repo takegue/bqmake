@@ -15,6 +15,13 @@ as ((
   select as struct
     -- snapshot query
     snapshot_query
+    , format(`v0.zdeindent`("""
+        # %s
+        select * from `%s`
+      """)
+      , header
+      , repository_ref
+    ) as repository_query
     -- DDL Query
     , format(`v0.zdeindent`("""
         # %s

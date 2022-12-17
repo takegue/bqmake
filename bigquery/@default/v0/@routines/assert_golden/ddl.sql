@@ -10,16 +10,19 @@ options(
 )
 begin
   declare _is_update bool default ifnull(is_update, false);
+  declare _repository_query, _query_diff string;
+
+  set (_repository_query, _query_diff) = (
+    select as struct
+      ret.repository_query, ret.diff_query
+    from unnest([
+      `v0.zgensql__snapshot_scd_type2`(
+        snapshot_store_table, query, query_unique_key
+      )]) as ret
+  );
+
   begin
-    call `v0.retry_query_until_success`(
-      format(
-        "select * from `%s.%s.%s`"
-        , coalesce(snapshot_store_table.project_id, @@project_id)
-        , snapshot_store_table.dataset_id
-        , snapshot_store_table.table_id
-      )
-      , interval 0 minute
-    );
+    call `v0.retry_query_until_success`(_repository_query, interval 0 minute);
     exception when error then
       call `v0.log`(format("Create snapshot_store_table: %t", snapshot_store_table));
       call `v0.snapshot_table__init`(
@@ -41,11 +44,9 @@ begin
 
   if not ifnull(is_update, false) then
     -- Show Changes
-    execute immediate format("create or replace temp table `snapshot_comparision_result` as %s"
-      , `v0.zgensql__snapshot_scd_type2`(
-        snapshot_store_table
-        , query, query_unique_key
-      ).diff_query
+    execute immediate format(
+      "create or replace temp table `snapshot_comparision_result` as %s"
+      , _query_diff
     )
     using current_timestamp() as timestamp;
     assert not exists(select * from `snapshot_comparision_result`);
