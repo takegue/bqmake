@@ -5,6 +5,6 @@
   "scripts": {
     "push": "bqport push",
     "pull": "bqport pull",
-    "dryrun": "bqport push --dry-run"
+    "dryrun": "bqport push --format=json --dry-run"
   }
 }

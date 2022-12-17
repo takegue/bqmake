@@ -22,5 +22,4 @@ jobs:
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v0'
       - run: npm ci
-      - run: ls
       - run: npm run dryrun
