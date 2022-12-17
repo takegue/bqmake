@@ -214,5 +214,5 @@ end;
 
 -- Unit test
 begin
-  call `v0.dataset__update_description`(null, null);
+  call `v0.dataset__update_description`('v0', null);
 end

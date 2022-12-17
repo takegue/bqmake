@@ -1,0 +1,25 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "approx_array",
+      "argumentKind": "ANY_TYPE"
+    },
+    {
+      "name": "picks",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "INT64"
+        }
+      }
+    },
+    {
+      "name": "round_scale",
+      "dataType": {
+        "typeKind": "INT64"
+      }
+    }
+  ]
+}
