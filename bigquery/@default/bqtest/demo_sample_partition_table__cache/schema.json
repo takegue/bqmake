@@ -1,0 +1,222 @@
+[
+  {
+    "name": "partition_key",
+    "type": "DATE"
+  },
+  {
+    "name": "group_keys",
+    "type": "INTEGER"
+  },
+  {
+    "name": "count",
+    "type": "INTEGER"
+  },
+  {
+    "name": "dma_name__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "dma_name__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "dma_name__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "dma_name__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "dma_name__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "dma_name__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "dma_id__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "dma_id__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "dma_id__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "dma_id__sum",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "dma_id__sum2",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "dma_id__avg",
+    "type": "FLOAT"
+  },
+  {
+    "name": "dma_id__min",
+    "type": "INTEGER"
+  },
+  {
+    "name": "dma_id__max",
+    "type": "INTEGER"
+  },
+  {
+    "name": "term__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "term__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "term__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "term__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "term__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "term__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "week__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "week__day_hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "week__min",
+    "type": "DATE"
+  },
+  {
+    "name": "week__max",
+    "type": "DATE"
+  },
+  {
+    "name": "score__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "score__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "score__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "score__sum",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "score__sum2",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "score__avg",
+    "type": "FLOAT"
+  },
+  {
+    "name": "score__min",
+    "type": "INTEGER"
+  },
+  {
+    "name": "score__max",
+    "type": "INTEGER"
+  },
+  {
+    "name": "rank__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "rank__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "rank__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "rank__sum",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "rank__sum2",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "rank__avg",
+    "type": "FLOAT"
+  },
+  {
+    "name": "rank__min",
+    "type": "INTEGER"
+  },
+  {
+    "name": "rank__max",
+    "type": "INTEGER"
+  },
+  {
+    "name": "percent_gain__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "percent_gain__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "percent_gain__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "percent_gain__sum",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "percent_gain__sum2",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "percent_gain__avg",
+    "type": "FLOAT"
+  },
+  {
+    "name": "percent_gain__min",
+    "type": "INTEGER"
+  },
+  {
+    "name": "percent_gain__max",
+    "type": "INTEGER"
+  },
+  {
+    "name": "refresh_date__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "refresh_date__day_hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "refresh_date__min",
+    "type": "DATE"
+  },
+  {
+    "name": "refresh_date__max",
+    "type": "DATE"
+  }
+]

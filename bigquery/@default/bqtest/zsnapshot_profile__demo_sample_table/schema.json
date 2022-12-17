@@ -1,536 +1,514 @@
 [
   {
-    "name": "unique_key",
-    "type": "STRING"
+    "name": "partition_key",
+    "type": "DATE"
   },
   {
-    "name": "revision_hash",
-    "type": "STRING"
+    "name": "group_keys",
+    "type": "INTEGER"
   },
   {
-    "name": "valid_from",
+    "name": "count",
+    "type": "INTEGER"
+  },
+  {
+    "name": "unique_key__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "unique_key__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "unique_key__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "unique_key__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "unique_key__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "unique_key__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "complaint_description__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "complaint_description__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "complaint_description__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "complaint_description__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "complaint_description__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "complaint_description__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "source__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "source__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "source__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "source__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "source__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "source__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "status__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "status__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "status__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "status__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "status__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "status__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "status_change_date__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "status_change_date__day_hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "status_change_date__min",
     "type": "TIMESTAMP"
   },
   {
-    "name": "valid_to",
+    "name": "status_change_date__max",
     "type": "TIMESTAMP"
   },
   {
-    "name": "entity",
-    "type": "RECORD",
-    "fields": [
-      {
-        "name": "partition_key",
-        "type": "DATE"
-      },
-      {
-        "name": "group_keys",
-        "type": "INTEGER"
-      },
-      {
-        "name": "count",
-        "type": "INTEGER"
-      },
-      {
-        "name": "unique_key__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "unique_key__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "unique_key__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "unique_key__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "unique_key__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "unique_key__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "complaint_description__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "complaint_description__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "complaint_description__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "complaint_description__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "complaint_description__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "complaint_description__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "source__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "source__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "source__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "source__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "source__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "source__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "status__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "status__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "status__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "status__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "status__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "status__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "status_change_date__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "status_change_date__day_hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "status_change_date__min",
-        "type": "TIMESTAMP"
-      },
-      {
-        "name": "status_change_date__max",
-        "type": "TIMESTAMP"
-      },
-      {
-        "name": "created_date__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "created_date__day_hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "created_date__min",
-        "type": "TIMESTAMP"
-      },
-      {
-        "name": "created_date__max",
-        "type": "TIMESTAMP"
-      },
-      {
-        "name": "last_update_date__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "last_update_date__day_hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "last_update_date__min",
-        "type": "TIMESTAMP"
-      },
-      {
-        "name": "last_update_date__max",
-        "type": "TIMESTAMP"
-      },
-      {
-        "name": "close_date__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "close_date__day_hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "close_date__min",
-        "type": "TIMESTAMP"
-      },
-      {
-        "name": "close_date__max",
-        "type": "TIMESTAMP"
-      },
-      {
-        "name": "incident_address__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "incident_address__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "incident_address__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "incident_address__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "incident_address__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "incident_address__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "street_number__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "street_number__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "street_number__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "street_number__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "street_number__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "street_number__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "street_name__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "street_name__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "street_name__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "street_name__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "street_name__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "street_name__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "city__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "city__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "city__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "city__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "city__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "city__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "incident_zip__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "incident_zip__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "incident_zip__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "incident_zip__sum",
-        "type": "BIGNUMERIC"
-      },
-      {
-        "name": "incident_zip__sum2",
-        "type": "BIGNUMERIC"
-      },
-      {
-        "name": "incident_zip__avg",
-        "type": "FLOAT"
-      },
-      {
-        "name": "incident_zip__min",
-        "type": "INTEGER"
-      },
-      {
-        "name": "incident_zip__max",
-        "type": "INTEGER"
-      },
-      {
-        "name": "county__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "county__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "county__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "county__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "county__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "county__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "state_plane_x_coordinate__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "state_plane_x_coordinate__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "state_plane_x_coordinate__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "state_plane_x_coordinate__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "state_plane_x_coordinate__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "state_plane_x_coordinate__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "state_plane_y_coordinate__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "state_plane_y_coordinate__sum",
-        "type": "BIGNUMERIC"
-      },
-      {
-        "name": "state_plane_y_coordinate__avg",
-        "type": "FLOAT"
-      },
-      {
-        "name": "state_plane_y_coordinate__min",
-        "type": "FLOAT"
-      },
-      {
-        "name": "state_plane_y_coordinate__max",
-        "type": "FLOAT"
-      },
-      {
-        "name": "latitude__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "latitude__sum",
-        "type": "BIGNUMERIC"
-      },
-      {
-        "name": "latitude__avg",
-        "type": "FLOAT"
-      },
-      {
-        "name": "latitude__min",
-        "type": "FLOAT"
-      },
-      {
-        "name": "latitude__max",
-        "type": "FLOAT"
-      },
-      {
-        "name": "longitude__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "longitude__sum",
-        "type": "BIGNUMERIC"
-      },
-      {
-        "name": "longitude__avg",
-        "type": "FLOAT"
-      },
-      {
-        "name": "longitude__min",
-        "type": "FLOAT"
-      },
-      {
-        "name": "longitude__max",
-        "type": "FLOAT"
-      },
-      {
-        "name": "location__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "location__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "location__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "location__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "location__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "location__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "council_district_code__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "council_district_code__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "council_district_code__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "council_district_code__sum",
-        "type": "BIGNUMERIC"
-      },
-      {
-        "name": "council_district_code__sum2",
-        "type": "BIGNUMERIC"
-      },
-      {
-        "name": "council_district_code__avg",
-        "type": "FLOAT"
-      },
-      {
-        "name": "council_district_code__min",
-        "type": "INTEGER"
-      },
-      {
-        "name": "council_district_code__max",
-        "type": "INTEGER"
-      },
-      {
-        "name": "map_page__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "map_page__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "map_page__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "map_page__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "map_page__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "map_page__max_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "map_tile__nonnull",
-        "type": "INTEGER"
-      },
-      {
-        "name": "map_tile__unique",
-        "type": "INTEGER"
-      },
-      {
-        "name": "map_tile__hll",
-        "type": "BYTES"
-      },
-      {
-        "name": "map_tile__avg_len",
-        "type": "FLOAT"
-      },
-      {
-        "name": "map_tile__min_len",
-        "type": "INTEGER"
-      },
-      {
-        "name": "map_tile__max_len",
-        "type": "INTEGER"
-      }
-    ]
+    "name": "created_date__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "created_date__day_hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "created_date__min",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "created_date__max",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "last_update_date__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "last_update_date__day_hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "last_update_date__min",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "last_update_date__max",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "close_date__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "close_date__day_hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "close_date__min",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "close_date__max",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "incident_address__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "incident_address__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "incident_address__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "incident_address__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "incident_address__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "incident_address__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "street_number__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "street_number__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "street_number__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "street_number__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "street_number__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "street_number__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "street_name__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "street_name__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "street_name__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "street_name__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "street_name__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "street_name__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "city__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "city__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "city__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "city__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "city__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "city__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "incident_zip__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "incident_zip__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "incident_zip__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "incident_zip__sum",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "incident_zip__sum2",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "incident_zip__avg",
+    "type": "FLOAT"
+  },
+  {
+    "name": "incident_zip__min",
+    "type": "INTEGER"
+  },
+  {
+    "name": "incident_zip__max",
+    "type": "INTEGER"
+  },
+  {
+    "name": "county__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "county__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "county__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "county__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "county__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "county__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "state_plane_x_coordinate__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "state_plane_x_coordinate__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "state_plane_x_coordinate__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "state_plane_x_coordinate__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "state_plane_x_coordinate__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "state_plane_x_coordinate__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "state_plane_y_coordinate__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "state_plane_y_coordinate__sum",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "state_plane_y_coordinate__avg",
+    "type": "FLOAT"
+  },
+  {
+    "name": "state_plane_y_coordinate__min",
+    "type": "FLOAT"
+  },
+  {
+    "name": "state_plane_y_coordinate__max",
+    "type": "FLOAT"
+  },
+  {
+    "name": "latitude__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "latitude__sum",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "latitude__avg",
+    "type": "FLOAT"
+  },
+  {
+    "name": "latitude__min",
+    "type": "FLOAT"
+  },
+  {
+    "name": "latitude__max",
+    "type": "FLOAT"
+  },
+  {
+    "name": "longitude__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "longitude__sum",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "longitude__avg",
+    "type": "FLOAT"
+  },
+  {
+    "name": "longitude__min",
+    "type": "FLOAT"
+  },
+  {
+    "name": "longitude__max",
+    "type": "FLOAT"
+  },
+  {
+    "name": "location__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "location__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "location__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "location__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "location__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "location__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "council_district_code__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "council_district_code__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "council_district_code__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "council_district_code__sum",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "council_district_code__sum2",
+    "type": "BIGNUMERIC"
+  },
+  {
+    "name": "council_district_code__avg",
+    "type": "FLOAT"
+  },
+  {
+    "name": "council_district_code__min",
+    "type": "INTEGER"
+  },
+  {
+    "name": "council_district_code__max",
+    "type": "INTEGER"
+  },
+  {
+    "name": "map_page__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "map_page__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "map_page__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "map_page__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "map_page__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "map_page__max_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "map_tile__nonnull",
+    "type": "INTEGER"
+  },
+  {
+    "name": "map_tile__unique",
+    "type": "INTEGER"
+  },
+  {
+    "name": "map_tile__hll",
+    "type": "BYTES"
+  },
+  {
+    "name": "map_tile__avg_len",
+    "type": "FLOAT"
+  },
+  {
+    "name": "map_tile__min_len",
+    "type": "INTEGER"
+  },
+  {
+    "name": "map_tile__max_len",
+    "type": "INTEGER"
   }
 ]
