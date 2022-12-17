@@ -17,7 +17,6 @@ as (
 
 begin
   select
-    format_quantiles(approx_quantiles(latitude, 4), [], )
-  from `bqmake.bqtest.demo_sample_table`
-  limit 1000
+    format_quantiles(approx_quantiles(latitude, 4), [])
+  from `bqmake.bqtest.demo_sample_table`;
 end;
