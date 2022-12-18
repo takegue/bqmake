@@ -105,8 +105,12 @@ begin
         select *
         from `tmp_lineage`
         left join unnest([struct(
-          substr(to_base64(md5(format('%s.%s.%s', dst_project, dst_dataset, dst_table))), 0, 4) as dst_hash
-          , substr(to_base64(md5(format('%s.%s.%s', src_project, src_dataset, src_table))), 0, 4) as src_hash
+          if(starts_with(dst_dataset, '_script'), '(#tenporary)', dst_dataset) as dst_dataset_n
+          , if(starts_with(src_dataset, '_script'), '(#tenporary)', src_dataset) as src_dataset_n
+        )])
+        left join unnest([struct(
+          substr(to_base64(md5(format('%s.%s.%s', dst_project, dst_dataset_n, dst_table))), 0, 4) as dst_hash
+          , substr(to_base64(md5(format('%s.%s.%s', src_project, src_dataset_n, src_table))), 0, 4) as src_hash
           , split(destination, '.')[safe_offset(0)] || '.' ||  split(destination, '.')[safe_offset(1)] as unit
         )])
         where
@@ -114,23 +118,20 @@ begin
       )
       , exclude_temp_dataset as (
         select
-            destination, dst_project, dst_dataset, src_project, src_dataset
-            , max(job_latest) as latest_ts
+          destination, dst_project, dst_dataset, src_project, src_dataset
+          , any_value(dst_dataset_n) as dst_dataset_n
+          , any_value(src_dataset_n) as src_dataset_n
+          , max(job_latest) as latest_ts
         from _source
         group by destination, dst_project, dst_dataset, src_project, src_dataset
         qualify 1 = row_number() over (
-            partition by
-            destination
-            , dst_project, if(starts_with(dst_dataset, '_script'), '(script)', dst_dataset)
-            , src_project, if(starts_with(src_dataset, '_script'), '(script)',src_dataset)
-            order by latest_ts desc
-          )
+          partition by
+            destination, dst_project, dst_dataset_n, src_project, src_dataset_n
+          order by latest_ts desc
+        )
       )
       select
-        * replace(
-          if(starts_with(dst_dataset, '_script'), '(#temporary)', dst_dataset) as dst_dataset
-          , if(starts_with(src_dataset, '_script'), '(#temporary)',src_dataset) as src_dataset
-      )
+        * replace(_source.dst_dataset_n as dst_dataset, _source.src_dataset_n as src_dataset)
       from _source
       join exclude_temp_dataset using(destination, dst_project, dst_dataset, src_project, src_dataset)
     )
@@ -141,10 +142,7 @@ begin
           , project
           , dataset
           , format('subgraph "fa:fa-database %s"\n', dataset)
-          || string_agg(
-            distinct format('\t%s(fa:fa-table %s)', _hash, table)
-            , '\n'
-          )
+          || string_agg(distinct mermaid_node, '\n' order by mermaid_node)
           || '\nend'
           as mermaid_subgraph
         from datasource
@@ -152,6 +150,9 @@ begin
           struct(dst_hash as _hash, dst_project as project, dst_dataset as dataset, dst_table as table)
           , struct(src_hash as _hash, src_project as project, src_dataset as dataset, src_table as table)
         ]) id
+        left join unnest([
+          format('\t%s(fa:fa-table %s)', _hash, table)
+        ]) as mermaid_node
         group by unit, project, dataset
       )
       , mermaid_project_subgprah as (
@@ -161,10 +162,10 @@ begin
           , if(
               starts_with(unit, project)
               -- Project-intra lineage:
-              , string_agg(mermaid_subgraph, '\n')
+              , string_agg(mermaid_subgraph, '\n' order by dataset)
               -- Project-inter lineage:
               , format('subgraph "fa:fa-sitemap %s"\n', project)
-                || string_agg(mermaid_subgraph, '\n')
+                || string_agg(mermaid_subgraph, '\n' order by dataset)
                 || '\nend'
            ) as mermaid_subgraph
         from mermeid_dataset_subgraph
@@ -172,7 +173,7 @@ begin
       )
       select
         unit
-        , string_agg(mermaid_subgraph, '\n') as nodes
+        , string_agg(mermaid_subgraph, '\n' order by project) as nodes
       from mermaid_project_subgprah
       group by unit
     )
@@ -180,10 +181,10 @@ begin
       SELECT
         unit
         , string_agg(
-          distinct format('%s --> %s', src_hash, dst_hash)
-          , '\n'
+          distinct mermaid_relation, '\n' order by mermaid_relation
         ) as relations
       FROM datasource
+      left join unnest([format('%s --> %s', src_hash, dst_hash)]) as mermaid_relation
       where depth >= 0
       group by unit
     )
