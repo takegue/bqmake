@@ -22,7 +22,7 @@ jobs:
       - run: npm ci
       - shell: bash
         run: |
-          find ./bigquery -type f -name 'test.sql' | npx bqport push --format=json --maximum_bytes_billed 1000000000 --parameter update_golden:boolean:false | jq -r '
+          find ./bigquery -type f -name 'test.sql' | npx bqport push --format=json --maximum_bytes_billed 1000000000 --parameter update_golden:boolean:false | tee /dev/stderr | jq -r '
             select(.error and (.error | test("Suspended:") | not))
             | .line = (.error | capture("\\[(?<line>\\d+):(?<column>\\d+)\\]$")).line? // "1"
             # workaround
