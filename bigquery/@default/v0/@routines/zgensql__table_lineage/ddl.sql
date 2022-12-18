@@ -17,6 +17,7 @@ with recursive lineage as (
     format('%%s.%%s.%%s', dst_project, dst_dataset, dst_table) as destination
     , 0 as depth
     , relations.* except(unique_key)
+    , cast([] as array<string>) as _ancestors
   from relations
   where unique_key not like '%%(User)%%'
     and not starts_with(dst_table, '_')
@@ -29,11 +30,18 @@ with recursive lineage as (
     , lineage.src_dataset as dst_dataset
     , lineage.src_table as dst_table
     , relations.* except(dst_project, dst_dataset, dst_table, unique_key)
+    , lineage._ancestors || [_parent] as _ancestors
   from lineage
     join relations
       on (relations.dst_project, relations.dst_dataset, relations.dst_table)
        = (lineage.src_project, lineage.src_dataset, lineage.src_table)
-  where depth <= @max_depth
+    left join unnest([struct(
+      format('%T', (lineage.dst_project, lineage.dst_dataset, lineage.dst_table)) as _parent
+      , format('%T', (lineage.src_project, lineage.src_dataset, lineage.src_table)) as _self
+    )])
+  where
+    depth <= @max_depth
+    and ifnull(_self not in unnest(_ancestors), true)
 )
 , job as (
   select
@@ -150,7 +158,7 @@ with recursive lineage as (
     and not starts_with(src_table, '_')
     and not starts_with(src_dataset, '_script')
   union all
-  select * from lineage
+  select * except(_ancestors) from lineage
 )
 
 select * from user_query
