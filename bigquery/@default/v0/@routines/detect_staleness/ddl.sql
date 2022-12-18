@@ -78,6 +78,8 @@ begin
       struct('destination' as label, destination as target)
     ] || array(select as struct 'source', s from unnest(sources) s)
     )
+    where
+      not ends_with(target.dataset_id, 'INFORMATION_SCHEMA')
   )
   ;
 
