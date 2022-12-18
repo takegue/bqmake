@@ -5,6 +5,7 @@ on:
         - "v*"
 jobs:
   deploy:
+    concurrency: production
     permissions:
       contents: 'read'
       id-token: 'write'
