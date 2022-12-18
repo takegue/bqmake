@@ -1,0 +1,31 @@
+name: unittest
+run-name: Unit test
+on: [push]
+jobs:
+  unittest:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+      - uses: 'google-github-actions/auth@v1'
+        id: 'auth'
+        with:
+          workload_identity_provider: 'projects/1069005224497/locations/global/workloadIdentityPools/github-action/providers/github-action'
+          service_account: 'github-action@bqmake.iam.gserviceaccount.com'
+      - run: npm ci
+      - shell: bash
+        run: |
+          find ./bigquery -type f -name 'test.sql' | npx bqport push --format=json --maximum_bytes_billed 1000000000 --parameter update_golden:boolean:false | jq -r '
+            select(.error and (.error | test("Suspended:") | not))
+            | .line = (.error | capture("\\[(?<line>\\d+):(?<column>\\d+)\\]$")).line? // "1"
+            # workaround
+            | .name = (.name | gsub("bqmake"; "bigquery/@default") | gsub("(?<x>@[^/]+)"; "\(.x | ascii_downcase)"))
+            | @text "::error file=\(.name),line=\(.line)::\(.error)"
+          '
