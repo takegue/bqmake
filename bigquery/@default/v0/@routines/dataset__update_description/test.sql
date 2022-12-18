@@ -1,7 +1,11 @@
-begin
-  declare name, init_sql, defer_sql string;
-  set (name, init_sql, defer_sql) = (`bqmake.bqtest.zgensql__temporary_dataset`());
+declare name, init_sql, defer_sql string;
+set (name, init_sql, defer_sql) = (
+  "zztemp__dataset__update_description"
+  , "create schema if not exists zztemp__dataset__update_description"
+  , "drop schema if exists zztemp__dataset__update_description cascade"
+);
 
+begin
   execute immediate init_sql;
   /*
    * Lineage via temporary table
@@ -18,13 +22,18 @@ begin
       , (select count(1) from `project-id-7288898082930342315.sandbox.sample_clone_table`)
   ;
 
+  -- Cyclic relation
+  create or replace temp table `temp_table1`
+  as
+    select A as a from temp_table2
+  ;
+
   execute immediate
     format(
       "create or replace table `%s.sample_lineage` as select * from temp_table2"
       , name
     );
 
-  begin
     call `bqmake.v0.dataset__update_description`(
       [name]
       , (
@@ -39,10 +48,9 @@ begin
       , "format('%T', (catalog_name))"
       , @update_golden
     );
+  execute immediate defer_sql;
 
-    execute immediate defer_sql;
-    exception when error then
-      execute immediate defer_sql;
-      raise using message = format('Failed to update dataset description: %s', @@error.message);
-  end;
+exception when error then
+  execute immediate defer_sql;
+  raise using message = format('Failed to update dataset description: %s', @@error.message);
 end
