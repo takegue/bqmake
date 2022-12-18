@@ -99,38 +99,37 @@ begin
   -- Lineage Generation
   create or replace temp table `tmp_mermaid`
   as
-    with  datasource as (
+    with
+    datasource as (
       with _source as (
         select *
-        from `temp_lineage`
+        from `tmp_lineage`
         left join unnest([struct(
           substr(to_base64(md5(format('%s.%s.%s', dst_project, dst_dataset, dst_table))), 0, 4) as dst_hash
           , substr(to_base64(md5(format('%s.%s.%s', src_project, src_dataset, src_table))), 0, 4) as src_hash
-          ,
-            split(destination, '.')[safe_offset(0)] || '.' ||  split(destination, '.')[safe_offset(1)] as unit
+          , split(destination, '.')[safe_offset(0)] || '.' ||  split(destination, '.')[safe_offset(1)] as unit
         )])
         where
           ifnull(not starts_with(src_table, 'INFORMATION_SCHEMA'), true)
       )
       , exclude_temp_dataset as (
-        -- Exclude duplicate relation such as screipt temporary table like "(project)._script39ca6xxxxx.(table)"
         select
-          destination, dst_project, dst_dataset, src_project, src_dataset
-          , max(job_latest) as latest_ts
+            destination, dst_project, dst_dataset, src_project, src_dataset
+            , max(job_latest) as latest_ts
         from _source
         group by destination, dst_project, dst_dataset, src_project, src_dataset
         qualify 1 = row_number() over (
-          partition by
-          destination
-          , dst_project, if(starts_with(dst_dataset, '_script'), '(script)', dst_dataset)
-          , src_project, if(starts_with(src_dataset, '_script'), '(script)',src_dataset)
-          order by latest_ts desc
-        )
+            partition by
+            destination
+            , dst_project, if(starts_with(dst_dataset, '_script'), '(script)', dst_dataset)
+            , src_project, if(starts_with(src_dataset, '_script'), '(script)',src_dataset)
+            order by latest_ts desc
+          )
       )
       select
         * replace(
-          if(starts_with(dst_dataset, '_script'), '(script)', dst_dataset) as dst_dataset
-          , if(starts_with(src_dataset, '_script'), '(script)',src_dataset) as src_dataset
+          if(starts_with(dst_dataset, '_script'), '(#temporary)', dst_dataset) as dst_dataset
+          , if(starts_with(src_dataset, '_script'), '(#temporary)',src_dataset) as src_dataset
       )
       from _source
       join exclude_temp_dataset using(destination, dst_project, dst_dataset, src_project, src_dataset)
@@ -139,9 +138,11 @@ begin
       with mermeid_dataset_subgraph as (
         select
           unit
-          , format('subgraph %s.%s\n', project, dataset)
+          , project
+          , dataset
+          , format('subgraph "fa:fa-database %s"\n', dataset)
           || string_agg(
-            distinct format('\t%s(%s)', _hash, table)
+            distinct format('\t%s(fa:fa-table %s)', _hash, table)
             , '\n'
           )
           || '\nend'
@@ -153,10 +154,26 @@ begin
         ]) id
         group by unit, project, dataset
       )
+      , mermaid_project_subgprah as (
+        select
+          unit
+          , project
+          , if(
+              starts_with(unit, project)
+              -- Project-intra lineage:
+              , string_agg(mermaid_subgraph, '\n')
+              -- Project-inter lineage:
+              , format('subgraph "fa:fa-sitemap %s"\n', project)
+                || string_agg(mermaid_subgraph, '\n')
+                || '\nend'
+           ) as mermaid_subgraph
+        from mermeid_dataset_subgraph
+        group by unit, project
+      )
       select
         unit
         , string_agg(mermaid_subgraph, '\n') as nodes
-      from mermeid_dataset_subgraph
+      from mermaid_project_subgprah
       group by unit
     )
     , mermaid_relations as (
@@ -171,13 +188,14 @@ begin
       group by unit
     )
 
-    SELECT
+    select
       unit
       , format("graph LR\n%s\n%s", nodes, relations) as mermaid
-    FROM mermaid_nodes
+    from mermaid_nodes
     left join mermaid_relations using(unit)
   ;
 
+  -- Update dataset description
   for record in (
     with newone as (
       select
@@ -200,7 +218,7 @@ begin
           as description
         )
       from tmp_schema_options
-      left join unnest(target_schemata) as schema_name
+      join unnest(target_schemata) as schema_name
         using(schema_name)
       left join unnest([struct(
         '<!--- BQMAKE_DATASET: BEGIN -->' as header
@@ -235,8 +253,3 @@ begin
     ;
   end for;
 end;
-
--- Unit test
-begin
-  call `v0.dataset__update_description`(['v0'], null);
-end
