@@ -7,7 +7,7 @@ begin
    * Lineage via temporary table
    */
   create temp table `temp_table1`
-  as select 1 as a from sandbox.sample_table
+  as select 1 as a from `project-id-7288898082930342315.sandbox.sample_table`
   ;
 
   create temp table `temp_table2`
@@ -15,7 +15,7 @@ begin
     select a * 10 as A
     from
       temp_table1
-      , (select count(1) from sandbox.sample_clone_table)
+      , (select count(1) from `project-id-7288898082930342315.sandbox.sample_clone_table`)
   ;
 
   execute immediate
