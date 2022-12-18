@@ -144,8 +144,11 @@ begin
         , source.alignment_paylod as source
         , -- Check fully partition alignment for destination and sources.
           -- It means that # of Records = (# of source kind) * *(# of partition)
-          (select count(1) from unnest(sources) s where not starts_with(s.table_id, 'INFORMATION_SCHEMA')) * n_sources
-            = countif(source.partition_id is not null) over (partition by _v.partition_id)
+          ifnull(
+            (select count(1) from unnest(cast([] as array<struct<project_id string, dataset_id string, table_id string>>)) s where not starts_with(s.table_id, 'INFORMATION_SCHEMA')) * n_sources
+              = countif(source.partition_id is not null) over (partition by _v.partition_id)
+            , true
+          )
           as is_ready_every_sources
       from
         argument_alignment
@@ -159,26 +162,29 @@ begin
         coalesce(destination.partition_id, argument_alignment.partition_id) as partition_id
       )]) as _v
     )
-
+    , _final as (
     select
       array_agg(distinct partition_id order by partition_id)
     from aligned
     left join unnest([ifnull(destination.partition_id, null_value)]) as partition_id
     where
       is_ready_every_sources
-      and (
+      and ifnull(
         -- Staled if destination partition does not exist
         destination.last_modified_time is null
         -- Staled if partition is older than force_expired_at timestamp. If force_expired_at is null, the condition is ignored.
-        or ifnull(destination.last_modified_time <= options.force_expired_at, false)
+        -- or ifnull(destination.last_modified_time <= current_timestamp(), false)
         -- Staled destination partition only if source partition is enough stable and old
         or (
-          source.last_modified_time - destination.last_modified_time >= options.tolerate_staleness
+          source.last_modified_time - destination.last_modified_time >= interval 0 hour
           or (
             source.last_modified_time >= destination.last_modified_time
-            and current_timestamp() - destination.last_modified_time >= options.tolerate_staleness
+            and current_timestamp() - destination.last_modified_time >= interval 0 hour
           )
         )
+        , true
       )
+    )
+    select * from _final
   );
 end;
