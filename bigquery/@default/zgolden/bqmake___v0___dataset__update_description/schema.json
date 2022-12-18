@@ -1,0 +1,10 @@
+[
+  {
+    "name": "catalog_name",
+    "type": "STRING"
+  },
+  {
+    "name": "option_value",
+    "type": "STRING"
+  }
+]
