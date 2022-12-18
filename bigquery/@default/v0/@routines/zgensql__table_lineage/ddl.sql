@@ -36,8 +36,8 @@ with recursive lineage as (
       on (relations.dst_project, relations.dst_dataset, relations.dst_table)
        = (lineage.src_project, lineage.src_dataset, lineage.src_table)
     left join unnest([struct(
-      format('%T', (lineage.dst_project, lineage.dst_dataset, lineage.dst_table)) as _parent
-      , format('%T', (lineage.src_project, lineage.src_dataset, lineage.src_table)) as _self
+      format('%%T', (lineage.dst_project, lineage.dst_dataset, lineage.dst_table)) as _parent
+      , format('%%T', (lineage.src_project, lineage.src_dataset, lineage.src_table)) as _self
     )])
   where
     depth <= @max_depth
