@@ -118,7 +118,7 @@ with recursive lineage as (
       , if(safe.parse_date('%%Y%%m%%d', _dst_suffix_number) is not null, regexp_replace(destination_table.table_id, r'\d+$', '*'), destination_table.table_id) as normalized_dst_table
     )])
   where
-    and v.statement_type in (
+    v.statement_type in (
       'ALTER_TABLE'
       , 'ALTER_VIEW'
       , 'ASSERT'
