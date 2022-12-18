@@ -99,17 +99,41 @@ begin
   -- Lineage Generation
   create or replace temp table `tmp_mermaid`
   as
-    with datasource as (
-      select *
-      from `tmp_lineage`
-      left join unnest([struct(
-        substr(to_base64(md5(format('%s.%s.%s', dst_project, dst_dataset, dst_table))), 0, 4) as dst_hash
-        , substr(to_base64(md5(format('%s.%s.%s', src_project, src_dataset, src_table))), 0, 4) as src_hash
-        ,
-          split(destination, '.')[safe_offset(0)] || '.' ||  split(destination, '.')[safe_offset(1)] as unit
-      )])
-    where
-      ifnull(not starts_with(src_table, 'INFORMATION_SCHEMA'), true)
+    with  datasource as (
+      with _source as (
+        select *
+        from `temp_lineage`
+        left join unnest([struct(
+          substr(to_base64(md5(format('%s.%s.%s', dst_project, dst_dataset, dst_table))), 0, 4) as dst_hash
+          , substr(to_base64(md5(format('%s.%s.%s', src_project, src_dataset, src_table))), 0, 4) as src_hash
+          ,
+            split(destination, '.')[safe_offset(0)] || '.' ||  split(destination, '.')[safe_offset(1)] as unit
+        )])
+        where
+          ifnull(not starts_with(src_table, 'INFORMATION_SCHEMA'), true)
+      )
+      , exclude_temp_dataset as (
+        -- Exclude duplicate relation such as screipt temporary table like "(project)._script39ca6xxxxx.(table)"
+        select
+          destination, dst_project, dst_dataset, src_project, src_dataset
+          , max(job_latest) as latest_ts
+        from _source
+        group by destination, dst_project, dst_dataset, src_project, src_dataset
+        qualify 1 = row_number() over (
+          partition by
+          destination
+          , dst_project, if(starts_with(dst_dataset, '_script'), '(script)', dst_dataset)
+          , src_project, if(starts_with(src_dataset, '_script'), '(script)',src_dataset)
+          order by latest_ts desc
+        )
+      )
+      select
+        * replace(
+          if(starts_with(dst_dataset, '_script'), '(script)', dst_dataset) as dst_dataset
+          , if(starts_with(src_dataset, '_script'), '(script)',src_dataset) as src_dataset
+      )
+      from _source
+      join exclude_temp_dataset using(destination, dst_project, dst_dataset, src_project, src_dataset)
     )
     , mermaid_nodes as (
       with mermeid_dataset_subgraph as (
