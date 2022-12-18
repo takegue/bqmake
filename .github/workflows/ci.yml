@@ -20,4 +20,12 @@ jobs:
           workload_identity_provider: 'projects/1069005224497/locations/global/workloadIdentityPools/github-action/providers/github-action'
           service_account: 'github-action@bqmake.iam.gserviceaccount.com'
       - run: npm ci
-      - run: find ./bigquery -type f | npx bqport push --format=json --dry-run
+      - shell: bash
+        run: |
+          find ./bigquery -type f | npx bqport push --format=json --dry-run | jq -r '
+            select(.error and (.error | test("Suspended:") | not))
+            | .line = (.error | capture("\\[(?<line>\\d+):(?<column>\\d+)\\]$")).line? // "1"
+            # workaround
+            | .name = (.name | gsub("bqmake"; "bigquery/@default") | gsub("(?<x>@[^/]+)"; "\(.x | ascii_downcase)"))
+            | @text "::error file=\(.name),line=\(.line)::\(.error)"
+          '
