@@ -110,7 +110,6 @@ with recursive lineage as (
       as wait_time_ms
       , regexp_extract(ref.table_id, r'\d+$') as _src_suffix_number
       , regexp_extract(destination_table.table_id, r'\d+$') as _dst_suffix_number
-      , destination_table = ref as is_self_reference
       , starts_with(destination_table.dataset_id, '_') and char_length(destination_table.dataset_id) > 40 as is_temporary
       , starts_with(destination_table.table_id, 'anon') as is_anonymous_query
     )]) as v
@@ -119,7 +118,6 @@ with recursive lineage as (
       , if(safe.parse_date('%%Y%%m%%d', _dst_suffix_number) is not null, regexp_replace(destination_table.table_id, r'\d+$', '*'), destination_table.table_id) as normalized_dst_table
     )])
   where
-    not is_self_reference
     and v.statement_type in (
       'ALTER_TABLE'
       , 'ALTER_VIEW'
