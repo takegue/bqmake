@@ -12,6 +12,7 @@ on:
 
 jobs:
   bqport-pull:
+    concurrency: production
     runs-on: ubuntu-latest
     permissions:
       contents: write
