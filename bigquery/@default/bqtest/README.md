@@ -71,69 +71,49 @@ call `bqmake.v0.assert_golden`(
 
 ## Example lineage
 
+
 <!--- BQMAKE_DATASET: BEGIN -->
 ```mermaid
 graph LR
-subgraph bqmake.bqtest
-	eZPC(bqmake)
-	1+1w(demo_sample_table)
-	NcSI(demo_mat_wiki)
-	Z+1n(demo_sample_partition_table)
-	Pv1l(demo_sample_shards_*)
-	7hM4(demo_sample_table__cache)
-	SsQj(demo_wiki)
-	qQZt(mateview)
-	qt1O(mateview1)
-	E124(mateview2)
-	z4a/(mateview3)
-	2zH/(mateview_cache)
-	xksx(monitor__zsnapshot_profile__demo_sample_table__entity)
-	Gtda(zsnapshot_profile__demo_sample_table)
-	PnMI(zzsrepo__zsnapshot_profile__demo_sample_table)
-	lhos(monitor__zsnapshot_profile__demo_sample_table__snapshot_job)
-	leEX(monitor__zsnapshot_profile__demo_sample_view__entity)
-	TIeN(zsnapshot_profile__demo_sample_view)
-	F3Xr(monitor__zsnapshot_profile__demo_sample_view__snapshot_job)
-	e0BA(snapshot_routines_all)
-	Rybc(zzsrepo__snapshot_routines_all)
-	PZ0M(temp_mateview)
-	mo9z(zsnapshot_routines__all)
-	fFLB(zsnapshot_routines_all)
+subgraph "fa:fa-sitemap bigquery-public-data"
+subgraph "fa:fa-database austin_311"
+	CNg3(fa:fa-table 311_service_requests)
 end
-subgraph bigquery-public-data.austin_311
-	CNg3(311_service_requests)
 end
-subgraph bigquery-public-data.google_trends
-	0JIj(top_rising_terms)
-	1imV(top_terms)
+subgraph "fa:fa-database bqtest"
+	/VpU(fa:fa-table zzsrepo__zgolden_routines)
+	1+1w(fa:fa-table demo_sample_table)
+	2KhS(fa:fa-table zzsrepo__zsnapshot_profile__demo_sample_view)
+	7hM4(fa:fa-table demo_sample_table__cache)
+	Gtda(fa:fa-table zsnapshot_profile__demo_sample_table)
+	PnMI(fa:fa-table zzsrepo__zsnapshot_profile__demo_sample_table)
+	Rybc(fa:fa-table zzsrepo__snapshot_routines_all)
+	TIeN(fa:fa-table zsnapshot_profile__demo_sample_view)
+	YtHn(fa:fa-table zzsrepo__zsnapshot_routines_all)
+	Z+1n(fa:fa-table demo_sample_partition_table)
+	e0BA(fa:fa-table snapshot_routines_all)
+	fFLB(fa:fa-table zsnapshot_routines_all)
+	jknI(fa:fa-table demo_sample_partition_table__cache)
+	qQZt(fa:fa-table mateview)
+	qhIW(fa:fa-table zgolden_routines)
+	qt1O(fa:fa-table mateview1)
 end
-subgraph bigquery-public-data.wikipedia
-	2fna(pageviews_2022)
-end
-1+1w --> eZPC
-CNg3 --> 1+1w
-1+1w --> NcSI
-0JIj --> Z+1n
-Z+1n --> 7hM4
-1+1w --> 7hM4
-2fna --> SsQj
-1+1w --> qQZt
-Z+1n --> qt1O
-1+1w --> qt1O
-1+1w --> E124
-Z+1n --> z4a/
-Z+1n --> 2zH/
-Gtda --> xksx
-PnMI --> Gtda
-1+1w --> Gtda
-7hM4 --> Gtda
+/VpU --> /VpU
+/VpU --> qhIW
+1+1w --> 2KhS
 1+1w --> PnMI
+1+1w --> qQZt
+1+1w --> qt1O
+2KhS --> TIeN
+7hM4 --> 2KhS
 7hM4 --> PnMI
-Gtda --> lhos
-TIeN --> leEX
-1imV --> TIeN
-TIeN --> F3Xr
+CNg3 --> 1+1w
+PnMI --> Gtda
+Rybc --> Rybc
 Rybc --> e0BA
-Z+1n --> PZ0M
+YtHn --> YtHn
+YtHn --> fFLB
+Z+1n --> jknI
+Z+1n --> qt1O
 ```
 <!--- BQMAKE_DATASET: END -->
