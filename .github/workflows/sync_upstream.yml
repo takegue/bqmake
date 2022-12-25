@@ -36,7 +36,7 @@ jobs:
         with:
           branch: 'ci/${{ github.run_id }}'
           commit-message: 'Update metadata files by `bqport pull` on CI'
-          author: 'github-actions[bot]<github-actions[bot]@users.noreply.github.com>'
+          author: 'github-actions[bot]<41898282+github-actions[bot]@users.noreply.github.com>'
           title: 'Update metadata files by CI'
           body: |
             This PR updates some generated files to the latest by running `bqport pull`.
