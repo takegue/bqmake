@@ -146,56 +146,65 @@ end;
 
 -- Unit test
 begin
-  create schema if not exists `zvalidaiton__dataset__update_labels`;
+  declare name, init_sql, defer_sql string;
+  set (name, init_sql, defer_sql) = (`v0.zgensql__temporary_dataset`(false));
+  execute immediate init_sql;
+  begin
+    execute immediate format("""
+      create or replace table `%s.table1`
+      partition by date_jst
+      as
+      select date '2006-01-02' as date_jst
+    """, name);
 
-  create or replace table `zvalidaiton__dataset__update_labels.table1`
-  partition by date_jst
-  as
-  select date '2006-01-02' as date_jst
-  ;
+    execute immediate format("""
+      create or replace view `%s.view1`
+      as
+      select * from `%s.table1`
+    """, name, name);
 
-  create or replace view `zvalidaiton__dataset__update_labels.view1`
-  as
-  select * from `zvalidaiton__dataset__update_labels.table1`
-  ;
+    call `v0.dataset__update_table_labels`((null, name));
 
-  call `v0.dataset__update_table_labels`((null, 'zvalidaiton__dataset__update_labels'))
-  ;
+    execute immediate replace("""
+      with expected as (
+        select
+          'labels' as option_name
+          , *
+        from unnest([
+          struct('table1' as table_name, 'partition-min' as key, '20060102' as value)
+          , struct('table1' as table_name, 'partition-max' as key, '20060102' as value)
+          , struct('table1' as table_name, 'partition-skip' as key, '0' as value)
+          , struct('view1' as table_name, 'partition-min' as key, '20060102' as value)
+          , struct('view1' as table_name, 'partition-max' as key, '20060102' as value)
+          , struct('view1' as table_name, 'partition-skip' as key, '0' as value)
+        ])
+      )
+      , validation as (
+        select
+          table_name, key
+          , expected.value = actual.value as assert
+          , format('%t: Expected %t but actual is %t', (table_name, key), expected.value, actual.value) as err
+        from expected
+        left join `!dataset!.INFORMATION_SCHEMA.TABLE_OPTIONS` using(table_name, option_name)
+        left join unnest(`v0.zget_bqlabel_from_option`(option_value)) as actual using(key)
+      )
+      , report as (
+        select as value
+          string_agg(err, ', ')
+        from validation
+        where not assert
+      )
 
-  with expected as (
-    select
-      'labels' as option_name
-      , *
-    from unnest([
-      struct('table1' as table_name, 'partition-min' as key, '20060102' as value)
-      , struct('table1' as table_name, 'partition-max' as key, '20060102' as value)
-      , struct('table1' as table_name, 'partition-skip' as key, '0' as value)
-      , struct('view1' as table_name, 'partition-min' as key, '20060102' as value)
-      , struct('view1' as table_name, 'partition-max' as key, '20060102' as value)
-      , struct('view1' as table_name, 'partition-skip' as key, '0' as value)
-    ])
-  )
-  , validation as (
-    select
-      table_name, key
-      , expected.value = actual.value as assert
-      , format('%t: Expected %t but actual is %t', (table_name, key), expected.value, actual.value) as err
-    from expected
-    left join `zvalidaiton__dataset__update_labels.INFORMATION_SCHEMA.TABLE_OPTIONS` using(table_name, option_name)
-    left join unnest(`v0.zget_bqlabel_from_option`(option_value)) as actual using(key)
-  )
-  , report as (
-    select as value
-      string_agg(err, ', ')
-    from validation
-    where not assert
-  )
-
-  select
-    error(ifnull(report, 'unrechable'))
-  from report
-  where report is not null
-  ;
-
-  drop schema if exists `zvalidaiton__dataset__update_labels` CASCADE;
+      select
+        error(ifnull(report, 'unrechable'))
+      from report
+      where report is not null
+      """
+      , '!dataset!', name
+    );
+    execute immediate defer_sql;
+  exception when error then
+    execute immediate defer_sql;
+    raise using message = @@error.message;
+  end;
 end
