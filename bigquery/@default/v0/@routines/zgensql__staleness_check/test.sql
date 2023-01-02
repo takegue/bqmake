@@ -203,9 +203,9 @@ begin
       (null, "zpreview_test2", "dest_no_partition")
       , [
         (string(null), "zpreview_test2", "ref_no_partition")
-        , (string(null), "zpreview_test2", "INFORMATION_SCHEMA.VIEWS")
-        , (string(null), "zpreview_test2", "INFORMATION_SCHEMA.PARTITIONS")
-        , (string(null), "zpreview_test2", "INFORMATION_SCHEMA.TABLES")
+        , (string(null), "zpreview_test2.INFORMATION_SCHEMA", "VIEWS")
+        , (string(null), "zpreview_test2.INFORMATION_SCHEMA", "PARTITIONS")
+        , (string(null), "zpreview_test2.INFORMATION_SCHEMA", "TABLES")
       ]
       , [('__NULL__', ["__NULL__"])]
       , to_json(struct(
@@ -215,7 +215,6 @@ begin
     )
     into ret
   ;
-
   assert ret[safe_offset(0)] = '__NULL__'
     as "Stale non-partitioned table under non-partitioned source: dest_no_partition > ref_no_partition"
   ;
