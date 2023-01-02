@@ -1,40 +1,40 @@
 declare ret array<string>;
-create schema if not exists `zpreview_test`;
+create schema if not exists `zpreview_test2`;
 
 begin
-  create or replace table `zpreview_test.ref1`
+  create or replace table `zpreview_test2.ref1`
   partition by date_jst
   as select date '2006-01-02' as date_jst
   ;
 
-  create or replace table `zpreview_test.dest1`
+  create or replace table `zpreview_test2.dest1`
   partition by date_jst
   as
   select date '2006-01-02' as date_jst
   ;
 
-  create or replace table `zpreview_test.dest_no_partition`
+  create or replace table `zpreview_test2.dest_no_partition`
   as
   select date '2006-01-02' as date_jst
   ;
 
-  create or replace table `zpreview_test.ref_20060102`
+  create or replace table `zpreview_test2.ref_20060102`
   partition by date_jst
   as select date '2006-01-02' as date_jst
   ;
 
-  create or replace table `zpreview_test.ref_20060103`
+  create or replace table `zpreview_test2.ref_20060103`
   partition by date_jst
   as select date '2006-01-03' as date_jst
   ;
 
-  create or replace table `zpreview_test.ref_no_partition`
+  create or replace table `zpreview_test2.ref_no_partition`
   as select date '2006-01-02' as date_jst
   ;
 
   execute immediate
     `v0.zgensql__staleness_check`(
-      (null, "zpreview_test", "dest1")
+      (null, "zpreview_test2", "dest1")
       , []
       , [("__ANY__", ["__ANY__"])]
       , to_json(struct(interval 0 hour as tolerate_staleness, @@project_id as default_project_id))
@@ -47,8 +47,8 @@ begin
   -- INFORMATIN_SCHEMA sourcs
   execute immediate
     `v0.zgensql__staleness_check`(
-    (null, "zpreview_test", "dest1")
-    , [(string(null), "zpreview_test.INFORMATION_SCHEMA", "PARTITIONS")]
+    (null, "zpreview_test2", "dest1")
+    , [(string(null), "zpreview_test2.INFORMATION_SCHEMA", "PARTITIONS")]
     , [("__ANY__", ["__ANY__"])]
       , to_json(struct(interval 0 hour as tolerate_staleness, @@project_id as default_project_id))
     ) into ret
@@ -59,8 +59,8 @@ begin
 
   execute immediate
     `v0.zgensql__staleness_check`(
-    (null, "zpreview_test", "dest1")
-    , [(string(null), "zpreview_test", "ref1")]
+    (null, "zpreview_test2", "dest1")
+    , [(string(null), "zpreview_test2", "ref1")]
     , [("20060102", ["20060102"])]
       , to_json(struct(interval 0 hour as tolerate_staleness, @@project_id as default_project_id))
     ) into ret
@@ -72,8 +72,8 @@ begin
 
   execute immediate
     `v0.zgensql__staleness_check`(
-    (null, "zpreview_test", "dest1")
-    , [(string(null), "zpreview_test", "ref1")]
+    (null, "zpreview_test2", "dest1")
+    , [(string(null), "zpreview_test2", "ref1")]
     , [("20060102", ["20060102"])]
     , to_json(struct(
           interval 0 hour as tolerate_staleness
@@ -89,10 +89,10 @@ begin
 
   execute immediate
     `v0.zgensql__staleness_check`(
-    (null, "zpreview_test", "dest1")
+    (null, "zpreview_test2", "dest1")
     , [
-        (string(null), "zpreview_test", "ref1")
-        , (string(null), "zpreview_test", "ref_20060103")
+        (string(null), "zpreview_test2", "ref1")
+        , (string(null), "zpreview_test2", "ref_20060103")
       ]
     , [("20060102", ["20060102"])]
     , to_json(struct(
@@ -108,10 +108,10 @@ begin
 
   execute immediate
     `v0.zgensql__staleness_check`(
-    (null, "zpreview_test", "dest1")
+    (null, "zpreview_test2", "dest1")
     , [
-        (string(null), "zpreview_test", "ref1")
-        , (string(null), "zpreview_test", "ref_20060103")
+        (string(null), "zpreview_test2", "ref1")
+        , (string(null), "zpreview_test2", "ref_20060103")
       ]
     , [("20060102", ["__ANY__"])]
     , to_json(struct(
@@ -127,10 +127,10 @@ begin
 
   execute immediate
     `v0.zgensql__staleness_check`(
-      (null, "zpreview_test", "dest1")
+      (null, "zpreview_test2", "dest1")
       , [
-          (string(null), "zpreview_test", "ref1")
-          , (string(null), "zpreview_test", "ref_20060102")
+          (string(null), "zpreview_test2", "ref1")
+          , (string(null), "zpreview_test2", "ref_20060102")
         ]
       , [("20060102", ["20060102"])]
       , to_json(struct(
@@ -147,8 +147,8 @@ begin
 
   execute immediate
     `v0.zgensql__staleness_check`(
-      (null, "zpreview_test", "dest1")
-      , [(string(null), "zpreview_test", "ref_no_partition")]
+      (null, "zpreview_test2", "dest1")
+      , [(string(null), "zpreview_test2", "ref_no_partition")]
       , [('20060102', ["__NULL__"])]
         , to_json(struct(
           interval 0 hour as tolerate_staleness
@@ -165,8 +165,8 @@ begin
 
   execute immediate
     `v0.zgensql__staleness_check`(
-      (null, "zpreview_test", "dest1")
-      , [(string(null), "zpreview_test", "ref_no_partition")]
+      (null, "zpreview_test2", "dest1")
+      , [(string(null), "zpreview_test2", "ref_no_partition")]
       , [('20060102', ["20060102"])]
         , to_json(struct(
           interval 0 hour as tolerate_staleness
@@ -183,8 +183,8 @@ begin
 
   execute immediate
     `v0.zgensql__staleness_check`(
-      (null, "zpreview_test", "dest_no_partition")
-      , [(string(null), "zpreview_test", "ref_no_partition")]
+      (null, "zpreview_test2", "dest_no_partition")
+      , [(string(null), "zpreview_test2", "ref_no_partition")]
       , [('__NULL__', ["__NULL__"])]
       , to_json(struct(
         interval 0 hour as tolerate_staleness
@@ -200,12 +200,12 @@ begin
 
   execute immediate
     `v0.zgensql__staleness_check`(
-      (null, "zpreview_test", "dest_no_partition")
+      (null, "zpreview_test2", "dest_no_partition")
       , [
-        (string(null), "zpreview_test", "ref_no_partition")
-        , (string(null), "zpreview_test", "INFORMATION_SCHEMA.VIEWS")
-        , (string(null), "zpreview_test", "INFORMATION_SCHEMA.PARTITIONS")
-        , (string(null), "zpreview_test", "INFORMATION_SCHEMA.TABLES")
+        (string(null), "zpreview_test2", "ref_no_partition")
+        , (string(null), "zpreview_test2", "INFORMATION_SCHEMA.VIEWS")
+        , (string(null), "zpreview_test2", "INFORMATION_SCHEMA.PARTITIONS")
+        , (string(null), "zpreview_test2", "INFORMATION_SCHEMA.TABLES")
       ]
       , [('__NULL__', ["__NULL__"])]
       , to_json(struct(
@@ -220,8 +220,8 @@ begin
     as "Stale non-partitioned table under non-partitioned source: dest_no_partition > ref_no_partition"
   ;
 
-  drop schema if exists `zpreview_test` cascade;
+  drop schema if exists `zpreview_test2` cascade;
 exception when error then
-  drop schema if exists `zpreview_test` cascade;
+  drop schema if exists `zpreview_test2` cascade;
   raise using message = @@error.message;
 end
