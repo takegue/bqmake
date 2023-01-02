@@ -167,27 +167,29 @@ begin
       )]) as _v
     )
     , _final as (
-    select
-      array_agg(distinct partition_id order by partition_id)
-    from aligned
-    left join unnest([ifnull(destination.partition_id, null_value)]) as partition_id
-    where
-      is_ready_every_sources
-      and ifnull(
-        -- Staled if destination partition does not exist
-        destination.last_modified_time is null
-        -- Staled if partition is older than force_expired_at timestamp. If force_expired_at is null, the condition is ignored.
-        or ifnull(destination.last_modified_time <= options.force_expired_at, false)
-        -- Staled destination partition only if source partition is enough stable and old
-        or (
-          source.last_modified_time - destination.last_modified_time >= options.tolerate_staleness
+      select
+        array_agg(distinct partition_id order by partition_id)
+      from aligned
+      left join unnest([ifnull(destination.partition_id, null_value)]) as partition_id
+      where
+        is_ready_every_sources
+        and ifnull(
+          -- Staled if destination partition does not exist
+          destination.last_modified_time is null
+          -- Staled if partition is older than force_expired_at timestamp. If force_expired_at is null, the condition is ignored.
+          or ifnull(destination.last_modified_time <= options.force_expired_at, false)
+          -- Staled destination partition only if source partition is enough stable and old
           or (
-            source.last_modified_time >= destination.last_modified_time
-            and current_timestamp() - destination.last_modified_time >= options.tolerate_staleness
+            source.last_modified_time - destination.last_modified_time >= options.tolerate_staleness
+            or (
+              source.last_modified_time >= destination.last_modified_time
+              and current_timestamp() - destination.last_modified_time >= options.tolerate_staleness
+            )
           )
+          , true
         )
-        , true
-      )
+    )
     select * from _final
-  );
+  )
+
 end;
