@@ -17,7 +17,7 @@ Argument
 - partition_alignments : partition alignments
 - options              : option values in json format
   * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)
-  *    force_expired_at : The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: NULL].
+  *   force_expired_at : The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: NULL].
 
 
 Stalenss and Stablity Margin Checks
@@ -38,158 +38,14 @@ Staleness Timeline  : | Fresh | Stale                   |
                               ^ force_expired_at
 """)
 begin
-  declare null_value string default '__NULL__';
-  declare any_value string default '__ANY__';
-  declare options struct<
-    tolerate_staleness interval
-    , force_expired_at timestamp
-  > default (
-    ifnull(cast(safe.string(options_json.tolerate_staleness) as interval), interval 30 minute)
-    , safe.timestamp(safe.string(options_json.force_expired_at))
-  );
-
-  -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
-  execute immediate (
-    select as value
-      "create or replace temp table `_partitions_temp` as "
-      || string_agg(
-        format("""
-          select
-            '%s' as label
-            , '%s' as argument
-            , *
-          from `%s.%s.INFORMATION_SCHEMA.PARTITIONS`
-          where %s
-          """
-          , label
-          , target.table_id
-          , ifnull(target.project_id, @@project_id), target.dataset_id
-          , format(
-            if(
-              contains_substr(target.table_id, '*')
-              , 'starts_with(table_name, replace("%s", "*", ""))'
-              , 'table_name = "%s"'
-            )
-            , target.table_id)
-        )
-        , '\nunion all'
-      )
-    from unnest([
-      struct('destination' as label, destination as target)
-    ] || array(select as struct 'source', s from unnest(sources) s)
-    )
-    where
-      not ends_with(target.dataset_id, 'INFORMATION_SCHEMA')
-  )
-  ;
-
-  -- Alignment and extract staled partition
-  set ret = (
-    with
-    pseudo_partition as (
-      SELECT
-        label
-        , _pseudo_partitions
-        , _pseudo_partition_id as partition_id
-        , struct(partition_id, table_catalog, table_schema, table_name, last_modified_time)
-          as alignment_paylod
-      from _partitions_temp
-      left join unnest([struct(
-        contains_substr(argument, '*') as has_wildcard
-        , regexp_replace(argument, r'\*$', '') as pattern
-        , (
-          select as value
-            ifnull(
-              array_agg(distinct nullif(nullif(d, any_value), null_value) ignore nulls)
-              , []
-            )
-          from unnest(partition_alignments) a
-          left join unnest(a.sources) src
-          left join unnest([a.destination, src]) d
-        ) as _pseudo_partitions
-      )])
-      /*
-      * Pesudo partition generation for alignment
-      */
-      left join unnest(
-        case
-          --  _TABLE_SUFFIX -> __ANY__, __NULL__, _TABLE_SUFFIX
-          when has_wildcard
-            then [null_value, any_value, regexp_replace(table_name, format('^%s', pattern), '')]
-          --           null -> __ANY__, __NULL__, 20220101, 20220102, ... (alignment range)
-          when partition_id is null
-            then [null_value, any_value] || _pseudo_partitions
-          --       __NULL__ -> __ANY__, __NULL__
-          when partition_id = null_value
-            then [null_value, any_value]
-          -- _PARTITIONTIME -> __ANY__, _PARTITIONTIME
-          else
-            [any_value, partition_id]
-        end
-      ) as _pseudo_partition_id
-      where
-        table_name = argument or starts_with(table_name, pattern)
-    )
-    , argument_alignment as (
-      select
-        a.destination as partition_id
-        , array_length(a.sources) as n_sources
-        , source as source_partition_id
-      from unnest(partition_alignments) a, unnest(a.sources) as source
-    )
-    , aligned as (
-      select
-        struct(
-          _v.partition_id
-          , destination.alignment_paylod.last_modified_time
-        ) as destination
-        , source.alignment_paylod as source
-        , -- Check fully partition alignment for destination and sources.
-          -- It means that # of Records = (# of source kind) * *(# of partition)
-          ifnull(
-            (
-              select count(1) from unnest(sources) s
-              where not ends_with(s.dataset_id, 'INFORMATION_SCHEMA')) * n_sources
-              = countif(source.partition_id is not null) over (partition by _v.partition_id)
-            , true
-          )
-          as is_ready_every_sources
-      from
-        argument_alignment
-      left join
-        (select * from pseudo_partition where label = 'destination') as destination
-        using(partition_id)
-      left join
-        (select * from pseudo_partition where label = 'source') as source
-        on source_partition_id = source.partition_id
-      left join unnest([struct(
-        coalesce(destination.partition_id, argument_alignment.partition_id) as partition_id
-      )]) as _v
-    )
-    , _final as (
-      select
-        array_agg(distinct partition_id order by partition_id)
-      from aligned
-      left join unnest([ifnull(destination.partition_id, null_value)]) as partition_id
-      where
-        is_ready_every_sources
-        and ifnull(
-          -- Staled if destination partition does not exist
-          destination.last_modified_time is null
-          -- Staled if partition is older than force_expired_at timestamp. If force_expired_at is null, the condition is ignored.
-          or ifnull(destination.last_modified_time <= options.force_expired_at, false)
-          -- Staled destination partition only if source partition is enough stable and old
-          or (
-            source.last_modified_time - destination.last_modified_time >= options.tolerate_staleness
-            or (
-              source.last_modified_time >= destination.last_modified_time
-              and current_timestamp() - destination.last_modified_time >= options.tolerate_staleness
-            )
-          )
-          , true
-        )
-    )
-    select * from _final
-  );
-
+  execute immediate `v0.zgensql__staleness_check`(
+    destination
+    , sources
+    , partition_alignments
+    , to_json(struct(
+      safe.timestamp(safe.string(options_json.force_expired_at)) as force_expired_at
+      , ifnull(cast(safe.string(options_json.tolerate_staleness) as interval), interval 30 minute) as tolerate_staleness
+      , @@project_id as default_project_id
+    ))
+  ) into ret
 end;
