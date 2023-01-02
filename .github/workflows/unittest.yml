@@ -1,6 +1,6 @@
 name: unittest
 run-name: Unit test
-on: [push]
+on: [push, pull_request]
 jobs:
   unittest:
     permissions:
