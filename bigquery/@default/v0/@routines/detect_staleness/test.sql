@@ -51,11 +51,9 @@ begin
     , [("__ANY__", ["__ANY__"])]
     , to_json(struct(interval 0 hour as tolerate_staleness))
   );
-  --
+
   assert ret[safe_offset(0)] is not null
     as "INFORMATIN_SCHEMA sourcs will get always staled ";
-
-  return;
 
   call `v0.detect_staleness`(
     ret

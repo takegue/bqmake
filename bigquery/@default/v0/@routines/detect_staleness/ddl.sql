@@ -147,7 +147,9 @@ begin
         , -- Check fully partition alignment for destination and sources.
           -- It means that # of Records = (# of source kind) * *(# of partition)
           ifnull(
-            (select count(1) from unnest(cast([] as array<struct<project_id string, dataset_id string, table_id string>>)) s where not starts_with(s.table_id, 'INFORMATION_SCHEMA')) * n_sources
+            (
+              select count(1) from unnest(sources) s
+              where not ends_with(s.dataset_id, 'INFORMATION_SCHEMA')) * n_sources
               = countif(source.partition_id is not null) over (partition by _v.partition_id)
             , true
           )
@@ -175,18 +177,17 @@ begin
         -- Staled if destination partition does not exist
         destination.last_modified_time is null
         -- Staled if partition is older than force_expired_at timestamp. If force_expired_at is null, the condition is ignored.
-        -- or ifnull(destination.last_modified_time <= current_timestamp(), false)
+        or ifnull(destination.last_modified_time <= options.force_expired_at, false)
         -- Staled destination partition only if source partition is enough stable and old
         or (
-          source.last_modified_time - destination.last_modified_time >= interval 0 hour
+          source.last_modified_time - destination.last_modified_time >= options.tolerate_staleness
           or (
             source.last_modified_time >= destination.last_modified_time
-            and current_timestamp() - destination.last_modified_time >= interval 0 hour
+            and current_timestamp() - destination.last_modified_time >= options.tolerate_staleness
           )
         )
         , true
       )
-    )
     select * from _final
   );
 end;

@@ -34,7 +34,7 @@ begin
       , name
     );
 
-    call `bqmake.v0.dataset__update_description`(
+    call `v0.dataset__update_description`(
       [name]
       , (
         current_timestamp() - interval 1 hour

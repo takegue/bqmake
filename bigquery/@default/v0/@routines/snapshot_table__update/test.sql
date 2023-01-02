@@ -44,7 +44,7 @@ begin
   do
     set previous_process_bytes = @@script.bytes_processed;
 
-    call `bqmake.v0.snapshot_table__update`(
+    call `v0.snapshot_table__update`(
       destination
       , null
       , (unique_key, t.query, t.ts)
