@@ -190,6 +190,6 @@ begin
         )
     )
     select * from _final
-  )
+  );
 
 end;
