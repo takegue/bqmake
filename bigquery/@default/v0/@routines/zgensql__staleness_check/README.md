@@ -3,13 +3,13 @@ Extracts partitions that are stale.
 Argument
 ===
 
-- ret                  : Output variable. array of staled partition like 20220101
 - destination          : destination table
 - sources              : source tables
 - partition_alignments : partition alignments
 - options              : option values in json format
+  * default_project_id : default_project_id
   * tolerate_staleness : if the partition is older than this value (Default: interval 0 minute)
-  *   force_expired_at : The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: NULL].
+  *    force_expired_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: NULL].
 
 
 Stalenss and Stablity Margin Checks

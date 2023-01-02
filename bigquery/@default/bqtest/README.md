@@ -72,6 +72,7 @@ call `bqmake.v0.assert_golden`(
 ## Example lineage
 
 
+
 <!--- BQMAKE_DATASET: BEGIN -->
 ```mermaid
 graph LR
@@ -81,39 +82,10 @@ subgraph "fa:fa-database austin_311"
 end
 end
 subgraph "fa:fa-database bqtest"
-	/VpU(fa:fa-table zzsrepo__zgolden_routines)
 	1+1w(fa:fa-table demo_sample_table)
-	2KhS(fa:fa-table zzsrepo__zsnapshot_profile__demo_sample_view)
-	7hM4(fa:fa-table demo_sample_table__cache)
-	Gtda(fa:fa-table zsnapshot_profile__demo_sample_table)
-	PnMI(fa:fa-table zzsrepo__zsnapshot_profile__demo_sample_table)
-	Rybc(fa:fa-table zzsrepo__snapshot_routines_all)
-	TIeN(fa:fa-table zsnapshot_profile__demo_sample_view)
-	YtHn(fa:fa-table zzsrepo__zsnapshot_routines_all)
-	Z+1n(fa:fa-table demo_sample_partition_table)
-	e0BA(fa:fa-table snapshot_routines_all)
-	fFLB(fa:fa-table zsnapshot_routines_all)
-	jknI(fa:fa-table demo_sample_partition_table__cache)
-	qQZt(fa:fa-table mateview)
-	qhIW(fa:fa-table zgolden_routines)
 	qt1O(fa:fa-table mateview1)
 end
-/VpU --> /VpU
-/VpU --> qhIW
-1+1w --> 2KhS
-1+1w --> PnMI
-1+1w --> qQZt
 1+1w --> qt1O
-2KhS --> TIeN
-7hM4 --> 2KhS
-7hM4 --> PnMI
 CNg3 --> 1+1w
-PnMI --> Gtda
-Rybc --> Rybc
-Rybc --> e0BA
-YtHn --> YtHn
-YtHn --> fFLB
-Z+1n --> jknI
-Z+1n --> qt1O
 ```
 <!--- BQMAKE_DATASET: END -->
