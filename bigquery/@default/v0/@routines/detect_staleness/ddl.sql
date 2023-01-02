@@ -47,5 +47,5 @@ begin
       , ifnull(cast(safe.string(options_json.tolerate_staleness) as interval), interval 30 minute) as tolerate_staleness
       , @@project_id as default_project_id
     ))
-  ) into ret
+  ) into ret;
 end;
