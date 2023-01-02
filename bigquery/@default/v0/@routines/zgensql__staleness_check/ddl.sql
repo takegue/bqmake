@@ -195,11 +195,3 @@ as ((
   , '!TOLERATE_STALENESS!', format('%T', ifnull(cast(safe.string(options_json.tolerate_staleness) as interval), interval 30 minute)))
   , '!FORCE_EXPIRED_AT!', format('timestamp(%T)',safe.timestamp(safe.string(options_json.force_expired_at))))
 ));
-
-execute immediate
-  `v0.zgensql__staleness_check`(
-    ('bqmake', "zpreview_test", "dest1")
-    , [('bqmake', "zpreview_test", "ref1")]
-    , [("20060102", ["20060102"])]
-    , to_json(struct(interval 0 hour as tolerate_staleness, current_timestamp() as force_expired_at))
-  )
