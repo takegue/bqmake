@@ -166,10 +166,10 @@ begin
     ret
     , (null, "zpreview_test", "dest_no_partition")
     , [
-      (string(null), "zpreview_test2", "ref_no_partition")
-      , (string(null), "zpreview_test2.INFORMATION_SCHEMA", "VIEWS")
-      , (string(null), "zpreview_test2.INFORMATION_SCHEMA", "PARTITIONS")
-      , (string(null), "zpreview_test2.INFORMATION_SCHEMA", "TABLES")
+      (string(null), "zpreview_test", "ref_no_partition")
+      , (string(null), "zpreview_test.INFORMATION_SCHEMA", "VIEWS")
+      , (string(null), "zpreview_test.INFORMATION_SCHEMA", "PARTITIONS")
+      , (string(null), "zpreview_test.INFORMATION_SCHEMA", "TABLES")
     ]
     , [('__NULL__', ["__NULL__"])]
     , to_json(struct(interval 0 hour as tolerate_staleness))
