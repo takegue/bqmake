@@ -1,0 +1,7 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "returnType": {
+    "typeKind": "STRING"
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "destination",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "project_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "dataset_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "table_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "sources",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "project_id",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "dataset_id",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "table_id",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "partition_alignments",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "destination",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "sources",
+                "type": {
+                  "typeKind": "ARRAY",
+                  "arrayElementType": {
+                    "typeKind": "STRING"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "options_json",
+      "dataType": {
+        "typeKind": "JSON"
+      }
+    }
+  ]
+}
