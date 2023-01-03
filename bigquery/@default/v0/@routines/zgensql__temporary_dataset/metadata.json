@@ -1,6 +1,14 @@
 {
   "routineType": "SCALAR_FUNCTION",
   "language": "SQL",
+  "arguments": [
+    {
+      "name": "hidden",
+      "dataType": {
+        "typeKind": "BOOL"
+      }
+    }
+  ],
   "returnType": {
     "typeKind": "STRUCT",
     "structType": {
