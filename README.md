@@ -105,7 +105,7 @@ call `bqmake.v0.snapshot_table__update`(
     )
   )
  , to_json(struct(
-    -- For demo, example disable table staleness check.
+    -- Demo disables staleness check intentionally.
     current_timestamp() as force_expired_at
  ))
 )
