@@ -3,6 +3,7 @@ run-name: Unit test
 on: [push]
 jobs:
   unittest:
+    concurrency: production
     permissions:
       contents: 'read'
       id-token: 'write'
