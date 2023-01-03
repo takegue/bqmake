@@ -12,7 +12,6 @@ begin
    */
   create temp table `temp_table1`
   as select 1 as a from `bigquery-public-data.austin_bikeshare.bikeshare_stations`;
-  ;
 
   create temp table `temp_table2`
   as
