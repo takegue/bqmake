@@ -1,11 +1,8 @@
 create or replace function `bqtest.zbqt_gensql__table_spec`(
   _table_name string
-  , test_configs array<struct<
-    cte string
-    , unique_columns array<string>
-    , nonnull_columns array<string>
-    , accepted_values_columns array<struct<column string, accepcted_values array<string>>>
-  >>
+  , unique_columns array<struct<cte_name string, column string>>
+  , accepted_values_columns array<struct<cte_name string, column string, accepcted_values array<string>>>
+  , nonnull_columns array<struct<cte_name string, column string>>
 )
 returns string
 as ((
@@ -78,9 +75,31 @@ with views as (
       ) as sql
   from views
   left join unnest([struct(
+      array(
+        select as struct
+          cte_name as cte
+          , array_agg(distinct U.column) as unique_columns
+          , array_agg(distinct N.column) as nonnull_columns
+          , array_agg(struct(A.column, A.accepcted_values)) as accepted_values_columns
+        from unnest(
+          array(select cte_name from unnest(unique_columns))
+          || array(select cte_name from unnest(accepted_values_columns))
+          || array(select cte_name from unnest(nonnull_columns))
+        ) as cte_name
+        left join unnest(unique_columns) as U
+          on cte_name is not distinct from U.cte_name
+        left join unnest(accepted_values_columns) as A
+          on cte_name is not distinct from U.cte_name
+        left join unnest(nonnull_columns) as N
+          on cte_name is not distinct from U.cte_name
+        group by cte_name
+      ) as test_configs
+  )])
+  left join unnest([struct(
     trim(left(
       view_definition, `bqtest.zfind_final_select`(view_definition)
     )) as cte_parts
+
     , array(
       select
         format('select * from __test_%s', ifnull(cte, '__default_final__'))
@@ -89,7 +108,6 @@ with views as (
           on config.cte is not distinct from cte
     ) as final_selects
   )])
-
 )
 
 select as value sql from switched limit 1
@@ -99,14 +117,18 @@ select as value sql from switched limit 1
 begin
   execute immediate `bqtest.zbqt_gensql__table_spec`(
     "demo_sample_table"
-    , [
-        (string(null), ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
-      ]
+    , unique_columns => [
+      (string(null), "unique_key")
+    ]
+    , nonnull_columns => []
+    , accepted_values_columns => []
   );
   execute immediate `bqtest.zbqt_gensql__table_spec`(
     "demo_sample_view"
-    , [
-        (string(null), ["unique_key"], if(false, [''], []), if(false, [('', [''])], []))
-      ]
+    , unique_columns => [
+      (string(null), "unique_key")
+    ]
+    , nonnull_columns => []
+    , accepted_values_columns => []
   );
 end;
