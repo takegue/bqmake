@@ -21,6 +21,7 @@ Arguments
     * via_temp_table: Whether to update partitions via a temporary table. [Default: false].
     * force_expired_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
     * bq_location: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: "region-us"]
+    * backfill_direction: The direction to backfill partitions. [Default: "backward"]
 
 Examples
 ===
@@ -51,7 +52,6 @@ begin
   );
 end
 ```
-
 """
 )
 begin
@@ -62,17 +62,22 @@ begin
   declare partition_unit string;
 
   -- Options
-  declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, max_update_partition_range INTERVAL, via_temp_table BOOL, bq_location string> default (
+  declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, max_update_partition_range INTERVAL, via_temp_table BOOL, bq_location string, backfill_direction int64> default (
     ifnull(bool(options.dry_run), false)
     , ifnull(safe_cast(string(options.tolerate_delay) as interval), interval 0 minute)
     , ifnull(safe_cast(string(options.max_update_partition_range) as interval), interval 1 month)
     , ifnull(bool(options.via_temp_table), false)
     , ifnull(string(options.bq_location), "region-us")
+    , case ifnull(string(options.backfill_direction), "backward")
+      when "backward" then 1
+      when "forward" then -1
+      else  error(format("Invalid backfill_direction: %p", options.backfill_direction))
+    end
   );
 
   -- Assert invalid options
   select logical_and(if(
-    key in ('dry_run', 'tolerate_delay', 'max_update_partition_range', 'via_temp_table')
+    key in ('dry_run', 'tolerate_delay', 'max_update_partition_range', 'via_temp_table', 'backfill_direction')
     , true
     , error(format("Invalid Option: name=%t in %t'", key, `options`))
   ))
@@ -130,7 +135,9 @@ begin
     )
     , first_successive_partitions as (
       select *, if(has_gap, update_partition, null) as max_update_partition from gap
-      qualify sum(if(has_gap, 1, 0)) over (order by p desc) = 1
+      qualify sum(if(has_gap, 1, 0)) over (
+        order by sign(_options.backfill_direction) * p desc
+        ) = 1
     )
     select as struct
       -- if _options.max_update_partition_range is null, then use non-limited partition
