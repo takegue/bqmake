@@ -136,7 +136,7 @@ begin
     , first_successive_partitions as (
       select *, if(has_gap, update_partition, null) as max_update_partition from gap
       qualify sum(if(has_gap, 1, 0)) over (
-        order by sign(_options.backfill_direction) * p desc
+        order by sign(_options.backfill_direction) * safe_cast(p as int64) desc
         ) = 1
     )
     select as struct
