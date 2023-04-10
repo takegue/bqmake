@@ -1,0 +1,40 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "audit_data",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "project_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "dataset_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "table_name",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "capture_interval",
+      "dataType": {
+        "typeKind": "INTERVAL"
+      }
+    }
+  ]
+}

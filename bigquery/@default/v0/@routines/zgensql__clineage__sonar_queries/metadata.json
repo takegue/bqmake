@@ -1,0 +1,40 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "target_dataset",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "project_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "dataset_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "table_names",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRING"
+        }
+      }
+    }
+  ],
+  "returnType": {
+    "typeKind": "STRING"
+  }
+}
