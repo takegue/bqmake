@@ -1,0 +1,46 @@
+{
+  "routineType": "PROCEDURE",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "scan_query",
+      "mode": "OUT",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "target_dataset",
+      "mode": "IN",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "prject_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "dataset_id",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "target_table_names",
+      "mode": "IN",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRING"
+        }
+      }
+    }
+  ]
+}
