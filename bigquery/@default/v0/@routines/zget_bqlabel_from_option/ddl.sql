@@ -11,7 +11,7 @@ Arguments
 as (
   array(
     select as struct
-      string(label[0]), string(label[1]) as value
+      string(label[0]) as name, string(label[1]) as value
     from unnest(json_extract_array(safe.parse_json(replace(replace(replace(label_option_value, "STRUCT", ""), '(', '['), ')', ']')))) as label
   )
 );
