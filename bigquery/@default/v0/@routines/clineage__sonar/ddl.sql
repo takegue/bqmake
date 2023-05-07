@@ -1,6 +1,25 @@
-CREATE OR REPLACE PROCEDURE `bqmake.v0.clineage__sonar`(OUT scan_query STRING, IN target_dataset STRUCT<prject_id STRING, dataset_id STRING>, IN target_table_names ARRAY<STRING>)
+CREATE OR REPLACE PROCEDURE `bqmake.v0.clineage__sonar`(
+  OUT scan_query STRING
+  , IN target_dataset STRUCT<prject_id STRING, dataset_id STRING>
+  , IN target_table_names ARRAY<STRING>
+)
 OPTIONS(
-  description="Induct column linage analysis using audit log.\n\nArguments\n===\n\n- analyze_query: \n- taget_dataset: \n\n\nExmaples\n===\n\ndeclare scan_query string;\n\ncall `v0.clineage__sonar`(scan_query, ('bqmake', 'v0'), []);\nexecute immediate scan_query;\n")
+  description="""Induct column linage analysis using audit log.
+
+Arguments
+===
+
+- analyze_query:
+- taget_dataset:
+
+Exmaples
+===
+
+declare scan_query string;
+
+call `v0.clineage__sonar`(scan_query, ('bqmake', 'v0'), []);
+execute immediate scan_query;
+""")
 begin
   declare clineage_query array<struct<
     table_catalog STRING, table_schema STRING, table_name STRING, field_index int64, field_path STRING, vhash STRING, query STRING
