@@ -1,0 +1,13 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "table_like_object",
+      "argumentKind": "ANY_TYPE"
+    }
+  ],
+  "returnType": {
+    "typeKind": "STRING"
+  }
+}
