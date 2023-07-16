@@ -24,7 +24,7 @@ jobs:
         run: |
           find ./bigquery -type f | npx bqport push --format=json --dry-run | jq -r '
             select(.error and (.error | test("Suspended:") | not))
-            | .line = (.error | capture("\\[(?<line>\\d+):(?<column>\\d+)\\]$")).line? // "1"
+            | .line = ((.error | capture("\\[(?<line>\\d+):(?<column>\\d+)\\]$")).line? // "1")
             # workaround
             | .name = (.name | gsub("bqmake"; "bigquery/@default") | gsub("(?<x>@[^/]+)"; "\(.x | ascii_downcase)"))
             | @text "::error file=\(.name),line=\(.line)::\(.error)"
