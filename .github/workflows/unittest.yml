@@ -25,7 +25,7 @@ jobs:
         run: |
           find ./bigquery -type f -name 'test.sql' | npx bqport push --format=json --force --maximum_bytes_billed 1000000000 --parameter update_golden:boolean:false | tee /dev/stderr | jq -r '
             select(.error and (.error | test("Suspended:") | not))
-            | .line = (.error | capture("\\[(?<line>\\d+):(?<column>\\d+)\\]$")).line? // "1"
+            | .line = ((.error | capture("\\[(?<line>\\d+):(?<column>\\d+)\\]$")).line? // "1")
             # workaround
             | .name = (.name | gsub("bqmake"; "bigquery/@default") | gsub("(?<x>@[^/]+)"; "\(.x | ascii_downcase)"))
             | @text "::error file=\(.name),line=\(.line)::\(.error)"
