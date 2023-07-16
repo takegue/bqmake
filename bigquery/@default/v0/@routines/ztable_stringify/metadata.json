@@ -1,0 +1,15 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "JAVASCRIPT",
+  "arguments": [
+    {
+      "name": "json_like_string",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    }
+  ],
+  "returnType": {
+    "typeKind": "STRING"
+  }
+}
