@@ -14,6 +14,8 @@ Arguments
     * via_temp_table: Whether to update partitions via a temporary table. [Default: false].
     * force_expired_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
     * bq_location: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: "region-us"]
+    * backfill_direction: The direction to backfill partitions. [Default: "backward"]
+    * auto_recreate: if target table schema change is detected, procedure recreate whole table [Default: "error_if_target_not_exists"]
 
 Examples
 ===

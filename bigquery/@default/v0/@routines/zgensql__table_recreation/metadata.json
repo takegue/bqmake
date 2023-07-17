@@ -1,0 +1,40 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "target_table",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "catalog",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "schema",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "name",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "new_query",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    }
+  ]
+}
