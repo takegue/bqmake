@@ -22,6 +22,7 @@ Arguments
     * force_expired_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
     * bq_location: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: "region-us"]
     * backfill_direction: The direction to backfill partitions. [Default: "backward"]
+    * auto_recreate: if target table schema change is detected, procedure recreate whole table [Default: "error_if_target_not_exists"]
 
 Examples
 ===
@@ -60,9 +61,18 @@ begin
   declare partition_range struct<begin string, `end` string>;
   declare partition_column struct<name string, type string>;
   declare partition_unit string;
+  declare table_identifier string;
 
   -- Options
-  declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, max_update_partition_range INTERVAL, via_temp_table BOOL, bq_location string, backfill_direction int64> default (
+  declare _options struct<
+    dry_run BOOL,
+    tolerate_delay INTERVAL,
+    max_update_partition_range INTERVAL,
+    via_temp_table BOOL,
+    bq_location string,
+    backfill_direction int64,
+    auto_recreate string
+  > default (
     ifnull(bool(options.dry_run), false)
     , ifnull(safe_cast(string(options.tolerate_delay) as interval), interval 0 minute)
     , ifnull(safe_cast(string(options.max_update_partition_range) as interval), interval 1 month)
@@ -73,11 +83,12 @@ begin
       when "forward" then -1
       else  error(format("Invalid backfill_direction: %p", options.backfill_direction))
     end
+    , ifnull(string(options.auto_recreate), "error_if_not_exists")
   );
 
   -- Assert invalid options
   select logical_and(if(
-    key in ('dry_run', 'tolerate_delay', 'max_update_partition_range', 'via_temp_table', 'backfill_direction')
+    key in ('dry_run', 'tolerate_delay', 'max_update_partition_range', 'via_temp_table', 'backfill_direction',  'auto_recreate')
     , true
     , error(format("Invalid Option: name=%t in %t'", key, `options`))
   ))
@@ -169,6 +180,7 @@ begin
       when safe.parse_datetime('%Y%m%d', partition_range.begin) is not null then 'DAY'
       when safe.parse_datetime('%Y%m', partition_range.begin) is not null then 'MONTH'
       when safe.parse_datetime('%Y', partition_range.begin) is not null then 'YEAR'
+      when partition_range.begin = '__NULL__' then 'NO_PARTITION'
       else error(format('Invalid partition_id: %s', partition_range.begin))
     end
     , (
@@ -177,16 +189,59 @@ begin
         , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m%d', partition_range.begin))
         , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m', partition_range.begin))
         , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y', partition_range.begin))
+        , null
       )
       , coalesce(
         format_datetime('%Y-%m-%d %T', safe.parse_datetime('%Y%m%d%H', partition_range.`end`))
         , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m%d', partition_range.`end`))
         , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m', partition_range.`end`))
         , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y', partition_range.`end`))
+        , null
       )
     )
   );
 
+  set table_identifier = coalesce(format(
+      '%s.%s.%s'
+      , ifnull(destination.project_id, @@project_id)
+      , destination.dataset_id
+      , destination.table_id
+  ), error("Invalid destination"));
+
+  -- Assert or recreate destination table
+  case _options.auto_recreate
+    when 'error_if_not_exists' THEN
+      execute immediate format("select * from `%s` limit 0", table_identifier);
+    when 'replace_if_changed' THEN
+      begin
+        -- Zero scan amount table schema compatibility check
+        execute immediate format(
+          "select * from `%s` union all %s limit 0", table_identifier, update_job_query
+        ) using
+          partition_range.`begin` as `begin`
+          , partition_range.`end` as `end`
+        ;
+      exception when error then
+        begin 
+          declare table_ddl, column_ddl string;
+          execute immediate `v0.zgensql__table_recreation`(
+            (coalesce(destination.project_id, @@project_id), destination.dataset_id, destination.table_id)
+            , update_job_query || ' limit 0'
+          ) into table_ddl, column_ddl;
+          execute immediate table_ddl 
+            using
+              partition_range.`begin` as `begin`
+              , partition_range.`end` as `end`
+          ;
+          execute immediate column_ddl;
+        end;
+      end
+    ;
+    else 
+      select error('Invalid option');
+  end case;
+
+  -- Build new data and merge
   if ifnull(_options.via_temp_table, false) then
     execute immediate format("""
       create or replace temp table temp_table as
@@ -213,13 +268,7 @@ begin
         delete
     """
       -- Destination
-      , ifnull(format(
-          '%s.%s.%s'
-          , ifnull(destination.project_id, @@project_id)
-          , destination.dataset_id
-          , destination.table_id
-        ), 'invalid destination'
-      )
+      , table_identifier
       , if(ifnull(_options.via_temp_table, false), 'temp_table', update_job_query)
       , case
           when partition_unit = 'DAY' then
@@ -236,7 +285,7 @@ begin
         end
     )
     , error(format(
-      "arguments is invalud: %T", (destination, partition_column.name, partition_range)
+      "arguments are invalid: %T", (destination, table_identifier, partition_column, partition_range)
     ))
   )
     using
