@@ -22,6 +22,7 @@ Arguments
     * force_expired_at: The timestamp to force expire partitions. If the destination's partition timestamp is older than this timestamp, the procedure stale the partitions. [Default: null].
     * bq_location: BigQuery Location of job. This is used for query analysis to get dependencies. [Default: "region-us"]
     * backfill_direction: The direction to backfill partitions. [Default: "backward"]
+    * auto_recreate: if target table schema change is detected, procedure recreate whole table [Default: false]
 
 Examples
 ===
@@ -62,7 +63,15 @@ begin
   declare partition_unit string;
 
   -- Options
-  declare _options struct<dry_run BOOL, tolerate_delay INTERVAL, max_update_partition_range INTERVAL, via_temp_table BOOL, bq_location string, backfill_direction int64> default (
+  declare _options struct<
+    dry_run BOOL,
+    tolerate_delay INTERVAL,
+    max_update_partition_range INTERVAL,
+    via_temp_table BOOL,
+    bq_location string,
+    backfill_direction int64,
+    table_refresh bool
+  > default (
     ifnull(bool(options.dry_run), false)
     , ifnull(safe_cast(string(options.tolerate_delay) as interval), interval 0 minute)
     , ifnull(safe_cast(string(options.max_update_partition_range) as interval), interval 1 month)
@@ -73,6 +82,7 @@ begin
       when "forward" then -1
       else  error(format("Invalid backfill_direction: %p", options.backfill_direction))
     end
+    , ifnull(bool(options.auto_recreate), false)
   );
 
   -- Assert invalid options
@@ -83,6 +93,30 @@ begin
   ))
   from unnest(if(`options` is not null, `bqutil.fn.json_extract_keys`(to_json_string(`options`)), [])) as key
   ;
+
+  -- Assert or recreate destination table
+  IF _options.auto_recreate THEN
+    BEGIN
+      execute immediate format("""
+        create or replace table `%s.%s.%s` 
+        like `%s.%s.%s` 
+        as select * from `%s.%s.%s` limit 0
+      """)
+    EXCEPTION WHEN ERROR THEN
+    END
+    call `bqmake.v0.assert_or_recreate_table`(
+      destination
+      , _sources
+      , update_job_query
+      , to_json(struct(_options.table_refresh))
+    );
+  ELSE
+    call `bqmake.v0.assert_table`(
+      destination
+      , _sources
+      , update_job_query
+    );
+  END IF;
 
   -- Automatic source tables detection
   if _sources is null then

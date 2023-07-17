@@ -15,20 +15,19 @@ create or replace function `bqtest.zbqt_gensql__udf_snapshot`(
         signature
         , ret
       from
-        unnest([
-          struct(string(null) as signature, string(NULL) as ret)
-          , %s
-        ]) as R
+        unnest(
+          array<struct<signature string, ret string>>[
+            %s
+          ]
+        ) as R
         %s
-      where
-        signature is not null
     """
     , 0)
     , ifnull(
       ltrim(`bqmake.v0.zreindent`(array_to_string(array(
-        select
-          format("(%t, format('%%T', %s))", format("%T", s), s)
-        from unnest(signature) as s
+          select
+            format("(%t, format('%%T', %s))", format("%T", s), s)
+          from unnest(signature) as s
         )
         , '\n, '
       ), 6))
