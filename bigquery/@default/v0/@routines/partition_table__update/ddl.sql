@@ -78,7 +78,7 @@ begin
     , ifnull(safe_cast(string(options.tolerate_delay) as interval), interval 0 minute)
     , ifnull(safe_cast(string(options.max_update_partition_range) as interval), interval 1 month)
     , ifnull(bool(options.via_temp_table), false)
-    , timestamp(options.force_expired_at)
+    , timestamp(string(options.force_expired_at))
     , ifnull(string(options.bq_location), "region-us")
     , case ifnull(string(options.backfill_direction), "backward")
       when "backward" then 1
