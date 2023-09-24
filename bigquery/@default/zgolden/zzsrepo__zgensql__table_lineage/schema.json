@@ -1,0 +1,105 @@
+[
+  {
+    "name": "unique_key",
+    "type": "STRING"
+  },
+  {
+    "name": "revision_hash",
+    "type": "STRING"
+  },
+  {
+    "name": "valid_from",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "valid_to",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "entity",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "destination",
+        "type": "STRING"
+      },
+      {
+        "name": "depth",
+        "type": "INTEGER"
+      },
+      {
+        "name": "dst_project",
+        "type": "STRING"
+      },
+      {
+        "name": "dst_dataset",
+        "type": "STRING"
+      },
+      {
+        "name": "dst_table",
+        "type": "STRING"
+      },
+      {
+        "name": "src_project",
+        "type": "STRING"
+      },
+      {
+        "name": "src_dataset",
+        "type": "STRING"
+      },
+      {
+        "name": "src_table",
+        "type": "STRING"
+      },
+      {
+        "name": "attrs",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "job_latest",
+            "type": "TIMESTAMP"
+          },
+          {
+            "name": "query",
+            "type": "STRING"
+          },
+          {
+            "name": "n_user",
+            "type": "INTEGER"
+          },
+          {
+            "name": "n_queries",
+            "type": "INTEGER"
+          },
+          {
+            "name": "n_job",
+            "type": "INTEGER"
+          },
+          {
+            "name": "total_processed_bytes",
+            "type": "INTEGER"
+          },
+          {
+            "name": "total_time_processed__quantiles",
+            "type": "INTEGER",
+            "mode": "REPEATED"
+          },
+          {
+            "name": "wait_time__quantiles",
+            "type": "INTEGER",
+            "mode": "REPEATED"
+          },
+          {
+            "name": "total_slots_ms",
+            "type": "INTEGER"
+          },
+          {
+            "name": "total_slots_ms__quantiles",
+            "type": "INTEGER",
+            "mode": "REPEATED"
+          }
+        ]
+      }
+    ]
+  }
+]
