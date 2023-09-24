@@ -1,0 +1,12 @@
+{
+  "type": "TABLE",
+  "timePartitioning": {
+    "type": "DAY",
+    "field": "valid_to"
+  },
+  "clustering": {
+    "fields": [
+      "valid_from"
+    ]
+  }
+}
