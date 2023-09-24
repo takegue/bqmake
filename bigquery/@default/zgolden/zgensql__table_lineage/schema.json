@@ -79,10 +79,5 @@
         "mode": "REPEATED"
       }
     ]
-  },
-  {
-    "name": "_ancestors",
-    "type": "STRING",
-    "mode": "REPEATED"
   }
 ]
