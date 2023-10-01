@@ -207,7 +207,6 @@ with recursive lineage as (
 )
 
 select * from user_query
-order by destination, depth
 """
   , coalesce(
     format('%s.%s.INFORMATION_SCHEMA.%s', project_id, ifnull(location, 'region-us'), ifnull(information_schema_job_table_name, 'JOBS_BY_PROJECT'))

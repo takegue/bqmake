@@ -7,8 +7,14 @@ set query = `bqmake.bqtest.zreplace_table_identifiers`(
   ]);
 
 execute immediate
-  "create temp table ret as"
-  || query
+  array_to_string(
+    [
+      "create temp table ret as"
+      , query
+      , "order by destination, depth, dst_project, dst_dataset, dst_table"
+    ]
+    , '\n'
+  )
   using 
     10 as max_depth
     , "2023-01-01" as `begin`
@@ -17,7 +23,7 @@ execute immediate
 
 call `bqmake.v0.assert_golden`(
   (null, "zgolden", "zgensql__table_lineage")
-  , "select * from ret order by destination, depth, dst_project, dst_dataset, dst_table"
+  , "select * from ret "
   , query_unique_key => "format('%t', row_number() over ())"
-  , is_update => false
+  , is_update => @update_golden
 );
