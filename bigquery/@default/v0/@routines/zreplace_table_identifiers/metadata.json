@@ -1,0 +1,40 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "JAVASCRIPT",
+  "arguments": [
+    {
+      "name": "sql",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "replacements",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "from_value",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "to_value",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "returnType": {
+    "typeKind": "STRING"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "JAVASCRIPT",
+  "arguments": [
+    {
+      "name": "sql",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    }
+  ],
+  "returnType": {
+    "typeKind": "ARRAY",
+    "arrayElementType": {
+      "typeKind": "STRING"
+    }
+  }
+}

@@ -3,9 +3,8 @@ Induct column linage analysis using audit log.
 Arguments
 ===
 
-- analyze_query: 
-- taget_dataset: 
-
+- analyze_query:
+- taget_dataset:
 
 Exmaples
 ===

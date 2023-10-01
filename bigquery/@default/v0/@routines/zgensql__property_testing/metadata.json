@@ -1,0 +1,58 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "_table_identifier",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "unique_columns",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRING"
+        }
+      }
+    },
+    {
+      "name": "nonnull_columns",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRING"
+        }
+      }
+    },
+    {
+      "name": "accepted_values_columns",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "column",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "accepcted_values",
+                "type": {
+                  "typeKind": "ARRAY",
+                  "arrayElementType": {
+                    "typeKind": "STRING"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

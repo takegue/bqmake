@@ -1,0 +1,27 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "target_table_name",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "group_keys",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRING"
+        }
+      }
+    },
+    {
+      "name": "options_json",
+      "dataType": {
+        "typeKind": "JSON"
+      }
+    }
+  ]
+}
