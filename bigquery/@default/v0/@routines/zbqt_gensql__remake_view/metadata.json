@@ -1,0 +1,43 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "_table_name",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "_final_cte",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "_mocking_ctes",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "from_value",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "to_value",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
