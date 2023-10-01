@@ -1,4 +1,4 @@
-create or replace function `v0.zgensql__temporary_dataset`()
+create or replace function `v0.zgensql__temporary_dataset`(hidden boolean)
 returns struct<name string, init_sql string, defer_sql string>
 as ((
   select as struct
@@ -12,7 +12,7 @@ as ((
 
 begin
   declare name, init_sql, defer_sql string;
-  set (name, init_sql, defer_sql) = (`v0.zgensql__temporary_dataset`());
+  set (name, init_sql, defer_sql) = (`v0.zgensql__temporary_dataset`(true));
   execute immediate init_sql;
   execute immediate defer_sql;
 end
