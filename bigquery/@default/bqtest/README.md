@@ -71,6 +71,12 @@ call `bqmake.v0.assert_golden`(
 
 ## Example lineage
 
+
+
+
+
+
+
 <!--- BQMAKE_DATASET: BEGIN -->
 ```mermaid
 graph LR
