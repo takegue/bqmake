@@ -121,7 +121,7 @@ begin
           destination, dst_project, dst_dataset, src_project, src_dataset
           , any_value(dst_dataset_n) as dst_dataset_n
           , any_value(src_dataset_n) as src_dataset_n
-          , max(job_latest) as latest_ts
+          , max(attrs.job_latest) as latest_ts
         from _source
         group by destination, dst_project, dst_dataset, src_project, src_dataset
         qualify 1 = row_number() over (

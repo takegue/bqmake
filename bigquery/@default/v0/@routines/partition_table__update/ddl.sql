@@ -44,7 +44,7 @@ begin
   create schema if not exists `zsandbox`;
   create or replace table `zsandbox.ga4_count`(event_date date, event_name string, records int64)
   partition by event_date;
-  call `bqmake.v0.partition_table__check_and_update`(
+  call `bqmake.v0.partition_table__update`(
     (null, 'zsandbox', 'ga4_count')
     , [('bigquery-public-data', 'ga4_obfuscated_sample_ecommerce', 'events_*')]
     , `bqmake.v0.alignment_day2day`('2021-01-01', '2021-01-01')
@@ -69,6 +69,7 @@ begin
     tolerate_delay INTERVAL,
     max_update_partition_range INTERVAL,
     via_temp_table BOOL,
+    force_expired_at timestamp,
     bq_location string,
     backfill_direction int64,
     auto_recreate string
@@ -77,6 +78,7 @@ begin
     , ifnull(safe_cast(string(options.tolerate_delay) as interval), interval 0 minute)
     , ifnull(safe_cast(string(options.max_update_partition_range) as interval), interval 1 month)
     , ifnull(bool(options.via_temp_table), false)
+    , timestamp(string(options.force_expired_at))
     , ifnull(string(options.bq_location), "region-us")
     , case ifnull(string(options.backfill_direction), "backward")
       when "backward" then 1
@@ -88,7 +90,7 @@ begin
 
   -- Assert invalid options
   select logical_and(if(
-    key in ('dry_run', 'tolerate_delay', 'max_update_partition_range', 'via_temp_table', 'backfill_direction',  'auto_recreate')
+    key in ('dry_run', 'tolerate_delay', 'max_update_partition_range', 'via_temp_table', 'force_expired_at', 'backfill_direction',  'auto_recreate')
     , true
     , error(format("Invalid Option: name=%t in %t'", key, `options`))
   ))
@@ -107,7 +109,7 @@ begin
     , destination
     , _sources
     , partition_alignments
-    , to_json(struct(_options.tolerate_delay))
+    , to_json(struct(_options.tolerate_delay, _options.force_expired_at))
   );
 
   if ifnull(array_length(stale_partitions), 0) = 0 then
