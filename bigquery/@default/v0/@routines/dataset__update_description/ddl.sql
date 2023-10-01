@@ -203,7 +203,7 @@ begin
         * replace(
           ltrim(array_to_string(
             [
-              coalesce(substr(description, 0, header_position - 1) || substr(description, footer_position + char_length(footer) + 1), description)
+              trim(coalesce(substr(description, 0, header_position - 1) || substr(description, footer_position + char_length(footer) + 1), description))
             ]
             || if(
               mermaid is not null,
