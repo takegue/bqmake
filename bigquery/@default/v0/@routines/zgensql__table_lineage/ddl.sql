@@ -63,7 +63,7 @@ with recursive lineage as (
     and state = 'DONE'
     and creation_time between @begin and @end
 )
-, relations as (
+, relations__impl as (
   select
     if(
       is_temporary and is_anonymous_query
@@ -76,20 +76,20 @@ with recursive lineage as (
     , any_value(ref).project_id as src_project
     , any_value(ref).dataset_id as src_dataset
     , any_value(normalized_ref_table) as src_table
+    , struct(
+      max(creation_time) as job_latest
+      , approx_top_sum(query, unix_seconds(creation_time), 10)[safe_offset(0)].value as query
+      , approx_count_distinct(user_email) as n_user
+      , approx_count_distinct(query) as n_queries
+      , approx_count_distinct(job_id) as n_job
+      , sum(total_bytes_processed) as total_bytes_procesed
 
-    , max(creation_time) as job_latest
-    , approx_top_sum(query, unix_seconds(creation_time), 10)[safe_offset(0)].value as query
-    , approx_count_distinct(user_email) as n_user
-    , approx_count_distinct(query) as n_queries
-    , approx_count_distinct(job_id) as n_job
-    , sum(total_bytes_processed) as total_bytes
+      , approx_quantiles(processed_time_ms, 10) as total_time_processed__quantiles
+      , approx_quantiles(wait_time_ms, 10) as wait_time__quantiles
 
-    , approx_quantiles(processed_time_ms, 10) as processed_time__quantiles
-    , approx_quantiles(wait_time_ms, 10) as wait_time__quantiles
-
-    , sum(total_slot_ms) as total_slots_ms
-    , approx_quantiles(total_slot_ms, 10) as total_slots_ms__quantiles
-
+      , sum(total_slot_ms) as total_slots_ms
+      , approx_quantiles(total_slot_ms, 10) as total_slots_ms__quantiles
+    ) as attrs
   from job, unnest(referenced_tables) as ref
     left join unnest([struct(
       coalesce(
@@ -143,6 +143,53 @@ with recursive lineage as (
     and v.statement_type is not null
   group by unique_key
 )
+, relations__examples as (
+  select *
+  from unnest(array<struct<
+    unique_key string
+    , dst_project string
+    , dst_dataset string
+    , dst_table string
+    , src_project string
+    , src_dataset string
+    , src_table string
+    , attrs struct<
+      job_latest timestamp
+      , query string
+      , n_user int64
+      , n_queries int64
+      , n_job int64
+      , total_processed_bytes int64
+      , total_time_processed__quantiles array<int64>
+      , wait_time__quantiles array<int64>
+      , total_slots_ms int64
+      , total_slots_ms__quantiles array<int64>
+    >
+  >>[
+    /*
+      1 <--- 2
+         \-- 3 <-. 4
+                 |
+      7 <- 6 <-5 +
+    */
+    ('job_1', 'project_1', 'dataset_1', 'table_1', 'project_2', 'dataset_2', 'table_2', null)
+    , ('job_2', 'project_1', 'dataset_1', 'table_1', 'project_3', 'dataset_3', 'table_3', null)
+    , ('job_3', 'project_3', 'dataset_3', 'table_3', 'project_4', 'dataset_4', 'table_4', null)
+    , ('job_4', 'project_5', 'dataset_5', 'table_5', 'project_4', 'dataset_4', 'table_4', null)
+    , ('job_5', 'project_7', 'dataset_7', 'table_7', 'project_6', 'dataset_6', 'table_6', null)
+    , ('job_6', 'project_6', 'dataset_6', 'table_6', 'project_5', 'dataset_5', 'table_5', null)
+  ]) as data
+)
+, __check as (
+  select * from relations__impl
+  union all
+  select * from relations__examples
+  limit 0
+)
+, relations as (
+  select * from `relations__impl`
+  -- select * from `relations__examples`
+)
 , user_query as (
   select
     format('%%s.%%s.%%s', src_project, src_dataset, src_table) as destination
@@ -166,7 +213,6 @@ order by destination, depth
     format('%s.%s.INFORMATION_SCHEMA.%s', project_id, ifnull(location, 'region-us'), ifnull(information_schema_job_table_name, 'JOBS_BY_PROJECT'))
     , format('%s.INFORMATION_SCHEMA.%s',  ifnull(location, 'region-us'), ifnull(information_schema_job_table_name, 'JOBS_BY_PROJECT'))
     , error(format("invalid arguments: %t", (project_id, location, information_schema_job_table_name)))
-  )
+  ))
 )
-
-)
+;
