@@ -76,6 +76,7 @@ call `bqmake.v0.assert_golden`(
 
 
 
+
 <!--- BQMAKE_DATASET: BEGIN -->
 ```mermaid
 graph LR
