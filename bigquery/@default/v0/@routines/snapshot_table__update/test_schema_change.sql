@@ -2,7 +2,7 @@ begin
   declare temp_schema, init_sql, defer_sql string;
   declare destination struct<project_id string , dataset_id string, table_id string>;
 
-  set (temp_schema, init_sql, defer_sql) = `v0.zgensql__temporary_dataset`();
+  set (temp_schema, init_sql, defer_sql) = `v0.zgensql__temporary_dataset`(false);
   execute immediate init_sql;
 
   set destination = (null,temp_schema, "target");
