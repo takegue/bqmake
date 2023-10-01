@@ -1,10 +1,11 @@
 begin
+  declare temp_schema, init_sql, defer_sql string;
   declare destination struct<project_id string , dataset_id string, table_id string>;
 
+  set (temp_schema, init_sql, defer_sql) = `v0.zgensql__temporary_dataset`();
+  execute immediate init_sql;
 
-  drop schema if exists `zpreview__snapshot_test_schema_change` cascade;
-  create schema if not exists `zpreview__snapshot_test_schema_change`;
-  set destination = (null, "zpreview__snapshot_test_schema_change", "target");
+  set destination = (null,temp_schema, "target");
 
   call `v0.snapshot_table__update`(
     destination
@@ -19,7 +20,11 @@ begin
       , "replace_if_changed" as auto_recreate 
     ))
   );
-  execute immediate "select entity.value from zpreview__snapshot_test_schema_change.zzsrepo__target";
+  execute immediate replace(
+    "select entity.value from @dataset.zzsrepo__target"
+    , "@dataset"
+    , temp_schema
+  );
 
   call `v0.snapshot_table__update`(
     destination
@@ -35,17 +40,22 @@ begin
     ))
   );
 
-  select
-    (
-      select if(count(1) > 0, null, error("New store no exists")) from `zpreview__snapshot_test_schema_change.zzsrepo__target`
-    )
-    , (
-      select if(count(1) > 0, null, error("Backup no exists")) from `bqmake-dev.zpreview__snapshot_test_schema_change.zzsrepo__target__*`
-    )
-  ;
-
-  drop schema `zpreview__snapshot_test_schema_change` cascade;
+  execute immediate replace(
+    """
+      select
+        (
+          select if(count(1) > 0, null, error("New store no exists")) from `@dataset.zzsrepo__target`
+        )
+        , (
+          select if(count(1) > 0, null, error("Backup no exists")) from `@dataset.zzsrepo__target__*`
+        )
+      ;
+    """
+    , "@dataset"
+    , temp_schema
+  );
+  execute immediate defer_sql;
 exception when error then
-  drop schema `zpreview__snapshot_test_schema_change` cascade;
+  execute immediate defer_sql;
   raise using message = @@error.message;
 end;

@@ -1,6 +1,6 @@
 begin
   declare temp_schema, init_sql, defer_sql string;
-  set (temp_schema, init_sql, defer_sql) = (`v0.zgensql__temporary_dataset`(false));
+  set (temp_schema, init_sql, defer_sql) = (`v0.zgensql__temporary_dataset`());
   execute immediate init_sql;
   begin
     -- Prepare fixtures
