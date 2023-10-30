@@ -38,5 +38,5 @@ from cte
 """
 )
 as (
-  prettyTable(to_json_string(val))
+  `v0.ztable_stringify`(to_json_string(table_like_object))
 );
