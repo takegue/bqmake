@@ -1,7 +1,8 @@
-create function `v0.ztypeof_columns`(
-  str string
+create or replace function `v0.ztypeof_columns`(
+  sql_formatted_row_str string,
+  row_json_str string
 )
-returns array<string>
+returns array<struct<column_name string, type string>>
 language js
 as r"""
 function identify_type_of_bigquery(s) {
@@ -91,48 +92,24 @@ function _parse(sql) {
   return ret;
 }
 
-_test = () => {
-  test = '(1, "hoge", BIGNUMERIC "123456", 3.21234556, NULL, TIMESTAMP "2023-01-01 00:00:00+00", DATETIME "2023-01-01 00:00:00", DATE "2023-01-01", JSON "null", [0], (1, "a", BIGNUMERIC "1234567"))'
-  console.log(_parse(test))
+function _get_signature(sql_formatted_row_str, row_json) {
+  const _types = _parse(sql_formatted_row_str)
+  _keys = Object.keys(JSON.parse(row_json)).filter(k => k)
+  
+  const ret = _types.map((t, ix) => ({column_name: _keys[ix], type: t}))
+  return ret
 }
 
-// _test()
+_test = () => {
+  test = '(1, "hoge", BIGNUMERIC "123456", 3.21234556, NULL, TIMESTAMP "2023-01-01 00:00:00+00", DATETIME "2023-01-01 00:00:00", DATE "2023-01-01", JSON "null", [0], (1, "a", BIGNUMERIC "1234567"))'
+  json_arg2 = '{"int":1,"str":"hoge","float":3.21234556,"boolean":null,"ts":null,"dt":null,"d":null,"json":null,"arr":null,"record":null}'
+  console.log(_get_signature(test, json_arg2))
+}
+
+// _test() 
 try {
-  return _parse(str)
+  return _get_signature(sql_formatted_row_str, row_json_str) 
 } catch {
   return null
 }
 """
-;
-
-;
-
-with cte as (
-  select *
-  from unnest(
-    array<struct<
-      int int64
-      , str string
-      , b bignumeric
-      , float float64
-      , boolean bool
-      , ts timestamp
-      , dt datetime
-      , d date
-      , json json
-      , arr array<int64>
-      , record struct<int int64, str string, b bignumeric>
-    >>[
-      (1, 'hoge', 123445, 3.21234556, null, null, null, null, null, null, null),
-      (1, 'hoge', 123456, 3.21234556, null, '2023-01-01', '2023-01-01', '2023-01-01', to_json(null), [1, 2], struct(1, "a", 1234567))
-    ]
-  )
-)
-
-select
---  to_json(cte),
---  tokenize_elem(format('%T', cte)),
---  _types,
-  wrapper(array_agg(cte)),
---  
-from cte
