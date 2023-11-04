@@ -9,7 +9,7 @@
       }
     },
     {
-      "name": "test_configs",
+      "name": "unique_columns",
       "dataType": {
         "typeKind": "ARRAY",
         "arrayElementType": {
@@ -17,55 +17,74 @@
           "structType": {
             "fields": [
               {
-                "name": "cte",
+                "name": "cte_name",
                 "type": {
                   "typeKind": "STRING"
                 }
               },
               {
-                "name": "unique_columns",
+                "name": "column",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "accepted_values_columns",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
+              {
+                "name": "cte_name",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "column",
+                "type": {
+                  "typeKind": "STRING"
+                }
+              },
+              {
+                "name": "accepcted_values",
                 "type": {
                   "typeKind": "ARRAY",
                   "arrayElementType": {
                     "typeKind": "STRING"
                   }
                 }
-              },
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "nonnull_columns",
+      "dataType": {
+        "typeKind": "ARRAY",
+        "arrayElementType": {
+          "typeKind": "STRUCT",
+          "structType": {
+            "fields": [
               {
-                "name": "nonnull_columns",
+                "name": "cte_name",
                 "type": {
-                  "typeKind": "ARRAY",
-                  "arrayElementType": {
-                    "typeKind": "STRING"
-                  }
+                  "typeKind": "STRING"
                 }
               },
               {
-                "name": "accepted_values_columns",
+                "name": "column",
                 "type": {
-                  "typeKind": "ARRAY",
-                  "arrayElementType": {
-                    "typeKind": "STRUCT",
-                    "structType": {
-                      "fields": [
-                        {
-                          "name": "column",
-                          "type": {
-                            "typeKind": "STRING"
-                          }
-                        },
-                        {
-                          "name": "accepcted_values",
-                          "type": {
-                            "typeKind": "ARRAY",
-                            "arrayElementType": {
-                              "typeKind": "STRING"
-                            }
-                          }
-                        }
-                      ]
-                    }
-                  }
+                  "typeKind": "STRING"
                 }
               }
             ]
