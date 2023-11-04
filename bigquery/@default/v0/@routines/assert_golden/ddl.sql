@@ -45,11 +45,11 @@ begin
   if not ifnull(is_update, false) then
     -- Show Changes
     execute immediate format(
-      "create or replace temp table `snapshot_comparision_result` as %s"
+      "create or replace temp table `snapshot_comparison_result` as %s"
       , _query_diff
     )
     using current_timestamp() as timestamp;
-    assert not exists(select * from `snapshot_comparision_result`);
+    assert not exists(select * from `snapshot_comparison_result`);
   else
     -- Save Changes
     begin

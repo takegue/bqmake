@@ -134,7 +134,7 @@ as ((
         ) as entity_changes
         , if(R.unique_key is not null, [R.entity], [])
         || if(U.unique_key is not null, [U.entity], [])
-        as entity_comparision
+        as entity_comparison
       --  , diff
       from reference as R
       full join update_data as U using(unique_key)
