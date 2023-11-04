@@ -95,7 +95,7 @@ AS (REPLACE(REPLACE(REPLACE(REPLACE(
 
 begin
   call `bqmake.v0.assert_golden`(
-    (null, "bqtest", "zgolden_routines"),  -- Profiling query
+    ("bqmake", "bqtest", "zgolden_routines"),  -- Profiling query
     `bqtest.zbqt_gensql__udf_snapshot`(
       [
         """`v0.zgensql__table_recreation`(("bigquery-public-data", "san_francisco", "bikeshare_stations"), "SELECT *, 'new' as n FROM `bigquery-public-data.san_francisco.bikeshare_stations` LIMIT 0")"""

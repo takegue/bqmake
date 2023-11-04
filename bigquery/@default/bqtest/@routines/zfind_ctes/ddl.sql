@@ -63,15 +63,10 @@ return find_cte(sql ?? "");
 
 
 begin
-  call `bqmake.v0.assert_golden`(
-    (null, "bqtest", "zgolden_routines")
-    , -- Profiling query
-    `bqtest.zbqt_gensql__udf_snapshot`([
-        "`bqtest.zfind_ctes`(r'WITH cte1 AS (select 1), cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge) select cte1')"
-      ]
-      , "zzsrepo__zgolden_routines"
+  assert "[cte1, cte2]" = format(
+    '%t' 
+    , `bqmake.v0.zfind_ctes`(
+      r'WITH cte1 AS (select 1), cte2 as (select [1, 2, 3] from (select * from \`cte1\`) as hoge) select cte1'
     )
-    , 'signature'
-    , @update_golden
   );
 end
