@@ -1,0 +1,40 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "JAVASCRIPT",
+  "arguments": [
+    {
+      "name": "sql_formatted_row_str",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "row_json_str",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    }
+  ],
+  "returnType": {
+    "typeKind": "ARRAY",
+    "arrayElementType": {
+      "typeKind": "STRUCT",
+      "structType": {
+        "fields": [
+          {
+            "name": "column_name",
+            "type": {
+              "typeKind": "STRING"
+            }
+          },
+          {
+            "name": "type",
+            "type": {
+              "typeKind": "STRING"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
