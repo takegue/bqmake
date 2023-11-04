@@ -148,20 +148,24 @@ begin
   end if;
 
   -- Check partition staleness
-  call `v0.detect_staleness`(
-    _stale_partitions
-    , destination
-    , _sources
-    , [('__NULL__', ['__ANY__'])]
-    , to_json(struct(
-      _options.tolerate_delay as tolerate_delay
-      , _options.force_expired_at as force_expired_at
-    ))
-  );
+  begin 
+    call `v0.detect_staleness`(
+      _stale_partitions
+      , destination
+      , _sources
+      , [('__NULL__', ['__ANY__'])]
+      , to_json(struct(
+        _options.tolerate_delay as tolerate_delay
+        , _options.force_expired_at as force_expired_at
+      ))
+    );
 
-  if ifnull(array_length(_stale_partitions), 0) = 0 then
-    return;
-  end if;
+    if ifnull(array_length(_stale_partitions), 0) = 0 then
+      return;
+    end if;
+  exception when error then
+    select @@errors.messages;
+  end;
 
   -- Run Update Job
   if _options.dry_run then
