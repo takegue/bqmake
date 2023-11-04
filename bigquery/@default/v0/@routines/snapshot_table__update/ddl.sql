@@ -164,7 +164,7 @@ begin
       return;
     end if;
   exception when error then
-    select @@error.messages;
+    select @@error.message;
   end;
 
   -- Run Update Job
