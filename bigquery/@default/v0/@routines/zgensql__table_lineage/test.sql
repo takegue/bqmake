@@ -11,7 +11,7 @@ execute immediate
     [
       "create temp table ret as"
       , query
-      , "order by destination, depth, dst_project, dst_dataset, dst_table"
+      , "order by destination, depth, dst_project, dst_dataset, dst_table, src_project, src_dataset, src_table"
     ]
     , '\n'
   )
