@@ -3,7 +3,7 @@
     "bigquery-porter": "^0.2.6"
   },
   "scripts": {
-    "push": "bqport push",
+    "push": "bqport push -p update_golden:boolean:false",
     "pull": "bqport pull",
     "dryrun": "bqport push --format=json --dry-run"
   }
