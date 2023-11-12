@@ -9,41 +9,11 @@ This is private routine and not designed to be called directly.
 """
 )
 as (
-  format(r"""
+  REPLACE(r"""
 -- BigQuery Table Depdencies
 -- depth = -1 means query destination tables in ordinal usage
-with recursive lineage as (
-  select
-    format('%%s.%%s.%%s', dst_project, dst_dataset, dst_table) as destination
-    , 0 as depth
-    , relations.* except(unique_key)
-    , cast([] as array<string>) as _ancestors
-  from relations
-  where unique_key not like '%%(User)%%'
-    and not starts_with(dst_table, '_')
-    and not starts_with(dst_dataset, '_script')
-  union all
-  select
-    destination
-    , depth + 1 as depth
-    , lineage.src_project as dst_project
-    , lineage.src_dataset as dst_dataset
-    , lineage.src_table as dst_table
-    , relations.* except(dst_project, dst_dataset, dst_table, unique_key)
-    , lineage._ancestors || [_parent] as _ancestors
-  from lineage
-    join relations
-      on (relations.dst_project, relations.dst_dataset, relations.dst_table)
-       = (lineage.src_project, lineage.src_dataset, lineage.src_table)
-    left join unnest([struct(
-      format('%%T', (lineage.dst_project, lineage.dst_dataset, lineage.dst_table)) as _parent
-      , format('%%T', (lineage.src_project, lineage.src_dataset, lineage.src_table)) as _self
-    )])
-  where
-    depth <= @max_depth
-    and ifnull(_self not in unnest(_ancestors), true)
-)
-, job as (
+with recursive 
+job as (
   select
     job_id
     , user_email
@@ -56,7 +26,7 @@ with recursive lineage as (
     , total_slot_ms
     , destination_table
     , referenced_tables
-  from `%s`
+  from `@DATASOURCE`
   where
     destination_table.table_id is not null
     and error_result.reason is null
@@ -67,8 +37,8 @@ with recursive lineage as (
   select
     if(
       is_temporary and is_anonymous_query
-      , format('(User) -> %%t', ref)
-      , format('%%t <- %%t', destination_table, ref)
+      , format('(User) -> %t', ref)
+      , format('%t <- %t', destination_table, ref)
     ) as unique_key
     , any_value(destination_table).project_id as dst_project
     , any_value(destination_table).dataset_id as dst_dataset
@@ -114,8 +84,8 @@ with recursive lineage as (
       , starts_with(destination_table.table_id, 'anon') as is_anonymous_query
     )]) as v
     left join unnest([struct(
-      if(safe.parse_date('%%Y%%m%%d', _src_suffix_number) is not null, regexp_replace(ref.table_id, r'\d+$', '*'), ref.table_id) as normalized_ref_table
-      , if(safe.parse_date('%%Y%%m%%d', _dst_suffix_number) is not null, regexp_replace(destination_table.table_id, r'\d+$', '*'), destination_table.table_id) as normalized_dst_table
+      if(safe.parse_date('%Y%m%d', _src_suffix_number) is not null, regexp_replace(ref.table_id, r'\d+$', '*'), ref.table_id) as normalized_ref_table
+      , if(safe.parse_date('%Y%m%d', _dst_suffix_number) is not null, regexp_replace(destination_table.table_id, r'\d+$', '*'), destination_table.table_id) as normalized_dst_table
     )])
   where
     v.statement_type in (
@@ -168,31 +138,106 @@ with recursive lineage as (
   >>[
     /*
       1 <--- 2
-         \-- 3 <-. 4
-                 |
-      7 <- 6 <-5 +
+         \-- 3 <-- 4
+          -----<-- +
+      7 <- 6 <-5 <-+
     */
-    ('job_1', 'project_1', 'dataset_1', 'table_1', 'project_2', 'dataset_2', 'table_2', null)
-    , ('job_2', 'project_1', 'dataset_1', 'table_1', 'project_3', 'dataset_3', 'table_3', null)
-    , ('job_3', 'project_3', 'dataset_3', 'table_3', 'project_4', 'dataset_4', 'table_4', null)
-    , ('job_4', 'project_5', 'dataset_5', 'table_5', 'project_4', 'dataset_4', 'table_4', null)
+    ('job_1', 'project_1', 'dataset_1', 'table_1', 'project_1', 'dataset_b', 'table_2', null)
+    , ('table2', 'project_1', 'dataset_b','table_2', null, null, null, null)
+    , ('table4', 'project_1', 'dataset_b','table_4', null, null, null, null)
+    , ('job_2', 'project_1', 'dataset_1', 'table_1', 'project_1', 'dataset_b', 'table_3', null)
+    , ('job_14', 'project_1', 'dataset_1', 'table_1', 'project_1', 'dataset_b', 'table_4', null)
+    , ('job_3', 'project_1', 'dataset_b', 'table_3', 'project_1', 'dataset_b', 'table_4', null)
+    , ('job_4', 'project_5', 'dataset_5', 'table_5', 'project_1', 'dataset_b', 'table_4', null)
     , ('job_5', 'project_7', 'dataset_7', 'table_7', 'project_6', 'dataset_6', 'table_6', null)
     , ('job_6', 'project_6', 'dataset_6', 'table_6', 'project_5', 'dataset_5', 'table_5', null)
   ]) as data
 )
+
 , __check as (
   select * from relations__impl
   union all
   select * from relations__examples
   limit 0
 )
+
 , relations as (
-  select * from `relations__impl`
   -- select * from `relations__examples`
+  select * from `relations__impl`
 )
+
+, _lineage as (
+  -- Build lineage using lineage syntax
+  select
+    format('%s.%s.%s', dst_project, dst_dataset, dst_table) as destination
+    , 0 as depth
+    , relations.* except(unique_key)
+    , cast([] as array<string>) as _ancestors
+  from relations
+  where unique_key not like '%(User)%'
+    and not starts_with(dst_table, '_')
+    and not starts_with(dst_dataset, '_script')
+  union all
+  select
+    destination
+    , depth + 1 as depth
+    , _lineage.src_project as dst_project
+    , _lineage.src_dataset as dst_dataset
+    , _lineage.src_table as dst_table
+    , relations.* except(dst_project, dst_dataset, dst_table, unique_key)
+    , _lineage._ancestors || [_parent] as _ancestors
+  from _lineage
+    join relations
+      on (relations.dst_project, relations.dst_dataset, relations.dst_table)
+        = (_lineage.src_project, _lineage.src_dataset, _lineage.src_table)
+    left join unnest([struct(
+      format('%T', (_lineage.dst_project, _lineage.dst_dataset, _lineage.dst_table)) as _parent
+      , format('%T', (_lineage.src_project, _lineage.src_dataset, _lineage.src_table)) as _self
+    )])
+  where
+    depth <= @max_depth
+    and ifnull(_self not in unnest(_ancestors), true)
+    -- Restrict intra dependency only for saving computing costs
+    and (_lineage.dst_project, _lineage.dst_dataset)
+      = (_lineage.src_project, _lineage.src_dataset)
+)
+
+, _lineage_compact as (
+  select
+    destination as _pk
+    , array_agg(
+      _lineage
+      order by depth
+    ) as references
+  from _lineage
+  group by _pk
+)
+, lineage as (
+  select * from _lineage
+  union all
+  select
+    any_value(_reference).* replace(
+      any_value(_lineage.destination) as destination
+      , max(_lineage.depth + 1 + _reference.depth) as depth
+    )
+  from _lineage
+  left join unnest([struct(
+    format('%s.%s.%s', src_project, src_dataset, src_table) as _pk
+  )])
+  join _lineage_compact using(_pk)
+  left join unnest(_lineage_compact.references) as _reference
+  group by
+    _reference.dst_project
+    , _reference.dst_dataset
+    , _reference.dst_table
+    , _reference.src_project
+    , _reference.src_dataset
+    , _reference.src_table
+)
+
 , user_query as (
   select
-    format('%%s.%%s.%%s', src_project, src_dataset, src_table) as destination
+    format('%s.%s.%s', src_project, src_dataset, src_table) as destination
     , -1 as depth
     , dst_project  as dst_project
     , string(null) as dst_dataset
@@ -206,12 +251,19 @@ with recursive lineage as (
   select * except(_ancestors) from lineage
 )
 
-select * from user_query
+, _final as (
+  select * from user_query
+  order by destination, depth, dst_project
+)
+
+select * from _final
 """
+  , "@DATASOURCE"
   , coalesce(
     format('%s.%s.INFORMATION_SCHEMA.%s', project_id, ifnull(location, 'region-us'), ifnull(information_schema_job_table_name, 'JOBS_BY_PROJECT'))
     , format('%s.INFORMATION_SCHEMA.%s',  ifnull(location, 'region-us'), ifnull(information_schema_job_table_name, 'JOBS_BY_PROJECT'))
     , error(format("invalid arguments: %t", (project_id, location, information_schema_job_table_name)))
-  ))
+  )
+  )
 )
 ;
