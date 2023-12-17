@@ -249,7 +249,9 @@ as ((
         # %s
         create or replace table function `%s`(_at timestamp)
         as
-          select * from `%s`
+          select
+            entity.*
+          from `%s`
           where
             -- when _at is null, use latest revision
             (`_at` is null and valid_to is null)
