@@ -15,7 +15,7 @@ jobs:
           node-version: 16
           cache: 'npm'
           cache-dependency-path: package-lock.json
-      - uses: 'google-github-actions/auth@v1'
+      - uses: 'google-github-actions/auth@v2'
         id: 'auth'
         with:
           workload_identity_provider: 'projects/1069005224497/locations/global/workloadIdentityPools/github-action/providers/github-action'
