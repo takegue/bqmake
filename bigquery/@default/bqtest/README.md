@@ -79,11 +79,18 @@ subgraph "fa:fa-database austin_311"
 end
 end
 subgraph "fa:fa-database bqtest"
+	/VpU(fa:fa-table zzsrepo__zgolden_routines)
 	1+1w(fa:fa-table demo_sample_table)
 	Z+1n(fa:fa-table demo_sample_partition_table)
 	jknI(fa:fa-table demo_sample_partition_table__cache)
+	qQZt(fa:fa-table mateview)
+	qt1O(fa:fa-table mateview1)
 end
+/VpU --> /VpU
+1+1w --> qQZt
+1+1w --> qt1O
 CNg3 --> 1+1w
 Z+1n --> jknI
+Z+1n --> qt1O
 ```
 <!--- BQMAKE_DATASET: END -->
