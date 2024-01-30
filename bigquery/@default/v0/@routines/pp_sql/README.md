@@ -36,7 +36,7 @@ with cte as (
 )
 
 select
-  v0.pp_table(array_agg(cte)),
+  v0.pp_sql(array_agg(cte)),
 from cte
 --> /*
 # AUTO-GENERATED
