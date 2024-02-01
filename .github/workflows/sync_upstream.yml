@@ -32,7 +32,7 @@ jobs:
           service_account: 'github-action@bqmake.iam.gserviceaccount.com'
       - run: npm ci
       - run: npm run pull
-      - uses: peter-evans/create-pull-request@v5
+      - uses: peter-evans/create-pull-request@v6
         with:
           branch: 'ci/${{ github.run_id }}'
           commit-message: 'Update metadata files by `bqport pull` on CI'
